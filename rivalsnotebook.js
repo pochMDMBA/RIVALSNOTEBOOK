@@ -216,8 +216,8 @@
     try {
       if (Array.isArray(data.enemy)) state.enemy = data.enemy.filter(n => HEROES.some(h => h.name === n));
       if (Array.isArray(data.ally)) state.ally = data.ally.filter(n => HEROES.some(h => h.name === n));
-      if (Array.isArray(data.counterTips)) state.counterTips = normalizeTips(data.counterTips);
-      if (Array.isArray(data.combos)) state.combos = normalizeCombos(data.combos);
+      if (Array.isArray(data.counterTips)) state.counterTips = window.rnMergeBuiltInRecords(DEFAULT_COUNTER_TIPS, data.counterTips, normalizeTips);
+      if (Array.isArray(data.combos)) state.combos = window.rnMergeBuiltInRecords(DEFAULT_COMBOS, data.combos, normalizeCombos);
       if (Array.isArray(data.groups)) state.groups = normalizeGroups(data.groups);
       if (Array.isArray(data.groupRules)) state.groupRules = normalizeGroupRules(data.groupRules);
       if (Array.isArray(data.comboRules)) state.comboRules = normalizeComboRules(data.comboRules);
@@ -230,9 +230,11 @@
     } finally { applyingRemote = false; }
   }
   function hasLocalWorkspaceContent(snapshot = workspaceSnapshot()) {
+    const builtTips = new Set(DEFAULT_COUNTER_TIPS.map(x => x.id));
+    const builtCombos = new Set(DEFAULT_COMBOS.map(x => x.id));
     return !!((snapshot.groups || []).length || (snapshot.groupRules || []).length || (snapshot.comboRules || []).length ||
       (snapshot.plays || []).length || (snapshot.playItems || []).length || (snapshot.enemy || []).length || (snapshot.ally || []).length ||
-      (snapshot.counterTips || []).length > DEFAULT_COUNTER_TIPS.length || (snapshot.combos || []).length > DEFAULT_COMBOS.length);
+      (snapshot.counterTips || []).some(x => !builtTips.has(x.id)) || (snapshot.combos || []).some(x => !builtCombos.has(x.id)));
   }
   function emptyWorkspaceSnapshot() {
     return {
