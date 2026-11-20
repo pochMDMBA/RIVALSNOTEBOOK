@@ -1,0 +1,13 @@
+{
+  "name": "rivalsnotebook",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RIVALSNOTEBOOK static Vercel app with Supabase Auth, community voting and collaborative playbooks",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "devDependencies": {
+    "vercel": "^41.0.0"
+  }
+}
