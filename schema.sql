@@ -278,3 +278,7 @@ end $$;
 
 -- Required grants for Supabase's Data API. RLS still governs row access.
 grant usage on schema public to anon, authenticated;
+
+
+-- Refresh the Supabase Data API schema cache so newly created tables are visible immediately.
+NOTIFY pgrst, 'reload schema';

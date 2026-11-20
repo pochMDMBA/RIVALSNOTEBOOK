@@ -19,6 +19,17 @@ The app still works locally without a backend connection. My Groups and app data
 
 The schema enables row-level security. Private workspaces are account-scoped, Community Groups and aggregate vote counts are publicly readable, and individual vote rows are visible only to the account that cast them. Notebook links let authenticated accounts join as editors. Do not disable RLS.
 
+## 1A. Fixing “Could not find the table in the schema cache”
+
+The app depends on the public tables `notebooks` and `community_groups` (plus their related tables). A `PGRST205` error means the connected Supabase Data API cannot see the table. The browser cannot safely create database tables itself.
+
+1. Check that `config.js` points to the same Supabase project where you are running SQL.
+2. Run the **entire** `supabase/schema.sql` script in that project's SQL Editor. It is designed to be safe to run again and ends by asking PostgREST to reload its schema cache.
+3. Run `supabase/verify_schema.sql`. Each required table should show a non-null relation name.
+4. In Project Settings → Data API, confirm `public` is included in Exposed schemas. If the tables exist but the app still reports `PGRST205`, run `NOTIFY pgrst, 'reload schema';` in SQL Editor and refresh the website.
+
+Do not create these tables manually in the Table Editor with a different structure. The app's policies, triggers, grants and collaboration RPC function are also required.
+
 ## 2. Connect the app to Supabase
 
 Edit `config.js` and fill the values:
@@ -99,5 +110,10 @@ The current collaboration layer synchronizes the notebook document state after a
 - `rivalsnotebook.css` — RIVALSNOTEBOOK brand and community styling.
 - `rivalsnotebook.js` — Supabase Auth, private data sync, votes, Community Groups and collaboration.
 - `config.js` — public Supabase URL and publishable/anon key configuration.
-- `supabase/schema.sql` — database tables, RLS policies, triggers and Realtime publication setup.
+- `supabase/schema.sql` — database tables, RLS policies, triggers, Realtime publication setup and schema-cache reload.
+- `supabase/verify_schema.sql` — checks that every required public table exists, then reloads the Data API schema cache.
 - `vercel.json` — static Vercel deployment configuration.
+
+## Recent interface update
+
+The Playbook pen now has an adjustable 0.5%–5.0% stroke-width control. The selected thickness is saved with each stroke, so older and saved plays retain their own line width when reloaded. A refreshed dark navy / teal interface polish improves the navigation, cards, panels, inputs and board controls.

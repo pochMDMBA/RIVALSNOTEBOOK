@@ -94,3 +94,11 @@ body.playbook-mode .board-surface-zoom .zoom-value{pointer-events:none!important
 body.playbook-mode .board-pen-tool-row #penDashedArrowBtn{overflow:hidden!important;min-width:0!important;padding:0!important}
 body.playbook-mode .board-pen-tool-row #penDashedArrowBtn svg{display:block;width:20px!important;height:12px!important;max-width:100%!important;overflow:hidden!important}
 body.playbook-mode .board-pen-tool-row{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important}
+
+/* Pen thickness UI fallback */
+.board-pen-thickness{display:flex;flex-direction:column;gap:4px;margin:6px 0 2px;padding:8px 9px;border:1px solid #3c5665;border-radius:8px;background:linear-gradient(145deg,#1c2f3c,#142530)}
+.board-pen-thickness-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.board-pen-thickness-head label{font-size:8px;font-weight:950;letter-spacing:.11em;color:#b6c9d4}
+.board-pen-thickness-head output{font-size:9px;font-weight:900;color:#ffe59a}
+#boardPenThickness{width:100%;height:16px;margin:1px 0;accent-color:#e6ca72;cursor:pointer}
+.board-pen-thickness-scale{display:flex;justify-content:space-between;color:#7f98a8;font-size:7px;font-weight:850;letter-spacing:.08em}

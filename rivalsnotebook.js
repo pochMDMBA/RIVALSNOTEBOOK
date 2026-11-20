@@ -49,6 +49,12 @@
   const hideModal = (id) => $(id)?.classList.remove('open');
   const makeId = (prefix = 'rn') => `${prefix}-${crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
   const safeClone = (value) => JSON.parse(JSON.stringify(value ?? null));
+  function databaseErrorHelp(error) {
+    const raw = String(error?.message || error || 'Unknown database error');
+    const missingTable = error?.code === 'PGRST205' || /could not find the table .*schema cache/i.test(raw);
+    if (!missingTable) return raw;
+    return `${raw}\n\nDATABASE SETUP REQUIRED: In the Supabase project connected in config.js, open SQL Editor and run the complete supabase/schema.sql file from this RIVALSNOTEBOOK package. Make sure public is listed under Project Settings → Data API → Exposed schemas, then run: NOTIFY pgrst, 'reload schema';. Confirm public.notebooks and public.community_groups exist before retrying.`;
+  }
 
   function installModals() {
     if (!$('rnAuthModal')) {
@@ -264,7 +270,7 @@
   async function loadWorkspace() {
     if (!sb || !currentUser) return;
     const { data, error } = await sb.from('user_workspaces').select('data').eq('user_id', currentUser.id).maybeSingle();
-    if (error) { console.warn('Workspace load:', error); setLiveStatus('WORKSPACE LOAD ISSUE',''); return; }
+    if (error) { console.warn('Workspace load:', error); setLiveStatus(error.code === 'PGRST205' ? 'DATABASE SETUP REQUIRED' : 'WORKSPACE LOAD ISSUE',''); message(databaseErrorHelp(error)); return; }
     const savedPendingImport = readPendingLocalImport(currentUser.id);
     if (data?.data && Object.keys(data.data).length) {
       pendingLocalImport = savedPendingImport;
@@ -288,7 +294,7 @@
     if (!sb || !currentUser || applyingRemote) return;
     const payload = { user_id: currentUser.id, data: workspaceSnapshot(), updated_at: new Date().toISOString() };
     const { error } = await sb.from('user_workspaces').upsert(payload, { onConflict: 'user_id' });
-    if (error) { console.warn('Workspace save:', error); setLiveStatus('SYNC ISSUE', ''); }
+    if (error) { console.warn('Workspace save:', error); setLiveStatus(error.code === 'PGRST205' ? 'DATABASE SETUP REQUIRED' : 'SYNC ISSUE', ''); message(databaseErrorHelp(error)); }
   }
   function scheduleCloudSave() {
     if (!sb || !currentUser || applyingRemote) return;
@@ -416,11 +422,11 @@
     const key = voteKey(type, id);
     const { data: existing, error: readError } = await sb.from('community_votes')
       .select('id').eq('content_type', type).eq('content_id', String(id)).eq('user_id', currentUser.id).maybeSingle();
-    if (readError) { toast(`Could not check vote: ${readError.message}`); return; }
+    if (readError) { toast(`Could not check vote: ${databaseErrorHelp(readError)}`); return; }
     let result;
     if (existing) result = await sb.from('community_votes').delete().eq('id', existing.id);
     else result = await sb.from('community_votes').insert({content_type:type, content_id:String(id), user_id:currentUser.id});
-    if (result.error) { toast(`Vote failed: ${result.error.message}`); return; }
+    if (result.error) { toast(`Vote failed: ${databaseErrorHelp(result.error)}`); return; }
     await refreshCommunityVotes(false);
     render();
   }
@@ -494,7 +500,7 @@
   async function loadCommunityGroups() {
     if (!sb) return;
     const { data, error } = await sb.from('community_groups').select('id,owner_id,source_group_id,name,icon,description,members,vote_count,created_at').order('vote_count', {ascending:false}).limit(200);
-    if (error) { console.warn('Community groups:', error); $('groupManagerList').innerHTML = `<div class="rn-community-empty">Unable to load public groups: ${escapeHtml(error.message)}</div>`; return; }
+    if (error) { console.warn('Community groups:', error); $('groupManagerList').innerHTML = `<div class="rn-community-empty"><strong>Unable to load public groups</strong><br><span style="white-space:pre-line">${escapeHtml(databaseErrorHelp(error))}</span></div>`; return; }
     communityGroups = data || [];
     myCommunityGroupVotes = new Set();
     if (currentUser) {
@@ -512,17 +518,17 @@
       members: group.members || []
     };
     const { error } = await sb.from('community_groups').upsert(payload, {onConflict:'owner_id,source_group_id'});
-    if (error) { toast(`Could not publish group: ${error.message}`); return; }
+    if (error) { toast(`Could not publish group: ${databaseErrorHelp(error)}`); return; }
     await loadCommunityGroups(); toast('Group submitted to the community'); setGroupView('community');
   }
   async function toggleCommunityGroupVote(groupId) {
     if (!requireAccount('upvote a Community Group')) return;
     const { data: existing, error: readError } = await sb.from('community_group_votes').select('id').eq('group_id',groupId).eq('user_id',currentUser.id).maybeSingle();
-    if (readError) { toast(`Could not check vote: ${readError.message}`); return; }
+    if (readError) { toast(`Could not check vote: ${databaseErrorHelp(readError)}`); return; }
     const result = existing
       ? await sb.from('community_group_votes').delete().eq('id',existing.id)
       : await sb.from('community_group_votes').insert({group_id:groupId,user_id:currentUser.id});
-    if (result.error) { toast(`Vote failed: ${result.error.message}`); return; }
+    if (result.error) { toast(`Vote failed: ${databaseErrorHelp(result.error)}`); return; }
     await loadCommunityGroups();
   }
   function addCommunityGroupToMine(groupId) {
@@ -560,7 +566,7 @@
     const { data, error } = await sb.from('notebooks').insert({
       owner_id: currentUser.id, share_token: token, title: state.playName || 'RivalsNotebook', data: notebookSnapshot()
     }).select('id,share_token').single();
-    if (error) { $('rnShareMessage').textContent = `Could not create notebook: ${error.message}`; return; }
+    if (error) { $('rnShareMessage').textContent = `Could not create notebook: ${databaseErrorHelp(error)}`; return; }
     activeNotebook = {id:data.id,token:data.share_token};
     await connectNotebookRealtime();
     $('rnShareUrl').value = shareUrl(token); $('rnCopyShareBtn').disabled = false;
@@ -584,7 +590,7 @@
       toast('Joined shared notebook');
     } catch (err) {
       console.error('Notebook join:', err);
-      toast(`Could not join notebook: ${err.message || err}`);
+      toast(`Could not join notebook: ${databaseErrorHelp(err)}`);
     }
   }
   function applyNotebookSnapshot(data) {
@@ -623,7 +629,7 @@
     if (!sb || !currentUser || !activeNotebook || applyingRemote) return;
     const payload = notebookSnapshot();
     const {error} = await sb.from('notebooks').update({title:state.playName||'RivalsNotebook',data:payload,updated_at:new Date().toISOString()}).eq('id',activeNotebook.id);
-    if (error) { console.warn('Notebook save:',error); setLiveStatus('COLLAB SYNC ISSUE',''); }
+    if (error) { console.warn('Notebook save:',error); setLiveStatus(error.code === 'PGRST205' ? 'DATABASE SETUP REQUIRED' : 'COLLAB SYNC ISSUE',''); message(databaseErrorHelp(error)); }
   }
 
   // Extend the app's existing local persistence with account and shared-notebook saves.
