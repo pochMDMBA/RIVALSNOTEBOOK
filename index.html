@@ -386,7 +386,7 @@ const STORE_KEY='marvel-rivals-counterpicker-v3';
 const LEGACY_STORE_KEYS=['marvel-rivals-counterpicker-v2','marvel-rivals-counterpicker-v1'];
 const TIER={hard:{label:'Hard counter',weight:1.0,cls:'tier-hard'},moderate:{label:'Moderate',weight:.7,cls:'tier-moderate'},soft:{label:'Soft counter',weight:.4,cls:'tier-soft'}};
 const $=id=>document.getElementById(id);
-const state={enemy:[],ally:[],target:'enemy',counterTips:structuredCloneSafe(DEFAULT_COUNTER_TIPS),combos:structuredCloneSafe(DEFAULT_COMBOS),groups:[],groupRules:[],comboRules:[],editingCounter:null,editingCounterRule:null,editingDerived:null,editingCombo:null,editingComboRule:null,editingGroup:null,groupMemberDraft:[],returnToGroupManager:false,suppressClickUntil:0,drag:null,showAllCombos:false,showAllOfficialCombos:false,showAllCounters:false,activePage:'counterPage',plays:[],activePlayId:null,playName:'Untitled Play',playItems:[],selectedBoardItem:null,boardDrag:null,pendingPocketLink:null};
+const state={enemy:[],ally:[],target:'enemy',counterTips:structuredCloneSafe(DEFAULT_COUNTER_TIPS),combos:structuredCloneSafe(DEFAULT_COMBOS),groups:[],groupRules:[],comboRules:[],editingCounter:null,editingCounterRule:null,editingDerived:null,editingCombo:null,editingComboRule:null,editingGroup:null,groupMemberDraft:[],returnToGroupManager:false,suppressClickUntil:0,drag:null,showAllCombos:false,showAllOfficialCombos:false,showAllCounters:false,collapsedCounterHeroes:[],activePage:'counterPage',plays:[],activePlayId:null,playName:'Untitled Play',playItems:[],selectedBoardItem:null,boardDrag:null,pendingPocketLink:null};
 function structuredCloneSafe(v){return JSON.parse(JSON.stringify(v))}
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function hero(name){return HEROES.find(h=>h.name===name)}
@@ -628,8 +628,41 @@ function normalizePlayItems(list){return (Array.isArray(list)?list:[]).filter(x=
 function selectorLabel(type,value){if(type==='hero')return value;const g=state.groups.find(x=>x.id===value);return g?g.name:'Deleted group'}
 function expandGroupRules(enemyNames=state.enemy){const out=[];for(const rule of state.groupRules){const sourceMembers=groupMembers(rule.sourceType,rule.sourceValue),targetMembers=groupMembers(rule.targetType,rule.targetValue);for(const counterHero of sourceMembers){for(const against of targetMembers){const key=pairKey(counterHero,against);if(!enemyNames.includes(against)||counterHero===against||rule.excludedPairs.includes(key))continue;out.push({id:`group:${rule.id}:${encodeURIComponent(counterHero)}:${encodeURIComponent(against)}`,groupRuleId:rule.id,pairKey:key,generated:true,against,hero:counterHero,tier:rule.tier,reason:rule.reason,votes:Number(rule.votesByPair[key])||0,myVote:!!rule.myVotesByPair[key],source:`Group rule · ${selectorLabel(rule.sourceType,rule.sourceValue)} → ${selectorLabel(rule.targetType,rule.targetValue)}`,sourceUrl:'',pocketPlayId:String((rule.pocketPlayByPair&&rule.pocketPlayByPair[key])||rule.pocketPlayId||'')})}}}return out}
 function expandComboRules(team=state.ally){const picks=new Set(team),out=[];if(!picks.size)return out;for(const rule of state.comboRules){const seen=new Set(),left=groupMembers(rule.sourceType,rule.sourceValue),right=groupMembers(rule.targetType,rule.targetValue);for(const a of left){for(const b of right){const key=pairComboKey(a,b);if(a===b||seen.has(key)||(!picks.has(a)&&!picks.has(b)))continue;seen.add(key);out.push({id:`group-synergy:${rule.id}:${encodeURIComponent(a)}:${encodeURIComponent(b)}`,ruleId:rule.id,pairKey:key,generated:true,a,b,reason:rule.reason,official:rule.official,votes:Number(rule.votesByPair[key])||0,myVote:!!rule.myVotesByPair[key],source:`Group synergy · ${selectorLabel(rule.sourceType,rule.sourceValue)} + ${selectorLabel(rule.targetType,rule.targetValue)}`,sourceUrl:rule.sourceUrl||'',icon:rule.icon||'sparkles',pocketPlayId:String((rule.pocketPlayByPair&&rule.pocketPlayByPair[key])||rule.pocketPlayId||'')})}}}return out}
-function reasonHtml(t){const target=t.generated?`VS ${escapeHtml(t.against.toUpperCase())} <span class="group-result-tag">GROUP RULE</span>`:`VS ${escapeHtml(t.against.toUpperCase())}`;const vote=t.generated?`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-groupcounter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="${t.myVote?'Remove your upvote':'Upvote this individual matchup'}">▲ ${t.votes}</button>`:`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-counter="${escapeHtml(t.id)}" title="${t.myVote?'Remove your upvote':'Upvote this reason'}">▲ ${t.votes}</button>`;const edit=t.generated?`<button class="edit-btn" data-edit-generated-counter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="Edit only this hero matchup">EDIT</button>`:`<button class="edit-btn" data-edit-counter="${escapeHtml(t.id)}">EDIT</button>`;return `<div class="reason"><div class="reason-top"><span class="reason-target">${target}</span><div class="reason-actions"><span class="tier-badge ${TIER[t.tier].cls}">${TIER[t.tier].label} · ${TIER[t.tier].weight.toFixed(1)}x</span><span class="reason-points">${counterPoints(t)} pts</span>${vote}${pocketAction(t.pocketPlayId)}${edit}</div></div><div class="reason-text">${escapeHtml(t.reason)}</div>${t.source?`<div class="tip-foot">${t.sourceUrl?`<a href="${escapeHtml(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t.source)} ↗</a>`:escapeHtml(t.source)}</div>`:''}</div>`}
-function renderCounterResults(){const enemies=state.enemy;if(!enemies.length){$('counterResults').innerHTML='<div class="empty-state"><strong>Select enemy heroes to start.</strong><br>Counter suggestions are ranked from saved ability-interaction tips, counter strength and community votes.</div>';return}const tips=[...state.counterTips.filter(t=>enemies.includes(t.against)),...expandGroupRules(enemies)];if(!tips.length){$('counterResults').innerHTML='<div class="empty-state">No saved counter tips match this enemy lineup yet. Add an individual counterpick or a group rule in Groups.</div>';return}const groups=new Map();for(const t of tips){if(!groups.has(t.hero))groups.set(t.hero,[]);groups.get(t.hero).push(t)}const cards=[...groups.entries()].map(([name,arr])=>{arr.sort((a,b)=>counterPoints(b)-counterPoints(a)||TIER[b.tier].weight-TIER[a.tier].weight||a.against.localeCompare(b.against));return{name,arr,targets:[...new Set(arr.map(t=>t.against))],points:arr.reduce((n,t)=>n+counterPoints(t),0),totalVotes:arr.reduce((n,t)=>n+(Number(t.votes)||0),0),weight:Math.max(...arr.map(t=>TIER[t.tier].weight))}}).sort((a,b)=>b.points-a.points||b.totalVotes-a.totalVotes||b.weight-a.weight||b.targets.length-a.targets.length||a.name.localeCompare(b.name));const visibleCards=state.showAllCounters?cards:cards.slice(0,5);$('counterResults').innerHTML=`<div class="pick-list">${visibleCards.map(c=>{const h=hero(c.name),extra=c.arr.slice(1);return `<article class="pick-card"><div class="pick-avatar"><div class="pick-portrait"><img src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(c.name)}" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="pick-fallback">${escapeHtml(c.name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div></div><div class="pick-main"><div class="pick-main-head"><div><div class="pick-name">${escapeHtml(c.name)}</div><div class="pick-role">${escapeHtml(h?.role||'Hero')} · ${c.arr.length} applicable matchup${c.arr.length===1?'':'s'}</div></div><div class="pick-score"><strong>${c.points}</strong> PTS</div></div><div class="reason-list">${reasonHtml(c.arr[0])}${extra.length?`<details class="more-reasons"><summary>＋ ${extra.length} more reason${extra.length===1?'':'s'}</summary><div class="reason-list">${extra.map(reasonHtml).join('')}</div></details>`:''}</div></div></article>`}).join('')}</div>${cards.length>5?`<button class="text-button" data-toggle-counters="1">${state.showAllCounters?'SHOW FEWER':'SHOW ALL '+cards.length+' COUNTER PICKS'}</button>`:''}<div class="small-help">Points per matchup: Hard 100 · Moderate 70 · Soft 40 · +5 per upvote. Hero scores sum the applicable matchup points against the selected enemy lineup.</div>`}
+function reasonHtml(t){
+ const targetHero=hero(t.against),initials=String(t.against||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('');
+ const target=`<span class="reason-vs">VS</span><span class="reason-target-hero"><span class="reason-target-icon">${targetHero?.img?`<img src="${escapeHtml(targetHero.img)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()">`:''}<span class="reason-icon-fallback">${escapeHtml(initials)}</span></span><span class="reason-target-name">${escapeHtml(t.against)}</span></span>${t.generated?`<span class="group-result-tag">GROUP RULE</span>`:''}`;
+ const vote=t.generated?`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-groupcounter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="${t.myVote?'Remove your upvote':'Upvote this individual matchup'}">▲ ${t.votes}</button>`:`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-counter="${escapeHtml(t.id)}" title="${t.myVote?'Remove your upvote':'Upvote this reason'}">▲ ${t.votes}</button>`;
+ const edit=t.generated?`<button class="edit-btn" data-edit-generated-counter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="Edit only this hero matchup">EDIT</button>`:`<button class="edit-btn" data-edit-counter="${escapeHtml(t.id)}">EDIT</button>`;
+ return `<div class="reason"><div class="reason-top"><span class="reason-target">${target}</span><div class="reason-actions"><span class="tier-badge ${TIER[t.tier].cls}">${TIER[t.tier].label} · ${TIER[t.tier].weight.toFixed(1)}x</span><span class="reason-points">${counterPoints(t)} pts</span>${vote}${pocketAction(t.pocketPlayId)}${edit}</div></div><div class="reason-text">${escapeHtml(t.reason)}</div>${t.source?`<div class="tip-foot">${t.sourceUrl?`<a href="${escapeHtml(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t.source)} ↗</a>`:escapeHtml(t.source)}</div>`:''}</div>`;
+}
+function renderCounterResults(){
+ const enemies=state.enemy;
+ if(!enemies.length){$('counterResults').innerHTML='<div class="empty-state"><strong>Select enemy heroes to start.</strong><br>Counter suggestions are ranked from saved ability-interaction tips, counter strength and community votes.</div>';return}
+ const tips=[...state.counterTips.filter(t=>enemies.includes(t.against)),...expandGroupRules(enemies)];
+ if(!tips.length){$('counterResults').innerHTML='<div class="empty-state">No saved counter tips match this enemy lineup yet. Add an individual counterpick or a group rule in Groups.</div>';return}
+ const groups=new Map();
+ for(const t of tips){if(!groups.has(t.hero))groups.set(t.hero,[]);groups.get(t.hero).push(t)}
+ const cards=[...groups.entries()].map(([name,arr])=>{
+   arr.sort((a,b)=>counterPoints(b)-counterPoints(a)||TIER[b.tier].weight-TIER[a.tier].weight||a.against.localeCompare(b.against));
+   return{name,arr,targets:[...new Set(arr.map(t=>t.against))],points:arr.reduce((n,t)=>n+counterPoints(t),0),totalVotes:arr.reduce((n,t)=>n+(Number(t.votes)||0),0),weight:Math.max(...arr.map(t=>TIER[t.tier].weight))};
+ }).sort((a,b)=>b.points-a.points||b.totalVotes-a.totalVotes||b.weight-a.weight||b.targets.length-a.targets.length||a.name.localeCompare(b.name));
+ const visibleCards=state.showAllCounters?cards:cards.slice(0,5);
+ const collapsed=new Set(Array.isArray(state.collapsedCounterHeroes)?state.collapsedCounterHeroes:[]);
+ $('counterResults').innerHTML=`<div class="pick-list">${visibleCards.map(c=>{
+   const h=hero(c.name),isCollapsed=collapsed.has(c.name),reasonCount=c.arr.length;
+   return `<article class="pick-card counter-suggestion ${isCollapsed?'counter-collapsed':''}" data-counter-suggestion="${escapeHtml(c.name)}">
+     <div class="pick-avatar"><div class="pick-portrait"><img src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(c.name)}" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="pick-fallback">${escapeHtml(c.name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div></div>
+     <div class="pick-main">
+       <div class="pick-main-head">
+         <div class="pick-identity"><div class="pick-name">${escapeHtml(c.name)}</div><div class="pick-role">${escapeHtml(h?.role||'Hero')} · ${reasonCount} applicable matchup${reasonCount===1?'':'s'}</div></div>
+         <div class="pick-head-actions"><div class="pick-score"><strong>${c.points}</strong><span>PTS</span></div><button type="button" class="counter-collapse-toggle" data-toggle-counter-card="${escapeHtml(c.name)}" aria-expanded="${!isCollapsed}" title="${isCollapsed?'Expand':'Collapse'} ${escapeHtml(c.name)} suggestion">${isCollapsed?'＋ SHOW':'− HIDE'}</button></div>
+       </div>
+       <div class="counter-card-body" ${isCollapsed?'hidden':''}><div class="reason-list">${c.arr.map(reasonHtml).join('')}</div></div>
+       <div class="counter-collapsed-summary" ${isCollapsed?'':'hidden'}>${reasonCount} matchup reason${reasonCount===1?'':'s'} hidden. Expand to review.</div>
+     </div>
+   </article>`;
+ }).join('')}</div>${cards.length>5?`<button class="text-button" data-toggle-counters="1">${state.showAllCounters?'SHOW FEWER':'SHOW ALL '+cards.length+' COUNTER PICKS'}</button>`:''}<div class="small-help">Points per matchup: Hard 100 · Moderate 70 · Soft 40 · +5 per upvote. Hero scores sum the applicable matchup points against the selected enemy lineup.</div>`;
+}
 function comboCardHtml(c){const aIn=state.ally.includes(c.a),bIn=state.ally.includes(c.b),status=aIn&&bIn?'TEAM PAIR ACTIVE':aIn?`SUGGEST ADD · ${c.b.toUpperCase()}`:bIn?`SUGGEST ADD · ${c.a.toUpperCase()}`:'MATCH';const vote=c.generated?`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}">▲ ${c.votes}</button>`:`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}">▲ ${c.votes}</button>`;const edit=c.generated?`<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>`:`<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;return `<article class="combo-card"><div class="combo-head"><div class="combo-icon">${iconSvg(c.icon||'sparkles')}</div><div class="combo-title-wrap"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div><div class="combo-role-hint">${escapeHtml(hero(c.a)?.role||'')} + ${escapeHtml(hero(c.b)?.role||'')}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="combo-status">${status}</div>${c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>'}<div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${vote}${pocketAction(c.pocketPlayId)}${edit}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`}
 function renderComboCards(combos,containerId,label){const container=$(containerId);if(!container)return;if(!combos.length){container.innerHTML=state.ally.length?'<div class="empty-state">No saved synergy matches this allied lineup yet. Add a synergy or create a group synergy rule. As you add allies, matching teammate picks appear here.</div>':'<div class="empty-state">Select at least one allied hero to discover suggested teammates from the saved synergy database.</div>';return}const sorted=[...combos].sort((a,b)=>synergyPoints(b)-synergyPoints(a)||b.votes-a.votes||a.a.localeCompare(b.a)||a.b.localeCompare(b.b));container.innerHTML=`<div class="combo-list">${sorted.map(comboCardHtml).join('')}</div><div class="small-help">Synergy points = 100 base (125 for official Team-Ups) + 5 per upvote. Suggestions are triggered by at least one selected ally; pairings already in your team are marked active.</div>`}
 function renderComboResults(){const picks=new Set(state.ally);let combos=[];if(picks.size){const direct=state.combos.filter(c=>picks.has(c.a)||picks.has(c.b));combos=[...direct,...expandComboRules(state.ally)];}const community=combos.filter(c=>!c.official),official=combos.filter(c=>c.official);renderComboCards(community,'comboResults','community');renderComboCards(official,'officialComboResults','official');$('synergyCount').textContent=`${community.length} SUGGESTIONS`;$('officialTeamupCount').textContent=`${official.length} SUGGESTIONS`}
@@ -3816,6 +3849,82 @@ header.rn-header{min-height:62px!important;padding:7px 4px 11px!important;border
 @media(max-width:820px){.app{padding:8px!important}.page-tab{min-width:0!important;flex:1!important;padding:8px 7px!important}.panel,.playbook-tools,.playbook-board-panel{border-radius:9px!important}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
+
+<style id="rn-counter-list-polish">
+/* Counter suggestions: matchup portrait, compact collapse controls, and intentional scroll areas. */
+#counterPage .results .result-scroll{
+  flex:1 1 auto!important;min-height:150px!important;max-height:calc(100vh - 285px)!important;
+  overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;
+  scrollbar-gutter:stable;padding-right:8px!important;-webkit-overflow-scrolling:touch;
+}
+#counterPage .picker .roster-scroll{
+  min-height:0!important;max-height:calc(100vh - 270px)!important;overflow-x:hidden!important;
+  overflow-y:auto!important;overscroll-behavior:contain!important;scrollbar-gutter:stable;
+  -webkit-overflow-scrolling:touch;
+}
+.counter-suggestion{align-items:start;transition:border-color .16s ease,background .16s ease}
+.counter-suggestion .pick-main{min-width:0}
+.counter-suggestion .pick-main-head{align-items:center;gap:10px}
+.counter-suggestion .pick-identity{min-width:0}
+.counter-suggestion .pick-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:none}
+.counter-suggestion .pick-score{display:flex;align-items:baseline;gap:4px}
+.counter-suggestion .pick-score span{font-size:8px;font-weight:850;color:#9eb2bf;letter-spacing:.08em}
+.counter-collapse-toggle{flex:none;min-height:25px;padding:4px 8px;border:1px solid #4c737b;border-radius:999px;background:linear-gradient(145deg,#25434a,#1a303a);color:#bfece5;font-size:8px;font-weight:950;letter-spacing:.07em;white-space:nowrap;cursor:pointer}
+.counter-collapse-toggle:hover{border-color:#82c9be;background:#2b5257;color:#f0fffb}
+.counter-card-body{min-width:0}
+.counter-card-body[hidden],.counter-collapsed-summary[hidden]{display:none!important}
+.counter-collapsed-summary{margin-top:5px;color:#90a6b4;font-size:8px;letter-spacing:.02em}
+.counter-collapsed{grid-template-columns:48px minmax(0,1fr)!important;align-items:center!important;padding:6px 8px!important}
+.counter-collapsed .pick-avatar{width:44px;height:48px;align-self:center}
+.counter-collapsed .pick-main-head{min-height:42px}
+.counter-collapsed .pick-name{font-size:12px}
+.reason-target{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.reason-vs{font-size:8px;font-weight:950;letter-spacing:.1em;color:#8ea5b3}
+.reason-target-hero{display:inline-flex;align-items:center;gap:5px;color:#e8d98e}
+.reason-target-icon{position:relative;display:inline-grid;place-items:center;width:23px;height:23px;flex:none;overflow:hidden;border:1px solid #566d7a;border-radius:5px;background:linear-gradient(145deg,#304652,#1a2a35)}
+.reason-target-icon img{display:block;width:100%;height:100%;object-fit:contain;position:relative;z-index:1}
+.reason-target-icon.broken img{display:none}
+.reason-icon-fallback{display:none;position:absolute;inset:0;place-items:center;font-size:8px;font-weight:950;color:#d5e2e9}
+.reason-target-icon.broken .reason-icon-fallback{display:grid}
+.reason-target-name{font-size:9px;font-weight:900;letter-spacing:.035em}
+.reason-target .group-result-tag{margin-left:2px}
+#counterResults .reason-list{gap:7px}
+#counterResults .reason{min-width:0}
+@media(max-width:820px){
+  #counterPage .results .result-scroll{max-height:68vh!important;min-height:200px!important}
+  #counterPage .picker .roster-scroll{max-height:68vh!important}
+  .counter-suggestion .pick-main-head{align-items:flex-start}
+  .counter-suggestion .pick-head-actions{gap:5px}
+  .counter-collapse-toggle{padding:4px 6px}
+}
+@media(max-width:480px){
+  .counter-suggestion{grid-template-columns:48px minmax(0,1fr)!important;gap:7px!important}
+  .counter-suggestion .pick-avatar{width:46px;height:58px}
+  .counter-suggestion .pick-head-actions{flex-wrap:wrap}
+  .counter-suggestion .pick-score{font-size:8px}
+  .reason-top{align-items:flex-start;flex-direction:column}
+  .reason-actions{width:100%;justify-content:flex-start;flex-wrap:wrap}
+}
+</style>
+<script id="rn-counter-suggestion-controls">
+(function(){
+ const root=document.getElementById('counterResults');
+ if(!root||root.dataset.rnCollapseBound)return;
+ root.dataset.rnCollapseBound='1';
+ root.addEventListener('click',function(event){
+   const button=event.target.closest('[data-toggle-counter-card]');
+   if(!button)return;
+   event.preventDefault();
+   const name=button.getAttribute('data-toggle-counter-card');
+   if(!name)return;
+   if(!Array.isArray(state.collapsedCounterHeroes))state.collapsedCounterHeroes=[];
+   const index=state.collapsedCounterHeroes.indexOf(name);
+   if(index>=0)state.collapsedCounterHeroes.splice(index,1);
+   else state.collapsedCounterHeroes.push(name);
+   renderCounterResults();
+ });
+})();
+</script>
 
 </body>
 </html>

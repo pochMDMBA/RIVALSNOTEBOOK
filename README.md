@@ -117,3 +117,11 @@ The current collaboration layer synchronizes the notebook document state after a
 ## Recent interface update
 
 The Playbook pen now has an adjustable 0.5%–5.0% stroke-width control. The selected thickness is saved with each stroke, so older and saved plays retain their own line width when reloaded. A refreshed dark navy / teal interface polish improves the navigation, cards, panels, inputs and board controls.
+
+
+## Counterpick list improvements
+
+- Every applicable matchup reason is shown directly under its suggested counter hero.
+- Each suggested hero can be collapsed or expanded independently to make room for lower-ranked suggestions.
+- Matchup labels include the enemy hero portrait beside the `VS` label.
+- Counter suggestions and the hero roster use bounded, touch-friendly scroll areas when their lists are long.
