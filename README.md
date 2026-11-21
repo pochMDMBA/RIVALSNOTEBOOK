@@ -138,3 +138,30 @@ The Playbook pen now has an adjustable 0.5%–5.0% stroke-width control. The sel
 - Default pen thickness is 0.5%; explicitly saved per-stroke widths are preserved.
 - Hero portrait images across roster, counter suggestions, synergies, groups, and Playbook tokens use centered `object-fit: contain` sizing to avoid clipping.
 - See `RESEARCH_NOTES.md` for the full list of additions, evidence labels, caveats and source links.
+
+
+## v5 Playbook editor update
+
+- Added a screenshot-inspired primary toolbar with active Select, Pen, Eraser, Text, and Image tools.
+- Added contextual Type, Color, Opacity, and Thickness controls.
+- Rebuilt the tactical shape palette with click-to-place and drag-to-canvas behavior.
+- Added editable numeric zoom percentage.
+- Fixed text callout save handling so the checkmark creates and persists the callout.
+- Improved Pocket Strat auto-layout for hero art and notes in preview and editing.
+- Added eraser interaction and extended tactical shape serialization.
+- Matched arrow pen shaft termination to the arrowhead base.
+
+The live Supabase project was not changed by this front-end update; no SQL migration is required.
+
+
+## v5 Playbook editor refresh
+
+- Reorganized the editor into a primary tool row, contextual Type/Color/Opacity/Thickness settings, and a lower shape/stamp palette.
+- The Select cursor is active on startup and has a persistent active-state highlight.
+- Shapes and tactical stamps can be clicked to place at the canvas center or dragged onto the board at the drop location.
+- Added numeric zoom percentage entry.
+- Fixed the inline callout editor save action so the checkmark creates and persists text notes.
+- Improved Pocket Strat hero-card and note sizing, and retained `layoutRole`, pen, shape, image, and skill metadata during saved-play hydration.
+- Set the default pen thickness to 0.5%.
+
+For this front-end update, no new Supabase migration is required. Replace the deployed app files and redeploy through the connected GitHub/Vercel project.

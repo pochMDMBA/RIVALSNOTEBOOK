@@ -407,7 +407,58 @@ function normalizeCombos(list){return (Array.isArray(list)?list:[]).map(x=>x?({.
 function normalizeGroups(list){return (Array.isArray(list)?list:[]).filter(g=>g&&String(g.name||'').trim()).map((g,i)=>({id:String(g.id||`group-${Date.now()}-${i}`),name:String(g.name).trim().slice(0,50),icon:String(g.icon||'🧩').slice(0,8),description:String(g.description||'').slice(0,160),members:[...new Set((Array.isArray(g.members)?g.members:[]).filter(n=>HEROES.some(h=>h.name===n)))].sort((a,b)=>{const A=hero(a),B=hero(b);return ROLE_ORDER.indexOf(A?.role)-ROLE_ORDER.indexOf(B?.role)||a.localeCompare(b)})})).filter(g=>g.members.length)}
 function normalizeComboRules(list){return (Array.isArray(list)?list:[]).filter(r=>r&&['hero','group'].includes(r.sourceType)&&['hero','group'].includes(r.targetType)&&String(r.reason||'').trim()).map((r,i)=>({id:String(r.id||`crule-${Date.now()}-${i}`),sourceType:r.sourceType,sourceValue:String(r.sourceValue||''),targetType:r.targetType,targetValue:String(r.targetValue||''),reason:String(r.reason).slice(0,700),official:!!r.official,votesByPair:r.votesByPair&&typeof r.votesByPair==='object'?r.votesByPair:{},myVotesByPair:r.myVotesByPair&&typeof r.myVotesByPair==='object'?r.myVotesByPair:{},source:String(r.source||'Community synergy').slice(0,150),sourceUrl:String(r.sourceUrl||'').slice(0,500)})).filter(r=>selectorExists(r.sourceType,r.sourceValue)&&selectorExists(r.targetType,r.targetValue))}
 function normalizePlays(list){return (Array.isArray(list)?list:[]).filter(p=>p&&String(p.name||'').trim()).map((p,i)=>({id:String(p.id||`play-${Date.now()}-${i}`),name:String(p.name).slice(0,70),items:normalizePlayItems(p.items||[]),updatedAt:String(p.updatedAt||''),synergyLink:p.synergyLink&&typeof p.synergyLink==='object'?{sourceType:String(p.synergyLink.sourceType||''),sourceId:String(p.synergyLink.sourceId||''),pairKey:String(p.synergyLink.pairKey||''),a:String(p.synergyLink.a||''),b:String(p.synergyLink.b||'')}:null}))}
-function normalizePlayItems(list){return (Array.isArray(list)?list:[]).filter(x=>x&&['hero','text','arrow'].includes(x.type)).map((x,i)=>({id:String(x.id||`board-${Date.now()}-${i}`),type:x.type,heroName:hero(x.heroName)?x.heroName:'',text:String(x.text||'').slice(0,240),x:Math.max(1,Math.min(94,Number(x.x)||10)),y:Math.max(1,Math.min(90,Number(x.y)||10)),rotate:Number.isFinite(Number(x.rotate))?Number(x.rotate):0,color:['yellow','blue','red','green'].includes(x.color)?x.color:'yellow'})).filter(x=>x.type!=='hero'||x.heroName).filter(x=>x.type!=='text'||x.text.trim())}
+function normalizePlayItems(list){
+  const allowed = ['hero','text','arrow','wall','pit','broken','number','ability','shape','pen','image'];
+  const shapes = ['circle','rectangle','triangle','triangle-down','diamond','cone','star','line','pin','warning','flag','anchor','target','area'];
+  return (Array.isArray(list)?list:[])
+    .filter(x=>x && allowed.includes(x.type))
+    .map((x,i)=>{
+      const path = Array.isArray(x.path) ? x.path.slice(0,500).map(p=>[
+        Math.max(0,Math.min(1000,Number(p?.[0])||0)),
+        Math.max(0,Math.min(1000,Number(p?.[1])||0))
+      ]) : [];
+      const iconUrl=String(x.abilityIconUrl||'');
+      const imageData=String(x.imageData||'');
+      const shapeKind=shapes.includes(x.shapeKind)?x.shapeKind:'rectangle';
+      const defaults={line:[14,4],circle:[9,14],area:[14,12],rectangle:[11,13],triangle:[11,14],'triangle-down':[11,14],diamond:[9,14],cone:[10,14],star:[9,14],pin:[9,14],warning:[10,14],flag:[9,14],anchor:[9,14],target:[10,14]};
+      const fallbackW=x.type==='shape'?(defaults[shapeKind]?.[0]||11):x.type==='arrow'||x.type==='wall'?15:x.type==='image'?18:2;
+      const fallbackH=x.type==='shape'?(defaults[shapeKind]?.[1]||13):x.type==='arrow'?6:x.type==='wall'?5:x.type==='image'?20:2;
+      const item={
+        ...x,
+        id:String(x.id||`board-${Date.now()}-${i}`),
+        type:x.type,
+        heroName:hero(x.heroName)?x.heroName:'',
+        side:['ally','enemy','neutral'].includes(x.side)?x.side:'neutral',
+        text:String(x.text||'').slice(0,240),
+        number:Math.max(1,Math.min(99,Number(x.number)||i+1)),
+        abilityName:String(x.abilityName||'').slice(0,90),
+        abilityKey:String(x.abilityKey||'').slice(0,12),
+        abilityKind:['primary','secondary','ability','mobility','ultimate'].includes(x.abilityKind)?x.abilityKind:'ability',
+        abilityIconUrl:(iconUrl.startsWith('https://rivalsmeta.com/images/heroes/Abilities/')||iconUrl.startsWith('https://www.marvelrivals.com/pc/gw/')||iconUrl.startsWith('https://cdn.source.gs/marvel-rivals/img/'))?iconUrl:'',
+        layoutRole:['pocket-hero','pocket-connector','pocket-note'].includes(x.layoutRole)?x.layoutRole:'',
+        imageData:/^data:image\/(?:png|jpeg|webp|gif);base64,/i.test(imageData)&&imageData.length<2000000?imageData:'',
+        imageName:String(x.imageName||'Image').slice(0,120),
+        shapeKind,
+        path,
+        w:Math.max(.35,Math.min(100,Number(x.w)||fallbackW)),
+        h:Math.max(.35,Math.min(100,Number(x.h)||fallbackH)),
+        scale:Math.max(.25,Math.min(4,Number(x.scale)||1)),
+        x:Number.isFinite(Number(x.x))?Math.max(0,Math.min(100,Number(x.x))):10,
+        y:Number.isFinite(Number(x.y))?Math.max(0,Math.min(100,Number(x.y))):10,
+        rotate:Number.isFinite(Number(x.rotate))?Number(x.rotate):0,
+        penStyle:['solid','dashed','arrow','dashed-arrow'].includes(x.penStyle)?x.penStyle:'solid',
+        penWidth:Math.max(.5,Math.min(5,Number(x.penWidth)||.5)),
+        color:/^#[0-9a-f]{6}$/i.test(String(x.color||''))?String(x.color):(['white','black','red','yellow','green','blue'].includes(x.color)?x.color:'yellow'),
+        opacity:Math.max(.1,Math.min(1,Number(x.opacity)||1))
+      };
+      return item;
+    })
+    .filter(x=>x.type!=='hero'||x.heroName)
+    .filter(x=>x.type!=='text'||x.text.trim())
+    .filter(x=>x.type!=='ability'||(x.heroName&&x.abilityName))
+    .filter(x=>x.type!=='pen'||x.path.length>1)
+    .filter(x=>x.type!=='image'||!!x.imageData);
+}
 
 function normalizeGroupRules(list){return (Array.isArray(list)?list:[]).filter(r=>r&&['hero','group'].includes(r.sourceType)&&['hero','group'].includes(r.targetType)&&String(r.reason||'').trim()&&TIER[r.tier]).map((r,i)=>({id:String(r.id||`grule-${Date.now()}-${i}`),sourceType:r.sourceType,sourceValue:String(r.sourceValue||''),targetType:r.targetType,targetValue:String(r.targetValue||''),tier:r.tier,reason:String(r.reason).slice(0,700),votesByPair:r.votesByPair&&typeof r.votesByPair==='object'?r.votesByPair:{},myVotesByPair:r.myVotesByPair&&typeof r.myVotesByPair==='object'?r.myVotesByPair:{},excludedPairs:Array.isArray(r.excludedPairs)?r.excludedPairs:[],source:String(r.source||'User group rule').slice(0,150)})).filter(r=>selectorExists(r.sourceType,r.sourceValue)&&selectorExists(r.targetType,r.targetValue))}
 function selectorExists(type,value){return type==='hero'?!!hero(value):state.groups.some(g=>g.id===value)}
@@ -632,7 +683,58 @@ function normalizeTips(list){return (Array.isArray(list)?list:[]).map(x=>x?({...
 function normalizeCombos(list){return (Array.isArray(list)?list:[]).map(x=>x?({...x,a:({'Bucky':'Winter Soldier','Punisher':'The Punisher'}[x.a]||x.a),b:({'Bucky':'Winter Soldier','Punisher':'The Punisher'}[x.b]||x.b)}):x).filter(x=>x&&HEROES.some(h=>h.name===x.a)&&HEROES.some(h=>h.name===x.b)&&x.a!==x.b&&String(x.reason||'').trim()).map((x,i)=>({id:String(x.id||`combo-${Date.now()}-${i}`),a:x.a,b:x.b,reason:String(x.reason).slice(0,700),official:(String(x.id||'').startsWith('r11-u')?false:(x.official===true||x.official==='true')),votes:Math.max(0,Number(x.votes)||0),myVote:!!x.myVote,source:String(x.source||'Community tip').slice(0,150),sourceUrl:String(x.sourceUrl||'').slice(0,500),icon:normalizeIcon(String(x.icon||'sparkles')),pocketPlayId:String(x.pocketPlayId||'')}))}
 function normalizeGroupRules(list){return (Array.isArray(list)?list:[]).filter(r=>r&&['hero','group'].includes(r.sourceType)&&['hero','group'].includes(r.targetType)&&String(r.reason||'').trim()&&TIER[r.tier]).map((r,i)=>({id:String(r.id||`grule-${Date.now()}-${i}`),sourceType:r.sourceType,sourceValue:String(r.sourceValue||''),targetType:r.targetType,targetValue:String(r.targetValue||''),tier:r.tier,reason:String(r.reason).slice(0,700),votesByPair:r.votesByPair&&typeof r.votesByPair==='object'?r.votesByPair:{},myVotesByPair:r.myVotesByPair&&typeof r.myVotesByPair==='object'?r.myVotesByPair:{},excludedPairs:Array.isArray(r.excludedPairs)?r.excludedPairs:[],source:String(r.source||'User group rule').slice(0,150),pocketPlayId:String(r.pocketPlayId||'')})).filter(r=>selectorExists(r.sourceType,r.sourceValue)&&selectorExists(r.targetType,r.targetValue))}
 function normalizeComboRules(list){return (Array.isArray(list)?list:[]).filter(r=>r&&['hero','group'].includes(r.sourceType)&&['hero','group'].includes(r.targetType)&&String(r.reason||'').trim()).map((r,i)=>({id:String(r.id||`crule-${Date.now()}-${i}`),sourceType:r.sourceType,sourceValue:String(r.sourceValue||''),targetType:r.targetType,targetValue:String(r.targetValue||''),reason:String(r.reason).slice(0,700),official:!!r.official,votesByPair:r.votesByPair&&typeof r.votesByPair==='object'?r.votesByPair:{},myVotesByPair:r.myVotesByPair&&typeof r.myVotesByPair==='object'?r.myVotesByPair:{},source:String(r.source||'Community synergy').slice(0,150),sourceUrl:String(r.sourceUrl||'').slice(0,500),icon:normalizeIcon(String(r.icon||'sparkles')),pocketPlayId:String(r.pocketPlayId||''),pocketPlayByPair:r.pocketPlayByPair&&typeof r.pocketPlayByPair==='object'?r.pocketPlayByPair:{}})).filter(r=>selectorExists(r.sourceType,r.sourceValue)&&selectorExists(r.targetType,r.targetValue))}
-function normalizePlayItems(list){return (Array.isArray(list)?list:[]).filter(x=>x&&['hero','text','arrow','wall','pit','broken','number','ability','shape','pen','image'].includes(x.type)).map((x,i)=>({...x,id:String(x.id||`board-${Date.now()}-${i}`),type:x.type,heroName:hero(x.heroName)?x.heroName:'',side:['ally','enemy','neutral'].includes(x.side)?x.side:'neutral',text:String(x.text||'').slice(0,240),imageData:/^data:image\/(?:png|jpeg|webp|gif);base64,/i.test(String(x.imageData||''))?String(x.imageData).slice(0,2000000):'',imageName:String(x.imageName||'Image').slice(0,120),w:Math.max(2,Math.min(60,Number(x.w)||18)),h:Math.max(2,Math.min(60,Number(x.h)||20)),number:Math.max(1,Math.min(99,Number(x.number)||i+1)),x:Number.isFinite(Number(x.x))?Math.max(0,Math.min(100,Number(x.x))):10,y:Number.isFinite(Number(x.y))?Math.max(0,Math.min(100,Number(x.y))):10,rotate:Number.isFinite(Number(x.rotate))?Number(x.rotate):0,color:['yellow','blue','red','green'].includes(x.color)?x.color:'yellow'})).filter(x=>x.type!=='hero'||x.heroName).filter(x=>x.type!=='text'||x.text.trim()).filter(x=>x.type!=='ability'||(x.heroName&&x.abilityName)).filter(x=>x.type!=='pen'||Array.isArray(x.path))}
+function normalizePlayItems(list){
+  const allowed = ['hero','text','arrow','wall','pit','broken','number','ability','shape','pen','image'];
+  const shapes = ['circle','rectangle','triangle','triangle-down','diamond','cone','star','line','pin','warning','flag','anchor','target','area'];
+  return (Array.isArray(list)?list:[])
+    .filter(x=>x && allowed.includes(x.type))
+    .map((x,i)=>{
+      const path = Array.isArray(x.path) ? x.path.slice(0,500).map(p=>[
+        Math.max(0,Math.min(1000,Number(p?.[0])||0)),
+        Math.max(0,Math.min(1000,Number(p?.[1])||0))
+      ]) : [];
+      const iconUrl=String(x.abilityIconUrl||'');
+      const imageData=String(x.imageData||'');
+      const shapeKind=shapes.includes(x.shapeKind)?x.shapeKind:'rectangle';
+      const defaults={line:[14,4],circle:[9,14],area:[14,12],rectangle:[11,13],triangle:[11,14],'triangle-down':[11,14],diamond:[9,14],cone:[10,14],star:[9,14],pin:[9,14],warning:[10,14],flag:[9,14],anchor:[9,14],target:[10,14]};
+      const fallbackW=x.type==='shape'?(defaults[shapeKind]?.[0]||11):x.type==='arrow'||x.type==='wall'?15:x.type==='image'?18:2;
+      const fallbackH=x.type==='shape'?(defaults[shapeKind]?.[1]||13):x.type==='arrow'?6:x.type==='wall'?5:x.type==='image'?20:2;
+      const item={
+        ...x,
+        id:String(x.id||`board-${Date.now()}-${i}`),
+        type:x.type,
+        heroName:hero(x.heroName)?x.heroName:'',
+        side:['ally','enemy','neutral'].includes(x.side)?x.side:'neutral',
+        text:String(x.text||'').slice(0,240),
+        number:Math.max(1,Math.min(99,Number(x.number)||i+1)),
+        abilityName:String(x.abilityName||'').slice(0,90),
+        abilityKey:String(x.abilityKey||'').slice(0,12),
+        abilityKind:['primary','secondary','ability','mobility','ultimate'].includes(x.abilityKind)?x.abilityKind:'ability',
+        abilityIconUrl:(iconUrl.startsWith('https://rivalsmeta.com/images/heroes/Abilities/')||iconUrl.startsWith('https://www.marvelrivals.com/pc/gw/')||iconUrl.startsWith('https://cdn.source.gs/marvel-rivals/img/'))?iconUrl:'',
+        layoutRole:['pocket-hero','pocket-connector','pocket-note'].includes(x.layoutRole)?x.layoutRole:'',
+        imageData:/^data:image\/(?:png|jpeg|webp|gif);base64,/i.test(imageData)&&imageData.length<2000000?imageData:'',
+        imageName:String(x.imageName||'Image').slice(0,120),
+        shapeKind,
+        path,
+        w:Math.max(.35,Math.min(100,Number(x.w)||fallbackW)),
+        h:Math.max(.35,Math.min(100,Number(x.h)||fallbackH)),
+        scale:Math.max(.25,Math.min(4,Number(x.scale)||1)),
+        x:Number.isFinite(Number(x.x))?Math.max(0,Math.min(100,Number(x.x))):10,
+        y:Number.isFinite(Number(x.y))?Math.max(0,Math.min(100,Number(x.y))):10,
+        rotate:Number.isFinite(Number(x.rotate))?Number(x.rotate):0,
+        penStyle:['solid','dashed','arrow','dashed-arrow'].includes(x.penStyle)?x.penStyle:'solid',
+        penWidth:Math.max(.5,Math.min(5,Number(x.penWidth)||.5)),
+        color:/^#[0-9a-f]{6}$/i.test(String(x.color||''))?String(x.color):(['white','black','red','yellow','green','blue'].includes(x.color)?x.color:'yellow'),
+        opacity:Math.max(.1,Math.min(1,Number(x.opacity)||1))
+      };
+      return item;
+    })
+    .filter(x=>x.type!=='hero'||x.heroName)
+    .filter(x=>x.type!=='text'||x.text.trim())
+    .filter(x=>x.type!=='ability'||(x.heroName&&x.abilityName))
+    .filter(x=>x.type!=='pen'||x.path.length>1)
+    .filter(x=>x.type!=='image'||!!x.imageData);
+}
 function selectorLabel(type,value){if(type==='hero')return value;const g=state.groups.find(x=>x.id===value);return g?g.name:'Deleted group'}
 function expandGroupRules(enemyNames=state.enemy){const out=[];for(const rule of state.groupRules){const sourceMembers=groupMembers(rule.sourceType,rule.sourceValue),targetMembers=groupMembers(rule.targetType,rule.targetValue);for(const counterHero of sourceMembers){for(const against of targetMembers){const key=pairKey(counterHero,against);if(!enemyNames.includes(against)||counterHero===against||rule.excludedPairs.includes(key))continue;out.push({id:`group:${rule.id}:${encodeURIComponent(counterHero)}:${encodeURIComponent(against)}`,groupRuleId:rule.id,pairKey:key,generated:true,against,hero:counterHero,tier:rule.tier,reason:rule.reason,votes:Number(rule.votesByPair[key])||0,myVote:!!rule.myVotesByPair[key],source:`Group rule · ${selectorLabel(rule.sourceType,rule.sourceValue)} → ${selectorLabel(rule.targetType,rule.targetValue)}`,sourceUrl:'',pocketPlayId:String((rule.pocketPlayByPair&&rule.pocketPlayByPair[key])||rule.pocketPlayId||'')})}}}return out}
 function expandComboRules(team=state.ally){const picks=new Set(team),out=[];if(!picks.size)return out;for(const rule of state.comboRules){const seen=new Set(),left=groupMembers(rule.sourceType,rule.sourceValue),right=groupMembers(rule.targetType,rule.targetValue);for(const a of left){for(const b of right){const key=pairComboKey(a,b);if(a===b||seen.has(key)||(!picks.has(a)&&!picks.has(b)))continue;seen.add(key);out.push({id:`group-synergy:${rule.id}:${encodeURIComponent(a)}:${encodeURIComponent(b)}`,ruleId:rule.id,pairKey:key,generated:true,a,b,reason:rule.reason,official:rule.official,votes:Number(rule.votesByPair[key])||0,myVote:!!rule.myVotesByPair[key],source:`Group synergy · ${selectorLabel(rule.sourceType,rule.sourceValue)} + ${selectorLabel(rule.targetType,rule.targetValue)}`,sourceUrl:rule.sourceUrl||'',icon:rule.icon||'sparkles',pocketPlayId:String((rule.pocketPlayByPair&&rule.pocketPlayByPair[key])||rule.pocketPlayId||'')})}}}return out}
@@ -692,7 +794,7 @@ function renderBoard(){const board=$('playBoard');if(!board)return;const hint=$(
 function renderPlaybook(){if(!$('playBoard'))return;$('playName').value=state.playName||'Untitled Play';const sel=$('boardHeroSelect');let opts='';if(state.ally.length)opts+='<optgroup label="ALLIED HEROES">'+state.ally.map(n=>`<option value="ally::${escapeHtml(n)}">${escapeHtml(n)} · ALLY</option>`).join('')+'</optgroup>';if(state.enemy.length)opts+='<optgroup label="ENEMY HEROES">'+state.enemy.map(n=>`<option value="enemy::${escapeHtml(n)}">${escapeHtml(n)} · ENEMY</option>`).join('')+'</optgroup>';if(!opts)opts='<option value="">Select heroes in the Counter Picker first</option>';sel.innerHTML=opts;renderPlaySelect();renderBoard()}
 function newBoardItem(type,extra={}){if(type==='hero'&&extra.heroName){const raw=extra.heroName;if(raw.startsWith('ally::')||raw.startsWith('enemy::')){extra.side=raw.startsWith('enemy::')?'enemy':'ally';extra.heroName=raw.slice(raw.indexOf('::')+2)}}if(type==='number'&&!extra.number){extra.number=Math.max(0,...state.playItems.filter(x=>x.type==='number').map(x=>x.number||0))+1}const item={id:`board-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,type,x:12+(state.playItems.length%5)*14,y:15+(state.playItems.length%4)*14,rotate:0,color:'yellow',side:'ally',...extra};state.playItems.push(item);state.selectedBoardItem=item.id;renderBoard();persist()}
 function rotateSelectedArrow(deg){const item=state.playItems.find(x=>x.id===state.selectedBoardItem&&['arrow','wall','broken'].includes(x.type));if(!item)return;item.rotate=((item.rotate+deg)%360+360)%360;renderBoard();persist()}
-function openPocketStrat(id){const p=state.plays.find(x=>x.id===id);if(!p){toast('This pocket strat is no longer available.');return}$('pocketModalTitle').textContent=p.name;$('pocketModalSub').textContent=`${p.items.length} objects · saved playbook`;$('pocketPreviewBoard').innerHTML='<div class="board-empty-hint" style="display:none"></div>';renderBoardInto($('pocketPreviewBoard'),normalizePlayItems(p.items));$('pocketModal').classList.add('open')}
+function openPocketStrat(id){const p=state.plays.find(x=>x.id===id);if(!p){toast('This pocket strat is no longer available.');return}$('pocketModal').dataset.playId=String(id);$('pocketModalTitle').textContent=p.name;$('pocketModalSub').textContent=`${p.items.length} objects · saved playbook`;$('pocketPreviewBoard').innerHTML='<div class="board-empty-hint" style="display:none"></div>';const pocketItems=normalizePlayItems(p.items).map(item=>{if(item.layoutRole==='pocket-note'&&Number(item.x)>=45&&Number(item.x)<=55)item.x=21;if(item.layoutRole==='pocket-hero'){item.w=9;item.h=15;}return item;});renderBoardInto($('pocketPreviewBoard'),pocketItems);$('pocketModal').classList.add('open')}
 
 // Replace legacy free-form group emoji input with a fixed SVG icon selector.
 const oldGroupIcon=$('groupIcon');if(oldGroupIcon){const sel=document.createElement('select');sel.id='groupIcon';sel.innerHTML=iconOptions('layers');sel.value='layers';oldGroupIcon.replaceWith(sel);const preview=document.createElement('span');preview.id='groupIconPreview';preview.className='icon-preview';preview.innerHTML=iconSvg('layers');sel.parentElement.appendChild(preview)}
@@ -701,9 +803,9 @@ const comboReasonField=$('comboReason')?.closest('.field');if(comboReasonField){
 const counterReasonField=$('counterReason')?.closest('.field');if(counterReasonField){const wrap=document.createElement('div');wrap.className='field pocket-select-field';wrap.innerHTML='<label for="counterPocketPlay">Pocket Strat (optional)</label><select id="counterPocketPlay"><option value="">No pocket strat attached</option></select><div class="small-help">Attach a saved playbook. Its play icon will appear on this counter tip.</div>';counterReasonField.parentElement.insertBefore(wrap,counterReasonField)}
 if(comboReasonField){const wrap=document.createElement('div');wrap.className='field pocket-select-field';wrap.innerHTML='<label for="comboPocketPlay">Pocket Strat (optional)</label><select id="comboPocketPlay"><option value="">No pocket strat attached</option></select><div class="small-help">Attach a saved playbook. Its play icon will appear on this synergy.</div>';comboReasonField.parentElement.insertBefore(wrap,comboReasonField)}
 // Compact pocket-strat preview window.
-const pocketModal=document.createElement('div');pocketModal.className='modal-backdrop';pocketModal.id='pocketModal';pocketModal.innerHTML='<div class="pocket-modal modal" role="dialog" aria-modal="true" aria-labelledby="pocketModalTitle"><div class="modal-head"><div><h3 id="pocketModalTitle">Pocket Strat</h3><div class="small-help" id="pocketModalSub"></div></div><button class="modal-close" type="button" id="closePocketModal" aria-label="Close">×</button></div><div class="pocket-modal-content"><div class="play-board pocket-preview-board" id="pocketPreviewBoard"></div></div><div class="modal-actions"><div class="right"><button class="btn" type="button" id="closePocketModalBottom">CLOSE</button></div></div></div>';
+const pocketModal=document.createElement('div');pocketModal.className='modal-backdrop';pocketModal.id='pocketModal';pocketModal.innerHTML='<div class="pocket-modal modal" role="dialog" aria-modal="true" aria-labelledby="pocketModalTitle"><div class="modal-head"><div><h3 id="pocketModalTitle">Pocket Strat</h3><div class="small-help" id="pocketModalSub"></div></div><button class="modal-close" type="button" id="closePocketModal" aria-label="Close">×</button></div><div class="pocket-modal-content"><div class="play-board pocket-preview-board" id="pocketPreviewBoard"></div></div><div class="modal-actions"><div class="right"><button class="btn primary" type="button" id="editPocketStratBtn">EDIT IN PLAYBOOK</button><button class="btn" type="button" id="closePocketModalBottom">CLOSE</button></div></div></div>';
 document.body.appendChild(pocketModal);
-$('closePocketModal').addEventListener('click',()=>closeModal('pocketModal'));$('closePocketModalBottom').addEventListener('click',()=>closeModal('pocketModal'));$('pocketModal').addEventListener('click',e=>{if(e.target===$('pocketModal'))closeModal('pocketModal')});
+$('closePocketModal').addEventListener('click',()=>closeModal('pocketModal'));$('closePocketModalBottom').addEventListener('click',()=>closeModal('pocketModal'));$('editPocketStratBtn')?.addEventListener('click',()=>{const id=$('pocketModal')?.dataset.playId;const play=state.plays.find(p=>String(p.id)===String(id));if(!play){toast('Could not find this saved Pocket Strat.');return;}state.activePlayId=play.id;state.playName=play.name;state.playItems=normalizePlayItems(play.items).map(item=>{if(item.layoutRole==='pocket-note'&&Number(item.x)>=45&&Number(item.x)<=55)item.x=21;if(item.layoutRole==='pocket-hero'){item.w=9;item.h=15;}return item;});state.selectedBoardItem=null;state.selectedBoardItems=[];closeModal('pocketModal');switchPage('playbookPage');renderPlaybook();toast('Pocket Strat opened for editing. Save Play to keep your changes.');});$('pocketModal').addEventListener('click',e=>{if(e.target===$('pocketModal'))closeModal('pocketModal')});
 ['counterResults','comboResults','officialComboResults','groupRulesManagerList','groupSynergyRulesManagerList'].forEach(id=>$(id)?.addEventListener('click',e=>{const btn=e.target.closest('[data-open-pocket]');if(btn){e.preventDefault();e.stopPropagation();openPocketStrat(btn.dataset.openPocket)}}));
 $('groupIcon').addEventListener('change',()=>updateIconPreview('groupIcon'));$('comboIcon').addEventListener('change',()=>updateIconPreview('comboIcon'));
 
@@ -1699,24 +1801,9 @@ initData();bindPlaybook();render();renderPlaybook();
     skillPanel.classList.add('open');
   }
 
-  // Expand the saved-play schema to include draggable ability markers.
-  normalizePlayItems = function(list) {
-    return (Array.isArray(list) ? list : []).filter(x => x && ['hero','text','arrow','wall','pit','broken','number','ability','image'].includes(x.type)).map((x, i) => ({
-      id: String(x.id || `board-${Date.now()}-${i}`),
-      type: x.type,
-      heroName: hero(x.heroName) ? x.heroName : '',
-      side: ['ally','enemy','neutral'].includes(x.side) ? x.side : 'ally',
-      text: String(x.text || '').slice(0, 240),
-      number: Math.max(1, Math.min(99, Number(x.number) || i + 1)),
-      abilityName: String(x.abilityName || '').slice(0, 90),
-      abilityKey: String(x.abilityKey || '').slice(0, 12),
-      abilityKind: ['primary','secondary','ability','mobility','ultimate'].includes(x.abilityKind) ? x.abilityKind : 'ability',
-      x: Math.max(1, Math.min(96, Number(x.x) || 10)),
-      y: Math.max(1, Math.min(90, Number(x.y) || 10)),
-      rotate: Number.isFinite(Number(x.rotate)) ? Number(x.rotate) : 0,
-      color: ['yellow','blue','red','green'].includes(x.color) ? x.color : 'yellow'
-    })).filter(x => x.type !== 'hero' || x.heroName).filter(x => x.type !== 'text' || x.text.trim()).filter(x => x.type !== 'ability' || (x.heroName && x.abilityName));
-  };
+  // Keep the full board schema intact while the editor UI is being initialized.
+  const normalizeBoardRecords = normalizePlayItems;
+  normalizePlayItems = function(list) { return normalizeBoardRecords(list); };
 
   renderBoardItem = function(item, selected = false) {
     const el = document.createElement('div');
@@ -2002,7 +2089,7 @@ initData();bindPlaybook();render();renderPlaybook();
   const originalNormalize = normalizePlayItems;
   normalizePlayItems = function(list) {
     const raw = Array.isArray(list) ? list : [];
-    return raw.filter(x => x && ['hero','text','arrow','wall','number','ability','shape','pen','image'].includes(x.type)).map((x, i) => {
+    return raw.filter(x => x && ['hero','text','arrow','wall','pit','broken','number','ability','shape','pen','image'].includes(x.type)).map((x, i) => {
       const path = Array.isArray(x.path) ? x.path.slice(0, 500).map(p => [
         Math.max(0, Math.min(1000, Number(p?.[0]) || 0)),
         Math.max(0, Math.min(1000, Number(p?.[1]) || 0))
@@ -2018,18 +2105,20 @@ initData();bindPlaybook();render();renderPlaybook();
         abilityKey: String(x.abilityKey || '').slice(0, 12),
         abilityKind: ['primary','secondary','ability','mobility','ultimate'].includes(x.abilityKind) ? x.abilityKind : 'ability',
         abilityIconUrl: (safeIcon.startsWith('https://rivalsmeta.com/images/heroes/Abilities/') || safeIcon.startsWith('https://www.marvelrivals.com/pc/gw/')) ? safeIcon : '',
+        layoutRole: ['pocket-hero','pocket-connector','pocket-note'].includes(x.layoutRole) ? x.layoutRole : '',
         imageData: /^data:image\/(?:png|jpeg|webp|gif);base64,/i.test(String(x.imageData||'')) ? String(x.imageData).slice(0,2000000) : '',
         imageName: String(x.imageName||'Image').slice(0,120),
-        shapeKind: ['circle','rectangle','triangle','diamond','cone','star','line'].includes(x.shapeKind) ? x.shapeKind : 'rectangle',
+        shapeKind: ['circle','rectangle','triangle','triangle-down','diamond','cone','star','line','pin','warning','flag','anchor','target','area'].includes(x.shapeKind) ? x.shapeKind : 'rectangle',
         path,
-        w: Math.max(.35, Math.min(100, Number(x.w) || (x.type === 'shape' ? ({line:14,circle:9,rectangle:11,triangle:11,diamond:9,cone:10,star:9}[x.shapeKind] || 11) : x.type === 'arrow' ? 15 : x.type === 'wall' ? 15 : 2))),
-        h: Math.max(.35, Math.min(100, Number(x.h) || (x.type === 'shape' ? ({line:4,circle:14,rectangle:13,triangle:14,diamond:14,cone:14,star:14}[x.shapeKind] || 13) : x.type === 'arrow' ? 6 : x.type === 'wall' ? 5 : 2))),
+        w: Math.max(.35, Math.min(100, Number(x.w) || (x.type === 'shape' ? ({line:14,circle:9,area:14,rectangle:11,triangle:11,'triangle-down':11,diamond:9,cone:10,star:9,pin:9,warning:10,flag:9,anchor:9,target:10}[x.shapeKind] || 11) : x.type === 'arrow' ? 15 : x.type === 'wall' ? 15 : 2))),
+        h: Math.max(.35, Math.min(100, Number(x.h) || (x.type === 'shape' ? ({line:4,circle:14,area:12,rectangle:13,triangle:14,'triangle-down':14,diamond:14,cone:14,star:14,pin:14,warning:14,flag:14,anchor:14,target:14}[x.shapeKind] || 13) : x.type === 'arrow' ? 6 : x.type === 'wall' ? 5 : 2))),
         scale: Math.max(.25, Math.min(4, Number(x.scale) || 1)),
         x: Number.isFinite(Number(x.x)) ? Math.max(0, Math.min(100, Number(x.x))) : 10,
         y: Number.isFinite(Number(x.y)) ? Math.max(0, Math.min(100, Number(x.y))) : 10,
         rotate: Number.isFinite(Number(x.rotate)) ? Number(x.rotate) : 0,
         penWidth: Math.max(.5, Math.min(5, Number(x.penWidth) || 2.2)),
-        color: ['yellow','blue','red','green'].includes(x.color) ? x.color : 'yellow'
+        color: /^#[0-9a-f]{6}$/i.test(String(x.color||'')) ? String(x.color) : (['white','black','red','yellow','green','blue'].includes(x.color) ? x.color : 'yellow'),
+        opacity: Math.max(.1,Math.min(1,Number(x.opacity)||1))
       };
     }).filter(x => x.type !== 'hero' || x.heroName)
       .filter(x => x.type !== 'text' || x.text.trim())
@@ -2780,10 +2869,10 @@ body.groups-mode .groups-page.group-editing .modal-actions .btn{min-height:30px!
     state.playName = `${a} + ${b} · Pocket Strat`;
     const reason = String(btn.dataset.reason || 'Team synergy setup').slice(0, 220);
     state.playItems = [
-      {id:makeId(),type:'hero',heroName:a,side:'ally',x:25,y:43,rotate:0,scale:1,layoutRole:'pocket-hero'},
-      {id:makeId(),type:'hero',heroName:b,side:'ally',x:65,y:43,rotate:0,scale:1,layoutRole:'pocket-hero'},
+      {id:makeId(),type:'hero',heroName:a,side:'ally',x:25,y:43,w:9,h:15,rotate:0,scale:1,layoutRole:'pocket-hero'},
+      {id:makeId(),type:'hero',heroName:b,side:'ally',x:65,y:43,w:9,h:15,rotate:0,scale:1,layoutRole:'pocket-hero'},
       {id:makeId(),type:'arrow',x:35,y:49,w:30,h:5,rotate:0,scale:1,color:'green',layoutRole:'pocket-connector'},
-      {id:makeId(),type:'text',text:`SYNERGY SETUP\n${a}  +  ${b}\n${reason}`,x:50,y:7,rotate:0,scale:1,color:'yellow',layoutRole:'pocket-note'}
+      {id:makeId(),type:'text',text:`SYNERGY SETUP\n${a}  +  ${b}\n${reason}`,x:21,y:7,rotate:0,scale:1,color:'yellow',w:58,layoutRole:'pocket-note'}
     ];
     state.selectedBoardItem = null;
     state.activePage = 'playbookPage';
@@ -2916,6 +3005,9 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   let hideAbilityLabels = localStorage.getItem('mrPlaybookHideAbilityLabels') === '1';
   let penModeActive = false, penStyle = 'solid', activeTool = 'select', pendingTextPlacement = false, penStroke = null;
   let penThickness = Math.max(.5,Math.min(5,Number(localStorage.getItem('mrPlaybookPenThicknessV2'))||.5));
+  let penColor = localStorage.getItem('rnPlaybookPenColor') || 'yellow';
+  let penOpacity = Math.max(.1,Math.min(1,Number(localStorage.getItem('rnPlaybookOpacity'))||1));
+  const boardPaint = c => {const v=String(c||'yellow');return /^#[0-9a-f]{6}$/i.test(v)?v:({white:'#f4f7fb',black:'#101820',red:'#ef665c',yellow:'#f1d76b',green:'#79d89e',blue:'#68bdf2'}[v]||'#f1d76b');};
   let hideHeroLabels = localStorage.getItem('mrPlaybookHideHeroLabels') === '1';
   let imageInsertCenter = null;
 
@@ -2951,7 +3043,14 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       rectangle:'<rect class="shape-fill" x="1" y="1" width="98" height="98" rx="2"/>',
       triangle:'<path class="shape-fill" d="M50 1 L99 99 H1 Z"/>',
       diamond:'<path class="shape-fill" d="M50 1 L99 50 L50 99 L1 50 Z"/>',
-      cone:'<path class="shape-fill" d="M99 1 L99 99 H1 Z"/>',
+      'triangle-down':'<path class="shape-fill" d="M1 1 H99 L50 99 Z"/>',
+      cone:'<path class="shape-fill" d="M50 1 L99 99 H1 Z"/>',
+      area:'<ellipse class="shape-fill" cx="50" cy="50" rx="48" ry="34"/>',
+      pin:'<path class="shape-fill" d="M50 98 C43 82 15 58 15 35 A35 35 0 1 1 85 35 C85 58 57 82 50 98 Z"/><circle class="shape-line" cx="50" cy="35" r="11"/>',
+      warning:'<path class="shape-fill" d="M50 3 L98 93 H2 Z"/><path class="shape-line" d="M50 31 V61 M50 75 V77"/>',
+      flag:'<path class="shape-line" d="M20 98 V3"/><path class="shape-fill" d="M22 6 H88 L72 28 L88 50 H22 Z"/>',
+      anchor:'<circle class="shape-line" cx="50" cy="15" r="10"/><path class="shape-line" d="M50 25 V88 M28 43 H72 M18 71 C18 88 34 96 50 96 C66 96 82 88 82 71 M18 71 L9 80 M18 71 L27 80 M82 71 L73 80 M82 71 L91 80"/>',
+      target:'<circle class="shape-line" cx="50" cy="50" r="45"/><circle class="shape-line" cx="50" cy="50" r="28"/><circle class="shape-fill" cx="50" cy="50" r="9"/>',
       star:'<path class="shape-fill" d="M50 1 L63 35 L99 37 L71 59 L81 99 L50 76 L19 99 L29 59 L1 37 L37 35 Z"/>',
       line:'<path class="shape-line" d="M1 50 H99"/>'
     };
@@ -2980,6 +3079,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       if (icon && !item.abilityIconUrl) { icon.classList.add('hulk-custom-icon'); icon.innerHTML = hulkVector(item.abilityName); }
     }
     if (item.type === 'hero' && hideHeroLabels) el.classList.add('hero-icon-only');
+    if (['shape','pen','arrow','wall','broken','number','pit'].includes(item.type)) { el.style.color=boardPaint(item.color); el.style.opacity=String(Math.max(.1,Math.min(1,Number(item.opacity)||1))); }
     if (item.type === 'pen') {
       const svg=el.querySelector('svg');
       const path=svg?.querySelector('path:not(.pen-arrow-head)')||svg?.querySelector('path');
@@ -2990,16 +3090,17 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
         svg.setAttribute('viewBox',`0 0 ${boxW} ${boxH}`);svg.setAttribute('preserveAspectRatio','none');
         const strokeWidth=boardW*(Math.max(.5,Math.min(5,Number(item.penWidth)||.5))/100);
         const isArrowPen=String(item.penStyle||'').includes('arrow');
-        const arrowSize=Math.max(boardW*.04,strokeWidth*2.8);
+        const totalLen=pts.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pts[i].x,p.y-pts[i].y),0);
+        const arrowSize=Math.min(Math.max(boardW*.04,strokeWidth*2.8),Math.max(strokeWidth*2,totalLen*.32));
         const shaftPts=pts.map(p=>({...p}));
         if(isArrowPen&&shaftPts.length>1){const tip=shaftPts[shaftPts.length-1],prev=shaftPts[shaftPts.length-2],dx=tip.x-prev.x,dy=tip.y-prev.y,len=Math.hypot(dx,dy)||1;shaftPts[shaftPts.length-1]={x:tip.x-dx/len*arrowSize,y:tip.y-dy/len*arrowSize};}
         path.setAttribute('d',shaftPts.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' '));
-        path.style.stroke='#f1d76b';path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap='round';path.style.strokeLinejoin='round';path.style.fill='none';
+        path.style.stroke=boardPaint(item.color);path.style.opacity='1';path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap=isArrowPen?'butt':'round';path.style.strokeLinejoin='round';path.style.fill='none';
         path.style.strokeDasharray=String(item.penStyle||'').includes('dashed')?`${strokeWidth*1.6}px ${strokeWidth*1.05}px`:'none';
         svg.querySelectorAll('.pen-arrow-head').forEach(n=>n.remove());
         if(String(item.penStyle||'').includes('arrow')&&pts.length>1){
-          const d=penArrowHead(pts,arrowSize,Math.max(boardW*.018,strokeWidth*1.35));
-          const head=document.createElementNS('http://www.w3.org/2000/svg','path');head.setAttribute('d',d);head.setAttribute('class','pen-arrow-head');head.style.fill='#f1d76b';head.style.stroke='none';svg.appendChild(head);
+          const d=penArrowHead(pts,arrowSize,Math.min(arrowSize*.72,Math.max(boardW*.018,strokeWidth*1.35)));
+          const head=document.createElementNS('http://www.w3.org/2000/svg','path');head.setAttribute('d',d);head.setAttribute('class','pen-arrow-head');head.style.fill=boardPaint(item.color);head.style.opacity='1';head.style.stroke='none';svg.appendChild(head);
         }
       }
       el.classList.add('pen-final-preview-match');
@@ -3012,7 +3113,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   function applyZoom() {
     stage.style.transform = `translate(${panX}px,${panY}px) scale(${zoom})`;
     const value = $('boardZoomValue');
-    if (value) value.textContent = `${Math.round(zoom*100)}%`;
+    if (value) value.value = String(Math.round(zoom*100));
     const minus = $('boardZoomOutBtn'), plus = $('boardZoomInBtn');
     if (minus) minus.disabled = zoom <= MIN_ZOOM + .001;
     if (plus) plus.disabled = zoom >= MAX_ZOOM - .001;
@@ -3033,6 +3134,10 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     state.selectedBoardItem = valid[0] || null;
     renderBoard();
   }
+  window.__rnSetBoardSelection = ids => setSelection(Array.isArray(ids)?ids:[]);
+  window.__rnBoardPoint = e => worldPoint(e);
+  window.__rnRenderBoard = () => renderBoard();
+  window.__rnGetBoardItems = () => state.playItems;
   function reconcileSelection() {
     const valid = new Set(state.playItems.map(x => x.id));
     selectedIds = new Set([...selectedIds].filter(id => valid.has(id)));
@@ -3114,7 +3219,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     if (type==='number' && !opts.number) opts.number=Math.max(0,...state.playItems.filter(x=>x.type==='number').map(x=>x.number||0))+1;
     const hasPosition=Number.isFinite(Number(opts.x)) && Number.isFinite(Number(opts.y));
     const item={id:`board-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,type,x:0,y:0,rotate:0,scale:1,color:'yellow',side:type==='hero'?'neutral':'ally',...opts};
-    if (type==='shape') { item.w=Number(item.w)||({circle:9,rectangle:11,triangle:11,diamond:9,cone:10,star:9,line:14}[item.shapeKind]||11); item.h=Number(item.h)||({line:4,circle:14,rectangle:13,triangle:14,diamond:14,cone:14,star:14}[item.shapeKind]||13); }
+    if (type==='shape') { item.w=Number(item.w)||({circle:9,area:14,rectangle:11,triangle:11,'triangle-down':11,diamond:9,cone:10,star:9,line:14,pin:9,warning:10,flag:9,anchor:9,target:10}[item.shapeKind]||11); item.h=Number(item.h)||({line:4,circle:14,area:12,rectangle:13,triangle:14,'triangle-down':14,diamond:14,cone:14,star:14,pin:14,warning:14,flag:14,anchor:14,target:14}[item.shapeKind]||13); }
     if (['arrow','wall','pen'].includes(type)) { item.w=Number(item.w)||15; item.h=Number(item.h)||(type==='arrow'?6:type==='wall'?5:2); }
     if (type==='image') { item.w=Math.max(2,Number(item.w)||18); item.h=Math.max(2,Number(item.h)||20); }
     state.playItems.push(item);
@@ -3172,9 +3277,10 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     zoomControls.className='board-surface-zoom';
     zoomControls.setAttribute('role','group');
     zoomControls.setAttribute('aria-label','Whiteboard zoom');
-    zoomControls.innerHTML='<button type="button" id="boardZoomOutBtn" title="Zoom out" aria-label="Zoom out">−</button><span class="zoom-value" id="boardZoomValue">65%</span><button type="button" id="boardZoomInBtn" title="Zoom in" aria-label="Zoom in">+</button>';
+    zoomControls.innerHTML='<button type="button" id="boardZoomOutBtn" title="Zoom out" aria-label="Zoom out">−</button><label class="zoom-input-wrap"><input class="zoom-value" id="boardZoomValue" type="number" min="65" max="200" step="5" value="65" aria-label="Zoom percentage"><span>%</span></label><button type="button" id="boardZoomInBtn" title="Zoom in" aria-label="Zoom in">+</button>';
     board.appendChild(zoomControls);
     ['boardZoomOutBtn','boardZoomInBtn'].forEach(id=>{const button=$(id);button.addEventListener('pointerdown',e=>{e.stopPropagation();});button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setZoom(zoom+(id==='boardZoomInBtn'?ZOOM_STEP:-ZOOM_STEP));});});
+    const zoomInput=$('boardZoomValue');if(zoomInput){zoomInput.addEventListener('pointerdown',e=>e.stopPropagation());zoomInput.addEventListener('click',e=>e.stopPropagation());zoomInput.addEventListener('change',()=>setZoom((Number(zoomInput.value)||65)/100));zoomInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();setZoom((Number(zoomInput.value)||65)/100);zoomInput.blur();}});}
     $('hideAbilityLabelsBtn').addEventListener('click',()=>{
       hideAbilityLabels=!hideAbilityLabels;localStorage.setItem('mrPlaybookHideAbilityLabels',hideAbilityLabels?'1':'0');
       $('hideAbilityLabelsBtn').setAttribute('aria-pressed',String(hideAbilityLabels));
@@ -3233,10 +3339,16 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       activeTool=tool;pendingTextPlacement=tool==='text';penModeActive=tool.startsWith('pen-');
       if(penModeActive)penStyle=tool.slice(4);
       board.classList.toggle('pen-active',penModeActive);
-      shapeTools.querySelectorAll('button').forEach(b=>b.classList.toggle('active',(b.id==='boardSelectToolBtn'&&tool==='select')||(b.id==='boardTextToolBtn'&&tool==='text')));
+      document.querySelectorAll('#rnPrimaryToolBar button,.board-shape-tools button').forEach(b=>{const primary=b.dataset.rnPrimaryTool||'';b.classList.toggle('active',(b.id==='boardSelectToolBtn'&&tool==='select')||(b.id==='boardTextToolBtn'&&tool==='text')||(primary==='pen'&&tool.startsWith('pen-'))||(primary==='eraser'&&tool==='eraser'));});
       document.querySelectorAll('.board-pen-tool-row button').forEach(b=>b.classList.toggle('active',b.dataset.penTool===tool));
+      const settings=document.getElementById('rnToolSettings');if(settings)settings.hidden=!(tool.startsWith('pen-')||tool==='shape');
+      const mainPen=document.querySelector('[data-rn-primary-tool="pen"]');if(mainPen)mainPen.classList.toggle('active',tool.startsWith('pen-'));
+      const eraser=document.querySelector('[data-rn-primary-tool="eraser"]');if(eraser)eraser.classList.toggle('active',tool==='eraser');
       board.style.cursor=tool==='select'?'default':penModeActive?'crosshair':tool==='text'?'text':'default';
     };
+    window.__rnSetBoardTool = tool => setTool(String(tool||'select'));
+    window.__rnGetBoardTool = () => activeTool;
+    window.__rnSetBoardStyle = (color,opacity) => { if(color)penColor=String(color); if(Number.isFinite(Number(opacity)))penOpacity=Math.max(.1,Math.min(1,Number(opacity))); };
     $('boardSelectToolBtn').addEventListener('click',()=>setTool('select'));
     [['solid','penSolidBtn'],['dashed','penDashedBtn'],['arrow','penArrowBtn'],['dashed-arrow','penDashedArrowBtn']].forEach(([kind,id])=>$(id).addEventListener('click',()=>setTool(`pen-${kind}`)));
     $('boardTextToolBtn').addEventListener('click',()=>setTool(pendingTextPlacement?'select':'text'));
@@ -3265,12 +3377,12 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     editor.style.left=`${point.x}%`;editor.style.top=`${point.y}%`;
     editor.innerHTML='<textarea rows="3" maxlength="240" placeholder="Type your callout…" aria-label="Whiteboard text"></textarea><div class="inline-board-text-actions"><button type="button" data-save-text title="Add text">✓</button><button type="button" data-cancel-text title="Cancel">×</button></div>';
     stage.appendChild(editor);const area=editor.querySelector('textarea');area.focus();
-    const finish=(save)=>{if(!editor.isConnected)return;const text=area.value.trim();const x=point.x,y=point.y;editor.remove();setTool('select');if(save&&text){newBoardItem('text',{text,x,y});}};
+    const finish=(save)=>{if(!editor.isConnected)return;const text=area.value.trim();const x=point.x,y=point.y;editor.remove();window.__rnSetBoardTool?.('select');if(save&&text){const add=window.newBoardItem||newBoardItem;add('text',{text,x,y});persist();renderBoard();}};
     editor.querySelector('[data-save-text]').addEventListener('click',()=>finish(true));
     editor.querySelector('[data-cancel-text]').addEventListener('click',()=>finish(false));
     area.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();finish(false);}else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();finish(true);}});
   }
-
+  window.__rnShowInlineTextEditor = point => showInlineTextEditor(point);
 
   const imageInput=document.createElement('input');
   imageInput.type='file';imageInput.id='boardImageFile';imageInput.accept='image/png,image/jpeg,image/webp,image/gif';imageInput.hidden=true;
@@ -3333,8 +3445,8 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     const path=preview.querySelector('#penPreviewPath');
     const strokeWidth=boardW*(penThickness/100);
     penStroke.width=penThickness;
-    if(path){path.style.stroke='#f1d76b';path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap='round';path.style.strokeLinejoin='round';if(String(penStroke.style).includes('dashed'))path.style.strokeDasharray=`${strokeWidth*1.6}px ${strokeWidth*1.05}px`;}
-    const head=preview.querySelector('#penPreviewHead');if(head){head.style.fill='#f1d76b';head.style.stroke='none';}
+    if(path){path.style.stroke=boardPaint(penColor);path.style.opacity=String(penOpacity);path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap=String(penStroke.style).includes('arrow')?'butt':'round';path.style.strokeLinejoin='round';if(String(penStroke.style).includes('dashed'))path.style.strokeDasharray=`${strokeWidth*1.6}px ${strokeWidth*1.05}px`;}
+    const head=preview.querySelector('#penPreviewHead');if(head){head.style.fill=boardPaint(penColor);head.style.opacity=String(penOpacity);head.style.stroke='none';}
     stage.appendChild(preview);board.setPointerCapture(e.pointerId);e.preventDefault();
   }
   function updatePen(e){
@@ -3343,18 +3455,18 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     const boardW=Math.max(1,stage.clientWidth),boardH=Math.max(1,stage.clientHeight);
     const pixels=penStroke.points.map(p=>({x:p.x/100*boardW,y:p.y/100*boardH}));
     const strokeWidth=boardW*((penStroke.width||penThickness)/100),isArrow=String(penStroke.style).includes('arrow');
-    const arrowSize=Math.max(boardW*.04,strokeWidth*2.8),shaftPixels=pixels.map(p=>({...p}));
+    const totalLen=pixels.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pixels[i].x,p.y-pixels[i].y),0);const arrowSize=Math.min(Math.max(boardW*.04,strokeWidth*2.8),Math.max(strokeWidth*2,totalLen*.32)),shaftPixels=pixels.map(p=>({...p}));
     if(isArrow&&shaftPixels.length>1){const tip=shaftPixels[shaftPixels.length-1],prev=shaftPixels[shaftPixels.length-2],dx=tip.x-prev.x,dy=tip.y-prev.y,len=Math.hypot(dx,dy)||1;shaftPixels[shaftPixels.length-1]={x:tip.x-dx/len*arrowSize,y:tip.y-dy/len*arrowSize};}
     const d=shaftPixels.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' ');
     const path=$('penPreviewPath');if(path)path.setAttribute('d',d);
-    const head=$('penPreviewHead');if(head){head.setAttribute('d',isArrow?penArrowHead(pixels,arrowSize,Math.max(boardW*.018,strokeWidth*1.35)):'');}
+    const head=$('penPreviewHead');if(head){head.setAttribute('d',isArrow?penArrowHead(pixels,arrowSize,Math.min(arrowSize*.72,Math.max(boardW*.018,strokeWidth*1.35))):'');}
   }
   function finishPen(){
     if(!penStroke)return;const points=penStroke.points,style=penStroke.style,width=penStroke.width||penThickness;penStroke=null;$('penPreview')?.remove();if(points.length<2)return;
     const minX=Math.min(...points.map(p=>p.x)),maxX=Math.max(...points.map(p=>p.x)),minY=Math.min(...points.map(p=>p.y)),maxY=Math.max(...points.map(p=>p.y));
     const w=Math.max(.5,maxX-minX),h=Math.max(.5,maxY-minY);
     const path=points.map(p=>[Math.max(0,Math.min(1000,(p.x-minX)/w*1000)),Math.max(0,Math.min(1000,(p.y-minY)/h*1000))]);
-    newBoardItem('pen',{x:minX,y:minY,w,h,path,penStyle:style,penWidth:width,color:'yellow'});
+    newBoardItem('pen',{x:minX,y:minY,w,h,path,penStyle:style,penWidth:width,color:penColor,opacity:penOpacity});
   }
   function finishPointer(){
     if(penStroke){finishPen();return;}
@@ -3371,6 +3483,12 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     renderBoard();if(changed)persist();
   }
 
+  let eraserPointerId=null;
+  function eraseAt(clientX,clientY){const hit=document.elementFromPoint(clientX,clientY)?.closest('.board-item');if(!hit||!stage.contains(hit))return;const id=hit.dataset.boardItem;if(!id)return;state.playItems=state.playItems.filter(item=>item.id!==id);setSelection([...selectedIds].filter(v=>v!==id));persist();}
+  board.addEventListener('pointerdown',e=>{if(activeTool!=='eraser'||e.button!==0)return;eraserPointerId=e.pointerId;eraseAt(e.clientX,e.clientY);try{board.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();e.stopImmediatePropagation();},true);
+  board.addEventListener('pointermove',e=>{if(eraserPointerId!==e.pointerId)return;eraseAt(e.clientX,e.clientY);e.preventDefault();e.stopImmediatePropagation();},true);
+  const finishEraser=e=>{if(eraserPointerId!==e.pointerId)return;eraserPointerId=null;e.preventDefault();e.stopImmediatePropagation();};
+  board.addEventListener('pointerup',finishEraser,true);board.addEventListener('pointercancel',finishEraser,true);
   board.addEventListener('pointerdown',e=>{
     if(e.target.closest('.board-surface-zoom')){e.stopPropagation();return;}
     if(e.target.closest('.inline-board-text-editor'))return;
@@ -3442,6 +3560,8 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   board.addEventListener('pointercancel',finishPointer);
 
   // Recreate hero / ability drops and accept image files dragged directly onto the canvas.
+  board.addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('application/x-rn-board-tool')){e.preventDefault();e.dataTransfer.dropEffect='copy';board.classList.add('drop-ready');}},true);
+  board.addEventListener('drop',e=>{const raw=e.dataTransfer.getData('application/x-rn-board-tool');if(!raw)return;try{const item=JSON.parse(raw),point=worldPoint(e);e.preventDefault();e.stopImmediatePropagation();board.classList.remove('drop-ready');if(item.kind==='shape')newBoardItem('shape',{shapeKind:item.shapeKind,color:item.color||penColor,opacity:Number(item.opacity)||penOpacity,__center:point});else if(item.kind==='wall')newBoardItem('wall',{color:item.color||penColor,opacity:Number(item.opacity)||penOpacity,__center:point});else if(item.kind==='number')newBoardItem('number',{color:item.color||penColor,opacity:Number(item.opacity)||penOpacity,__center:point});else if(item.kind==='arrow')newBoardItem('arrow',{color:item.color||penColor,opacity:Number(item.opacity)||penOpacity,__center:point});else if(item.kind==='pit')newBoardItem('shape',{shapeKind:'area',color:item.color||penColor,opacity:Number(item.opacity)||penOpacity,__center:point});}catch(err){console.warn('Could not place tactical marker',err);}},true);
   board.addEventListener('dragover',e=>{
     if(e.dataTransfer.types.includes('application/x-rivals-hero')||e.dataTransfer.types.includes('application/x-rivals-skill')||e.dataTransfer.types.includes('Files')||e.dataTransfer.types.includes('text/plain')){
       e.preventDefault();e.dataTransfer.dropEffect='copy';board.classList.add('drop-ready');
@@ -4006,6 +4126,170 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
   }
 })();
 </script>
+
+
+<script id="rn-v5-editor-toolbar">
+(()=>{
+ const $=id=>document.getElementById(id);
+ const sidebar=document.querySelector('#playbookPage .playbook-tools');
+ const shapePalette=document.querySelector('#playbookPage .board-shape-tools');
+ const penRow=document.querySelector('#playbookPage .board-pen-tool-row');
+ const thickness=document.querySelector('#playbookPage .board-pen-thickness');
+ const selectBtn=$('boardSelectToolBtn'),textBtn=$('boardTextToolBtn'),imageBtn=$('boardImageBtn');
+ const emptySelectRow=selectBtn?.closest('.board-select-tool-row');
+ const board=$('playBoard');
+ if(!sidebar||!shapePalette||!selectBtn||!textBtn||!imageBtn||!board||sidebar.dataset.rnV5Toolbar)return;
+ sidebar.dataset.rnV5Toolbar='1';
+ const originalHeading=sidebar.querySelector('.play-tool-heading');
+ if(originalHeading)originalHeading.remove();
+ // A compact primary row mirrors the supplied toolbar reference.
+ const kit=document.createElement('section');kit.className='rn-toolkit';kit.innerHTML=`
+   <div class="rn-primary-tools" id="rnPrimaryToolBar" role="toolbar" aria-label="Whiteboard tools"></div>
+   <div class="rn-tool-settings" id="rnToolSettings" hidden>
+     <div class="rn-setting-row rn-type-row"><span class="rn-setting-label">TYPE</span><div class="rn-type-slot"></div></div>
+     <div class="rn-setting-row"><span class="rn-setting-label">COLOR</span><div class="rn-color-swatches" id="rnColorSwatches"></div></div>
+     <div class="rn-setting-row"><span class="rn-setting-label">OPACITY</span><input id="rnToolOpacity" type="range" min="10" max="100" step="5" value="100"><output id="rnToolOpacityValue">100%</output></div>
+     <div class="rn-setting-row rn-thickness-row"><span class="rn-setting-label">THICKNESS</span><div class="rn-thickness-slot"></div></div>
+   </div>`;
+ const primary=kit.querySelector('#rnPrimaryToolBar');
+ const addPrimary=(id,title,svg,kind)=>{const b=document.createElement('button');b.type='button';b.className='rn-primary-tool';b.id=id;b.title=title;b.setAttribute('aria-label',title);b.dataset.rnPrimaryTool=kind;b.innerHTML=svg;primary.appendChild(b);return b;};
+ // Reuse existing buttons so their original behavior and handlers survive.
+ primary.appendChild(selectBtn);emptySelectRow?.remove();
+ const penBtn=addPrimary('rnPenPrimaryBtn','Freehand pen','<svg viewBox="0 0 24 24"><path d="M4 20l4.4-1 10.9-10.9a2.1 2.1 0 0 0-3-3L5.4 16z"/><path d="M13.5 6.5l4 4M4 20l4.4-1"/></svg>','pen');
+ const eraserBtn=addPrimary('rnEraserPrimaryBtn','Eraser','<svg viewBox="0 0 24 24"><path d="M3 14.5 12.8 4.7a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21H8z"/><path d="m8 9.5 7 7M13 21h8"/></svg>','eraser');
+ primary.appendChild(textBtn);primary.appendChild(imageBtn);
+ selectBtn.innerHTML='<svg viewBox="0 0 24 24"><path d="M5 3v17l4.6-4.3 3 5 2.3-1.3-3-5H19z"/></svg>';
+ selectBtn.classList.add('rn-primary-tool');selectBtn.title='Select / move (default)';selectBtn.setAttribute('aria-label','Select / move');
+ textBtn.innerHTML='<svg viewBox="0 0 24 24"><path d="M4 5h16M12 5v14M8 19h8"/><path d="M7 5l5 0 5 0"/></svg>';textBtn.classList.add('rn-primary-tool');
+ imageBtn.innerHTML='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m4 18 6-6 3.5 3.5 2.5-2.5 4 5"/></svg>';imageBtn.classList.add('rn-primary-tool');
+ const legacyPenRow=penRow;
+ const settings=kit.querySelector('#rnToolSettings');
+ if(legacyPenRow){legacyPenRow.classList.add('rn-type-buttons');kit.querySelector('.rn-type-slot').appendChild(legacyPenRow);}
+ if(thickness){kit.querySelector('.rn-thickness-slot').appendChild(thickness);}
+ const swatches=kit.querySelector('#rnColorSwatches');
+ const colors=[['white','#f4f7fb'],['black','#101820'],['red','#ef665c'],['yellow','#f1d76b'],['green','#79d89e'],['blue','#68bdf2']];
+ let currentColor=localStorage.getItem('rnPlaybookPenColor')||'yellow';
+ let currentOpacity=Math.max(.1,Math.min(1,Number(localStorage.getItem('rnPlaybookOpacity'))||1));
+ const paint={white:'#f4f7fb',black:'#101820',red:'#ef665c',yellow:'#f1d76b',green:'#79d89e',blue:'#68bdf2'};
+ function applySettingsToSelected(){const ids=Array.isArray(state.selectedBoardItems)?state.selectedBoardItems:(state.selectedBoardItem?[state.selectedBoardItem]:[]);let changed=false;for(const item of state.playItems||[]){if(ids.includes(item.id)&&['shape','pen','arrow','wall','broken','pit','number'].includes(item.type)){item.color=currentColor;item.opacity=currentOpacity;changed=true;}}if(changed){window.__rnRenderBoard?.();persist();}}
+ function setColor(color){currentColor=color;localStorage.setItem('rnPlaybookPenColor',color);window.__rnSetBoardStyle?.(currentColor,currentOpacity);swatches.querySelectorAll('[data-color]').forEach(b=>b.classList.toggle('active',b.dataset.color===color));custom.classList.toggle('active',/^#[0-9a-f]{6}$/i.test(String(color)));if(custom.classList.contains('active'))custom.querySelector('input').value=color;applySettingsToSelected();}
+ colors.forEach(([name,hex])=>{const b=document.createElement('button');b.type='button';b.className='rn-color-chip';b.dataset.color=name;b.title=name;b.setAttribute('aria-label',name);b.style.background=hex;b.addEventListener('click',()=>setColor(name));swatches.appendChild(b);});
+ const custom=document.createElement('label');custom.className='rn-custom-color';custom.title='Custom color';custom.innerHTML='<span>＋</span><input type="color" aria-label="Choose custom color" value="#f1d76b">';swatches.appendChild(custom);
+ if(/^#[0-9a-f]{6}$/i.test(currentColor))custom.querySelector('input').value=currentColor;custom.querySelector('input').addEventListener('input',e=>{const hex=e.target.value;const key=hex.toLowerCase();paint[key]=hex;currentColor=hex;localStorage.setItem('rnPlaybookPenColor',hex);swatches.querySelectorAll('[data-color]').forEach(b=>b.classList.remove('active'));custom.classList.add('active');window.__rnSetBoardStyle?.(hex,currentOpacity);applySettingsToSelected();});
+ const opacity=kit.querySelector('#rnToolOpacity'),opacityValue=kit.querySelector('#rnToolOpacityValue');opacity.value=String(Math.round(currentOpacity*100));opacityValue.textContent=`${opacity.value}%`;
+ opacity.addEventListener('input',()=>{currentOpacity=Number(opacity.value)/100;opacityValue.textContent=`${opacity.value}%`;localStorage.setItem('rnPlaybookOpacity',String(currentOpacity));window.__rnSetBoardStyle?.(currentColor,currentOpacity);applySettingsToSelected();});
+ if(window.__rnSetBoardStyle)window.__rnSetBoardStyle(currentColor,currentOpacity);
+ setColor(currentColor);
+ // The primary row sits first, followed by the contextual settings.
+ sidebar.insertBefore(kit,shapePalette);
+ // Relabel and move the existing shape palette to the bottom of the sidebar.
+ const shapeHeading=document.createElement('div');shapeHeading.className='rn-shape-heading';shapeHeading.textContent='TACTICAL SHAPES & MARKERS';
+ shapePalette.innerHTML='';shapePalette.classList.add('rn-shape-palette');
+ const icon=(content)=>`<svg viewBox="0 0 24 24" aria-hidden="true">${content}</svg>`;
+ const entries=[
+  ['area','Area / zone',icon('<ellipse cx="12" cy="12" rx="9" ry="6"/><path d="M5 12h14" stroke-dasharray="2 2"/>')],
+  ['diamond','Diamond',icon('<path d="M12 2 22 12 12 22 2 12Z"/>')],
+  ['triangle-down','Triangle marker',icon('<path d="M2 4h20L12 22Z"/>')],
+  ['cone','Cone / direction',icon('<path d="M12 2 22 22H2Z"/>')],
+  ['pin','Pin',icon('<path d="M12 22s8-8 8-13a8 8 0 1 0-16 0c0 5 8 13 8 13Z"/><circle cx="12" cy="9" r="2.5"/>')],
+  ['warning','Warning',icon('<path d="M12 2 23 21H1Z"/><path d="M12 8v6m0 3v.2"/>')],
+  ['flag','Flag',icon('<path d="M5 22V3m0 1h14l-3 4 3 4H5"/>')],
+  ['anchor','Anchor',icon('<circle cx="12" cy="5" r="3"/><path d="M12 8v13M4 12h16M2 15c1 4 4 6 10 6s9-2 10-6"/>')],
+  ['target','Target',icon('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>')],
+  ['star','Star',icon('<path d="m12 2 3 7h7l-5.5 4.5 2 8L12 17l-6.5 4.5 2-8L2 9h7Z"/>')],
+  ['circle','Circle',icon('<circle cx="12" cy="12" r="9"/>')],
+  ['rectangle','Rectangle',icon('<rect x="3" y="4" width="18" height="16" rx="1"/>')],
+  ['triangle','Triangle',icon('<path d="M12 2 22 21H2Z"/>')],
+  ['line','Line',icon('<path d="M3 12h18"/>')]
+ ];
+ entries.forEach(([kind,title,svg])=>{const b=document.createElement('button');b.type='button';b.className='rn-shape-tool';b.dataset.shapeKind=kind;b.title=title;b.setAttribute('aria-label',title);b.draggable=true;b.innerHTML=svg;b.addEventListener('click',()=>{window.__rnSetBoardTool?.('shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));const dims={area:[14,12],circle:[9,14],rectangle:[11,13],triangle:[11,14],'triangle-down':[11,14],diamond:[9,14],cone:[10,14],star:[9,14],line:[14,4],pin:[9,14],warning:[10,14],flag:[9,14],anchor:[9,14],target:[10,14]};window.newBoardItem?.('shape',{shapeKind:kind,w:dims[kind]?.[0],h:dims[kind]?.[1],color:currentColor,opacity:currentOpacity,__center:{x:50,y:50}});settings.hidden=false;});b.addEventListener('dragstart',e=>{window.__rnSetBoardTool?.('shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));settings.hidden=false;const payload={kind:'shape',shapeKind:kind,color:currentColor,opacity:currentOpacity};e.dataTransfer.setData('application/x-rn-board-tool',JSON.stringify(payload));e.dataTransfer.setData('text/plain',JSON.stringify(payload));e.dataTransfer.effectAllowed='copy';b.classList.add('dragging');});b.addEventListener('dragend',()=>b.classList.remove('dragging'));shapePalette.appendChild(b);});
+ shapePalette.parentNode.insertBefore(shapeHeading,shapePalette);
+ // Re-home legacy wall/number/arrow actions into the palette as compact draggable controls.
+ const addSpecial=(kind,title,svg,shapeKind=null)=>{const b=document.createElement('button');b.type='button';b.className='rn-shape-tool';b.title=title;b.setAttribute('aria-label',title);b.draggable=true;b.innerHTML=svg;b.addEventListener('click',()=>{window.__rnSetBoardTool?.('shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));window.newBoardItem?.(kind,{...(shapeKind?{shapeKind}:{}),color:currentColor,opacity:currentOpacity,__center:{x:50,y:50}});settings.hidden=false;});b.addEventListener('dragstart',e=>{window.__rnSetBoardTool?.('shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));settings.hidden=false;const payload={kind, ...(shapeKind?{shapeKind}:{}),color:currentColor,opacity:currentOpacity};e.dataTransfer.setData('application/x-rn-board-tool',JSON.stringify(payload));e.dataTransfer.effectAllowed='copy';});shapePalette.appendChild(b);};
+ addSpecial('wall','Wall',icon('<path d="M2 5h20v14H2zM2 10h20M8 5v5m8 0v9"/>'));
+ addSpecial('number','Number marker',icon('<circle cx="12" cy="12" r="10"/><path d="M10 8h3v8m-4 0h6"/>'));
+ addSpecial('arrow','Arrow',icon('<path d="M3 12h17m-7-7 7 7-7 7"/>'));
+ addSpecial('shape','Pit / hazard',icon('<ellipse cx="12" cy="13" rx="10" ry="7"/><path d="m7 10 5 7 5-7"/>'),'area');
+ // The canvas accepts shape drags at the exact pointer position; click actions still auto-place at centre.
+ const stage=$('playBoardStage');
+ if(stage&&!stage.dataset.rnPaletteDrop){stage.dataset.rnPaletteDrop='1';const canvas=stage.closest('#playBoard');canvas.addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('application/x-rn-board-tool')){e.preventDefault();e.dataTransfer.dropEffect='copy';canvas.classList.add('drop-ready');}},true);canvas.addEventListener('drop',e=>{const raw=e.dataTransfer.getData('application/x-rn-board-tool');if(!raw)return;try{const data=JSON.parse(raw),rect=stage.getBoundingClientRect(),point={x:Math.max(0,Math.min(100,(e.clientX-rect.left)/rect.width*100)),y:Math.max(0,Math.min(100,(e.clientY-rect.top)/rect.height*100))};e.preventDefault();e.stopImmediatePropagation();canvas.classList.remove('drop-ready');if(data.kind==='shape')window.newBoardItem?.('shape',{shapeKind:data.shapeKind,color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});else window.newBoardItem?.(data.kind,{color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});}catch(err){console.warn(err);}},true);}
+ // Primary tool actions; Select is the default active tool and uses a cursor glyph.
+ penBtn.addEventListener('click',()=>window.__rnSetBoardTool?.('pen-solid'));
+ eraserBtn.addEventListener('click',()=>window.__rnSetBoardTool?.('eraser'));
+ const oldSelectHandler=selectBtn;oldSelectHandler.addEventListener('click',()=>{shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.remove('active'));settings.hidden=true;});
+ textBtn.addEventListener('click',()=>{shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.remove('active'));});
+ imageBtn.addEventListener('click',()=>{shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.remove('active'));});
+ // Color/thickness controls are contextual to drawing and marker tools.
+ const colorAndOpacityObserver=()=>{const mode=window.__rnGetBoardTool?.()||'select';settings.hidden=!(mode.startsWith('pen-')||mode==='shape');};
+ const primaryButtons=[selectBtn,penBtn,eraserBtn,textBtn,imageBtn];
+ primaryButtons.forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(colorAndOpacityObserver)));
+ // Keep the active pen-type chip and primary Pen button in sync.
+ document.querySelectorAll('.board-pen-tool-row button').forEach(b=>b.addEventListener('click',()=>{shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.remove('active'));penBtn.classList.add('active');settings.hidden=false;}));
+ // The select cursor is the first active mode at load.
+ window.__rnSetBoardTool?.('select');selectBtn.classList.add('active');settings.hidden=true;
+})();
+</script>
+<style id="rn-v5-editor-toolbar-css">
+body.playbook-mode .playbook-tools{overflow-y:auto!important;overflow-x:hidden!important;}
+.rn-toolkit{display:flex;flex-direction:column;gap:8px;padding:0 0 10px;border-bottom:1px solid #40515e;margin-bottom:8px}
+.rn-primary-tools{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.rn-primary-tool{height:42px;min-width:0;border:1px solid #476477;border-radius:6px;background:linear-gradient(155deg,#2e6682,#214b64);color:#eef8ff;display:grid;place-items:center;padding:7px;cursor:pointer;transition:transform .12s,border-color .12s,box-shadow .12s,background .12s}
+.rn-primary-tool svg{width:21px;height:21px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rn-primary-tool:hover{transform:translateY(-1px);border-color:#8bd9eb;background:#326e8c}
+.rn-primary-tool.active,.rn-shape-tool.active,.rn-type-buttons button.active{background:linear-gradient(145deg,#0e8792,#15566d)!important;color:#fff!important;border-color:#b5f4e9!important;outline:2px solid #f4d36b!important;outline-offset:1px;box-shadow:0 0 0 2px #101d27,0 0 14px #24d8cb88,inset 0 0 0 1px #ffffff35!important;transform:translateY(-1px);z-index:2}
+#boardSelectToolBtn{background:#2d6c88}
+.rn-tool-settings{display:flex;flex-direction:column;gap:7px;padding:8px;border:1px solid #3d5668;border-radius:7px;background:linear-gradient(160deg,#1d2b38,#182531)}
+.rn-tool-settings[hidden]{display:none!important}
+.rn-setting-row{display:grid;grid-template-columns:55px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:24px}
+.rn-setting-label{font-size:9px;font-weight:900;letter-spacing:.07em;color:#dce9f1}
+.rn-setting-row input[type=range]{width:100%;accent-color:#56c5ec;cursor:pointer}
+.rn-setting-row output{font-size:9px;color:#a8c2d0;font-variant-numeric:tabular-nums;min-width:32px;text-align:right}
+.rn-type-row{grid-template-columns:55px minmax(0,1fr)}
+.rn-type-slot{min-width:0}
+.rn-type-buttons{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px!important;margin:0!important}
+.rn-type-buttons button{height:30px!important;min-height:30px!important;width:100%;padding:3px!important;display:grid;place-items:center;font-size:15px!important}
+.rn-color-swatches{display:flex;align-items:center;gap:5px;min-width:0}
+.rn-color-chip{width:19px;height:19px;border:2px solid #a6bac8;border-radius:4px;cursor:pointer;padding:0;box-shadow:0 1px 2px #0008}
+.rn-color-chip.active{outline:2px solid #71d8ed;outline-offset:2px;box-shadow:0 0 0 3px #13232e}
+.rn-custom-color{width:21px;height:21px;border:1px solid #7295a7;border-radius:4px;background:#263d4c;color:#e4f5fb;display:grid;place-items:center;font-size:16px;font-weight:900;position:relative;overflow:hidden;cursor:pointer}
+.rn-custom-color input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.rn-custom-color.active{outline:2px solid #71d8ed;outline-offset:2px}
+.rn-thickness-row{grid-template-columns:55px minmax(0,1fr)}
+.rn-thickness-slot .board-pen-thickness{display:contents}
+.rn-thickness-slot .board-pen-thickness-head,.rn-thickness-slot .board-pen-thickness-scale{display:none!important}
+.rn-thickness-slot #boardPenThickness{width:100%;margin:0;accent-color:#56c5ec}
+.rn-shape-heading{margin:4px 0 6px;color:#d9e6ee;font-size:10px;font-weight:950;letter-spacing:.08em}
+.rn-shape-palette{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:5px!important;margin-top:0!important}
+.rn-shape-tool{height:36px;min-width:0;padding:5px;border:1px solid #3b5262;border-radius:5px;background:#202e3a;color:#dceaf1;display:grid;place-items:center;cursor:grab;transition:background .12s,border-color .12s,transform .12s}
+.rn-shape-tool svg{width:21px;height:21px;display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.rn-shape-tool:hover{border-color:#7ac8d8;background:#2b4555;transform:translateY(-1px)}
+.rn-shape-tool.dragging{opacity:.48;cursor:grabbing}
+.rn-shape-tool.active{border-color:#b5f4e9!important}
+.zoom-input-wrap{display:inline-flex;align-items:center;gap:2px;padding:0 2px;border-radius:4px;background:#14242e;color:#bcd2dd}
+.zoom-input-wrap input{width:35px;height:21px;padding:0;border:0;outline:0;background:transparent;color:#e7f5fa;text-align:right;font:800 9px/1 inherit;font-variant-numeric:tabular-nums}
+.zoom-input-wrap span{font-size:8px;font-weight:900}
+.pocket-preview-board .board-item.pocket-hero,body.playbook-mode .board-item.pocket-hero{box-sizing:border-box;width:clamp(76px,9%,96px)!important;height:clamp(88px,18%,112px)!important;min-height:0!important;padding:5px!important;gap:3px!important;border-radius:8px!important;background:linear-gradient(150deg,#344c5c,#1e303c)!important;border:1px solid #73b9c7!important;box-shadow:0 7px 16px #0007!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;overflow:visible!important}
+.pocket-preview-board .board-item.pocket-hero img,body.playbook-mode .board-item.pocket-hero img{display:block!important;width:100%!important;height:calc(100% - 18px)!important;max-width:100%!important;max-height:none!important;object-fit:contain!important;object-position:center!important;flex:1 1 auto!important}
+.pocket-preview-board .board-item.pocket-hero .board-hero-name,body.playbook-mode .board-item.pocket-hero .board-hero-name{display:block!important;position:static!important;font-size:10px!important;line-height:1.05!important;text-align:center!important;max-width:100%!important;white-space:normal!important}
+.pocket-preview-board .board-item.pocket-hero .board-side-label,body.playbook-mode .board-item.pocket-hero .board-side-label{display:none!important}
+.pocket-preview-board .board-item.pocket-note,body.playbook-mode .board-item.pocket-note{transform:none!important;width:min(58%,460px)!important;max-width:460px!important;min-width:180px!important;max-height:28%!important;overflow:auto!important;box-sizing:border-box!important;padding:10px 13px!important;text-align:center!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;font-size:11px!important;line-height:1.35!important;border:1px solid #8ad8d5!important;border-top:3px solid #f0d16a!important;border-radius:8px!important;background:linear-gradient(145deg,#253845f5,#1a2833f5)!important;color:#eaf4f8!important;box-shadow:0 8px 22px #0007!important}
+.pocket-preview-board .board-item.pocket-note::first-line,body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ffe58a;letter-spacing:.07em}
+@media(max-width:650px){.rn-primary-tool{height:39px}.rn-shape-tool{height:34px}.rn-tool-settings{padding:7px}.pocket-preview-board .board-item.pocket-hero,body.playbook-mode .board-item.pocket-hero{width:72px!important;height:84px!important;min-width:72px!important}.pocket-preview-board .board-item.pocket-note,body.playbook-mode .board-item.pocket-note{width:58%!important;min-width:130px!important;max-height:32%!important;font-size:9px!important;padding:7px!important}}
+</style>
+
+
+<style id="rn-v5-final-polish">
+.rn-primary-tool[data-tool="select"],#boardSelectToolBtn{cursor:default!important}
+.rn-primary-tool.active,#boardSelectToolBtn.active,.rn-shape-tool.active,.rn-type-buttons button.active{outline:2px solid #f5d36d!important;outline-offset:2px!important;box-shadow:0 0 0 2px #101d27,0 0 15px #38c9df99,inset 0 0 0 1px #ffffff45!important;}
+.rn-shape-tool[draggable="true"]{cursor:grab!important;touch-action:none}
+.rn-shape-tool.dragging{opacity:.55;transform:scale(.96)}
+#playBoard.drop-ready{outline:2px dashed #5fd9e5;outline-offset:-5px}
+.pocket-preview-board .board-item.pocket-hero,body.playbook-mode .board-item.pocket-hero{box-sizing:border-box;overflow:hidden!important;}
+.pocket-preview-board .board-item.pocket-hero img,body.playbook-mode .board-item.pocket-hero img{object-fit:contain!important;object-position:center center!important;max-width:100%!important;max-height:100%!important;}
+.pocket-preview-board .board-item.pocket-note,body.playbook-mode .board-item.pocket-note{box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere;}
+.inline-board-text-editor{z-index:40!important;min-width:220px;max-width:min(360px,70vw)}
+.inline-board-text-editor textarea{min-width:210px;min-height:72px;resize:both}
+</style>
 
 </body>
 </html>
