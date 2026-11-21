@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK</title>
+<title>RIVALSNOTEBOOK · v6</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -478,7 +478,7 @@ function renderRoster(){
 function slotHtml(name,side,index,compact=false){if(!name)return `<div class="team-slot" data-slot="${side}-${index}"><span class="empty-plus">＋</span>${compact?'':'<span class="slot-name">Empty slot</span>'}</div>`;const h=hero(name);return `<div class="team-slot filled" draggable="true" data-hero="${escapeHtml(name)}" data-source-side="${side}" data-slot="${side}-${index}"><span class="slot-portrait"><img src="${escapeHtml(h?.img||'')}" alt="" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="slot-fallback">${escapeHtml(name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></span><span class="slot-name">${escapeHtml(name)}</span><button class="slot-remove" data-remove="${escapeHtml(name)}" data-side="${side}" aria-label="Remove ${escapeHtml(name)}">×</button></div>`}
 function allyChipHtml(name,index){const h=hero(name);return `<div class="ally-chip" draggable="true" data-hero="${escapeHtml(name)}" data-source-side="ally"><span class="slot-portrait"><img src="${escapeHtml(h?.img||'')}" alt="" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="slot-fallback">${escapeHtml(name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></span><span>${escapeHtml(name)}</span><button class="ally-remove" data-remove="${escapeHtml(name)}" data-side="ally">×</button></div>`}
 function renderTeams(){
- $('enemyLineup').innerHTML=Array.from({length:6},(_,i)=>slotHtml(state.enemy[i],'enemy',i)).join('');$('allyLineup').innerHTML=state.ally.length?state.ally.map(allyChipHtml).join(''):'<div class="ally-empty">Optional · add heroes using the Allied Team tab on the left</div>';
+ $('enemyLineup').innerHTML=Array.from({length:6},(_,i)=>slotHtml(state.enemy[i],'enemy',i)).join('');$('allyLineup').innerHTML=state.ally.length?state.ally.map(allyChipHtml).join(''):'<div class="ally-empty">Optional · choose heroes from the Synergies roster</div>';
  $('enemyMeta').textContent=`${state.enemy.length} / 6`;$('enemyCount').textContent=`${state.enemy.length}/6`;$('allyCount').textContent=`${state.ally.length}/6`;
 }
 function reasonHtml(t){const target=t.generated?`VS ${escapeHtml(t.against.toUpperCase())} <span class="group-result-tag">GROUP RULE</span>`:`VS ${escapeHtml(t.against.toUpperCase())}`;const vote=t.generated?`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-groupcounter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="${t.myVote?'Remove your upvote':'Upvote this individual matchup'}">▲ ${t.votes}</button>`:`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-counter="${escapeHtml(t.id)}" title="${t.myVote?'Remove your upvote':'Upvote this reason'}">▲ ${t.votes}</button>`;const edit=t.generated?`<button class="edit-btn" data-edit-generated-counter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="Edit only this hero matchup, leaving the rest of the group rule unchanged">EDIT THIS MATCHUP</button>`:`<button class="edit-btn" data-edit-counter="${escapeHtml(t.id)}">EDIT</button>`;return `<div class="reason"><div class="reason-top"><span class="reason-target">${target}</span><div class="reason-actions"><span class="tier-badge ${TIER[t.tier].cls}">${TIER[t.tier].label} · ${TIER[t.tier].weight.toFixed(1)}x</span><span class="reason-points">${counterPoints(t)} pts</span>${vote}${edit}</div></div><div class="reason-text">${escapeHtml(t.reason)}</div>${t.source?`<div class="tip-foot">${t.sourceUrl?`<a href="${escapeHtml(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t.source)} ↗</a>`:escapeHtml(t.source)}</div>`:''}</div>`}
@@ -901,7 +901,8 @@ initData();bindPlaybook();render();renderPlaybook();
   const counterTabs = document.querySelector('#counterPage .tabs');
   if (counterTabs) {
     const enemyCount = $('enemyCount');
-    counterTabs.innerHTML = '<button class="tab active" type="button" data-target="enemy">ENEMY TEAM <span id="enemyCount">0/6</span></button>';
+    counterTabs.className = 'team-mode-strip counter-team-mode-strip';
+    counterTabs.innerHTML = '<span class="role-pill counter-enemy-pill"><span class="counter-enemy-symbol" aria-hidden="true">✦</span> ENEMY TEAM</span><span class="small-help">Select up to six enemy heroes</span><span id="enemyCount" class="rn-sr-only" aria-hidden="true">0/6</span>';
     if (enemyCount) counterTabs.querySelector('#enemyCount').textContent = enemyCount.textContent;
   }
   const allyStrip = document.querySelector('#counterPage .ally-strip');
@@ -4147,7 +4148,7 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
    <div class="rn-primary-tools" id="rnPrimaryToolBar" role="toolbar" aria-label="Whiteboard tools"></div>
    <div class="rn-tool-settings" id="rnToolSettings" hidden>
      <div class="rn-setting-row rn-type-row"><span class="rn-setting-label">TYPE</span><div class="rn-type-slot"></div></div>
-     <div class="rn-setting-row"><span class="rn-setting-label">COLOR</span><div class="rn-color-swatches" id="rnColorSwatches"></div></div>
+     <div class="rn-setting-row rn-color-row"><span class="rn-setting-label">COLOR</span><div class="rn-color-swatches" id="rnColorSwatches"></div></div>
      <div class="rn-setting-row"><span class="rn-setting-label">OPACITY</span><input id="rnToolOpacity" type="range" min="10" max="100" step="5" value="100"><output id="rnToolOpacityValue">100%</output></div>
      <div class="rn-setting-row rn-thickness-row"><span class="rn-setting-label">THICKNESS</span><div class="rn-thickness-slot"></div></div>
    </div>`;
@@ -4289,6 +4290,109 @@ body.playbook-mode .playbook-tools{overflow-y:auto!important;overflow-x:hidden!i
 .pocket-preview-board .board-item.pocket-note,body.playbook-mode .board-item.pocket-note{box-sizing:border-box;white-space:pre-wrap;overflow-wrap:anywhere;}
 .inline-board-text-editor{z-index:40!important;min-width:220px;max-width:min(360px,70vw)}
 .inline-board-text-editor textarea{min-width:210px;min-height:72px;resize:both}
+</style>
+
+
+
+<style id="rn-v6-counter-team-and-portrait-fix">
+/* Counterpick roster uses the same left-side mode badge as the Synergies roster. */
+#counterPage .counter-team-mode-strip{
+  display:flex!important;align-items:center;gap:9px;margin:1px 0 10px!important;
+  padding:0 0 9px!important;border-bottom:1px solid #405665;min-height:34px;min-width:0;
+}
+#counterPage .counter-enemy-pill{
+  display:inline-flex!important;align-items:center;gap:6px;flex:none;
+  padding:5px 10px!important;border-radius:999px!important;
+  background:linear-gradient(145deg,#a83e43,#722d38)!important;
+  color:#fff!important;border:1px solid #df7979!important;
+  box-shadow:0 2px 8px #0003,inset 0 1px #ffffff24;
+  font-size:9px!important;font-weight:950!important;letter-spacing:.055em;
+}
+#counterPage .counter-enemy-symbol{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;background:#f8d6d6;color:#8b3139;font-size:10px;line-height:1}
+#counterPage .counter-team-mode-strip .small-help{min-width:0;color:#aebfca;font-size:9px}
+.rn-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
+/* Give portrait art room and prevent every portrait wrapper from clipping transparent margins. */
+.hero-card,.team-slot,.pick-card,.synergy-hero-tile,.synergy-match-card{overflow:visible!important}
+.hero-portrait,.slot-portrait,.pick-avatar,.pick-portrait,.synergy-portrait{
+  overflow:visible!important;isolation:isolate;display:grid!important;place-items:center!important;
+}
+.hero-portrait{height:78px!important;min-height:78px!important;padding:2px!important;background:linear-gradient(145deg,#304554,#1a2b37)!important}
+.hero-portrait img,.slot-portrait img,.pick-avatar img,.pick-portrait img,.synergy-portrait img{
+  display:block!important;width:100%!important;height:100%!important;
+  max-width:100%!important;max-height:100%!important;
+  object-fit:contain!important;object-position:center center!important;
+  margin:auto!important;flex:none!important;
+}
+.slot-portrait{width:56px!important;height:60px!important;min-width:56px!important;min-height:60px!important;background:transparent!important;border-radius:4px!important}
+.team-slot{height:84px!important;min-height:84px!important;gap:1px!important;padding:3px!important}
+.team-slot .slot-name{max-width:calc(100% - 4px)!important}
+.pick-card.counter-suggestion{grid-template-columns:82px minmax(0,1fr)!important;gap:10px!important}
+.pick-avatar{width:82px!important;height:104px!important;min-width:82px!important;min-height:104px!important;background:linear-gradient(145deg,#253b4a,#172630)!important;border-radius:7px!important;padding:3px!important}
+.pick-portrait{width:100%!important;height:100%!important;min-width:0!important;min-height:0!important}
+.counter-collapsed.pick-card{grid-template-columns:56px minmax(0,1fr)!important}
+.counter-collapsed .pick-avatar{width:54px!important;height:66px!important;min-width:54px!important;min-height:66px!important}
+.synergy-hero-pair{align-items:stretch!important}
+.synergy-hero-tile{overflow:visible!important;min-width:0!important;padding:6px!important}
+.synergy-portrait{width:100%!important;height:132px!important;min-height:132px!important;max-height:132px!important;padding:4px!important;background:linear-gradient(145deg,#1d303d,#13222d)!important;border-radius:6px!important}
+.synergy-portrait img{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important}
+#allyLineupMount .slot-portrait,#allyLineup .slot-portrait,#synergiesPage .slot-portrait{width:56px!important;height:60px!important;overflow:visible!important;background:transparent!important}
+#allyLineupMount .slot-portrait img,#allyLineup .slot-portrait img,#synergiesPage .slot-portrait img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important}
+@media(max-width:600px){
+  .hero-portrait{height:72px!important;min-height:72px!important}
+  .pick-card.counter-suggestion{grid-template-columns:68px minmax(0,1fr)!important;gap:8px!important}
+  .pick-avatar{width:68px!important;height:88px!important;min-width:68px!important;min-height:88px!important}
+  .counter-collapsed.pick-card{grid-template-columns:52px minmax(0,1fr)!important}
+  .counter-collapsed .pick-avatar{width:50px!important;height:62px!important;min-width:50px!important;min-height:62px!important}
+  .synergy-portrait{height:116px!important;min-height:116px!important;max-height:116px!important}
+  .team-slot{height:78px!important;min-height:78px!important}
+  .slot-portrait{width:50px!important;height:54px!important;min-width:50px!important;min-height:54px!important}
+}
+</style>
+
+<style id="rn-v6-playbook-tool-fit">
+/* Keep every toolbar glyph inside its own control, including narrow sidebars. */
+body.playbook-mode .rn-toolkit,
+body.playbook-mode .rn-primary-tools,
+body.playbook-mode .rn-tool-settings,
+body.playbook-mode .rn-setting-row,
+body.playbook-mode .rn-type-slot,
+body.playbook-mode .rn-color-swatches,
+body.playbook-mode .rn-thickness-slot,
+body.playbook-mode .rn-shape-palette{box-sizing:border-box!important;min-width:0!important;max-width:100%!important}
+body.playbook-mode .rn-primary-tools{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:5px!important;width:100%!important}
+body.playbook-mode .rn-primary-tool{box-sizing:border-box!important;width:100%!important;min-width:0!important;max-width:100%!important;padding:2px!important;overflow:hidden!important}
+body.playbook-mode .rn-primary-tool svg{width:17px!important;height:17px!important;max-width:100%!important;max-height:100%!important;overflow:hidden!important}
+body.playbook-mode .rn-tool-settings{padding:7px!important;gap:6px!important;overflow:hidden!important}
+body.playbook-mode .rn-setting-row{grid-template-columns:52px minmax(0,1fr) auto!important;gap:5px!important;width:100%!important}
+body.playbook-mode .rn-setting-row .rn-setting-label{font-size:8px!important;white-space:nowrap!important}
+body.playbook-mode .rn-type-row{grid-template-columns:52px minmax(0,1fr)!important}
+body.playbook-mode .rn-type-buttons{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:3px!important;width:100%!important}
+body.playbook-mode .rn-type-buttons button{box-sizing:border-box!important;min-width:0!important;width:100%!important;padding:1px!important;font-size:12px!important;overflow:hidden!important}
+body.playbook-mode .rn-color-row{grid-template-columns:52px minmax(0,1fr)!important}
+body.playbook-mode .rn-color-swatches{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:3px!important;width:100%!important;justify-items:center!important}
+body.playbook-mode .rn-color-chip,body.playbook-mode .rn-custom-color{box-sizing:border-box!important;width:100%!important;max-width:12px!important;min-width:0!important;height:16px!important;padding:0!important;border-width:1px!important;border-radius:3px!important}
+body.playbook-mode .rn-custom-color{font-size:11px!important}
+body.playbook-mode .rn-custom-color input{max-width:100%!important}
+body.playbook-mode .rn-thickness-row{grid-template-columns:52px minmax(0,1fr)!important}
+body.playbook-mode .rn-thickness-slot{min-width:0!important;overflow:hidden!important}
+body.playbook-mode .rn-thickness-slot #boardPenThickness{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important}
+body.playbook-mode .rn-shape-palette{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:4px!important;width:100%!important}
+body.playbook-mode .rn-shape-tool{box-sizing:border-box!important;width:100%!important;min-width:0!important;max-width:100%!important;padding:1px!important;overflow:hidden!important}
+body.playbook-mode .rn-shape-tool svg{display:block!important;width:17px!important;height:17px!important;max-width:100%!important;max-height:100%!important;overflow:hidden!important}
+body.playbook-mode .playbook-tools{min-width:0!important;overflow-x:hidden!important}
+@media(max-width:900px){
+  body.playbook-mode #playbookPage{grid-template-columns:minmax(176px,220px) minmax(0,1fr)!important;gap:8px!important}
+  body.playbook-mode .rn-primary-tools{gap:4px!important}
+}
+@media(max-width:580px){
+  body.playbook-mode #playbookPage{grid-template-columns:minmax(150px,42vw) minmax(0,1fr)!important}
+  body.playbook-mode .playbook-tools{padding:7px 6px!important}
+  body.playbook-mode .rn-setting-row{grid-template-columns:46px minmax(0,1fr) auto!important;gap:4px!important}
+  body.playbook-mode .rn-type-row,body.playbook-mode .rn-color-row,body.playbook-mode .rn-thickness-row{grid-template-columns:46px minmax(0,1fr)!important}
+  body.playbook-mode .rn-color-swatches{gap:2px!important}
+  body.playbook-mode .rn-color-chip,body.playbook-mode .rn-custom-color{max-width:11px!important;height:15px!important}
+}
 </style>
 
 </body>

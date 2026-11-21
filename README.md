@@ -1,5 +1,7 @@
 # RIVALSNOTEBOOK
 
+**Current package: v6.** See `V6_RELEASE_NOTES.md` and `SUPABASE_SETUP_STEPS.md`.
+
 RIVALSNOTEBOOK is the renamed Marvel Rivals counter-pick, synergy, hero-group and tactical whiteboard app. This package adds a Vercel-ready static site and a Supabase backend layer for account sync, shared community votes, public Community Groups, and live collaborative Playbook notebooks.
 
 ## Important: what is ready, and what still needs your project
@@ -13,7 +15,7 @@ The app still works locally without a backend connection. My Groups and app data
 1. Create a project in Supabase.
 2. Open **SQL Editor** in the Supabase dashboard.
 3. Run the full script in `supabase/schema.sql`.
-4. In **Project Settings → API**, copy the Project URL and the **publishable key** (or legacy `anon` key). Do not use the `service_role` key.
+4. In **Integrations → Data API**, copy the Project URL. In **Settings → API Keys**, copy the **publishable key** (or legacy `anon` key). Do not use the `service_role` key.
 5. In **Authentication → URL Configuration**, add your Vercel production URL to the allowed redirect URLs. Add your local preview URL too if you plan to test previews.
 6. In **Authentication → Providers**, enable Email. For a production public app, configure the SMTP sender and email confirmation settings you want.
 
@@ -23,12 +25,22 @@ The schema enables row-level security. Private workspaces are account-scoped, Co
 
 The app depends on the public tables `notebooks` and `community_groups` (plus their related tables). A `PGRST205` error means the connected Supabase Data API cannot see the table. The browser cannot safely create database tables itself.
 
-1. Check that `config.js` points to the same Supabase project where you are running SQL.
-2. Run the **entire** `supabase/schema.sql` script in that project's SQL Editor. It is designed to be safe to run again and ends by asking PostgREST to reload its schema cache.
-3. Run `supabase/verify_schema.sql`. Each required table should show a non-null relation name.
-4. In Project Settings → Data API, confirm `public` is included in Exposed schemas. If the tables exist but the app still reports `PGRST205`, run `NOTIFY pgrst, 'reload schema';` in SQL Editor and refresh the website.
+Follow these steps in order. Do not skip the project-match check.
 
-Do not create these tables manually in the Table Editor with a different structure. The app's policies, triggers, grants and collaboration RPC function are also required.
+1. **Open the Supabase project used by the live website.** In this package, open `config.js`. Read the `supabaseUrl`, which looks like `https://abcdefghijk.supabase.co`. The part before `.supabase.co` is the project reference. Open that exact project in the Supabase Dashboard. If you use the in-app **SIGN IN → CONNECT SUPABASE PROJECT** settings instead, check the URL saved there as well.
+2. **Expose the `public` schema.** In the Supabase Dashboard, open **Integrations → Data API → Settings**. Under **Exposed schemas**, make sure `public` is present, then click **Save**. Depending on the Dashboard layout, this setting may appear under **Project Settings → Data API**. If the Dashboard has an **Exposed tables** list, make sure `notebooks` and `community_groups` are enabled too.
+3. **Run the full database setup.** Open **SQL Editor → New query** in the same project. Open this package's `supabase/schema.sql`, copy the entire file, paste it into the editor, and click **Run**. Do not run only the last `NOTIFY` line. Wait for the SQL Editor to report success. This script creates `public.notebooks`, `public.community_groups`, their related tables, RLS policies, grants, triggers and the notebook-join function. It is idempotent and safe to run again.
+4. **Verify the tables.** In SQL Editor, create another query, paste the entire contents of `supabase/verify_schema.sql`, and click **Run**. The first result should show a non-NULL name in every table column, especially `notebooks` and `community_groups`. The final block should report that the core tables exist. If either is NULL or the query raises a missing-table error, the schema setup did not finish successfully. Check the SQL Editor's error output from step 3 and run the full script again after correcting the reported issue.
+5. **Reload the Data API cache.** Run this as a separate SQL query and click **Run**:
+
+   ```sql
+   NOTIFY pgrst, 'reload schema';
+   ```
+
+   Supabase documents this statement as the way to refresh PostgREST's schema cache. Wait a few seconds, then refresh RIVALSNOTEBOOK. Sign out and sign in again if the page still displays the earlier error.
+6. **If the error remains**, re-check the project reference in `config.js` against the Dashboard project you just updated. Make sure the browser deployment contains the same URL and publishable/anon key for that project. If you changed `config.js`, commit it and redeploy to Vercel. Never paste a `service_role` key into the browser app.
+
+Do not create these tables manually in the Table Editor with a different structure. The app's policies, triggers, grants and collaboration RPC function are also required. A schema-cache reload alone cannot create a missing database table.
 
 ## 2. Connect the app to Supabase
 
@@ -112,6 +124,9 @@ The current collaboration layer synchronizes the notebook document state after a
 - `config.js` — public Supabase URL and publishable/anon key configuration.
 - `supabase/schema.sql` — database tables, RLS policies, triggers, Realtime publication setup and schema-cache reload.
 - `supabase/verify_schema.sql` — checks that every required public table exists, then reloads the Data API schema cache.
+- `SUPABASE_SETUP_STEPS.md` — step-by-step troubleshooting for the missing Community Groups / notebooks table error.
+- `V6_RELEASE_NOTES.md` — this release’s UI, portrait and packaging changes.
+- `package.json` — Vercel CLI convenience scripts.
 - `vercel.json` — static Vercel deployment configuration.
 
 ## Recent interface update
@@ -165,3 +180,14 @@ The live Supabase project was not changed by this front-end update; no SQL migra
 - Set the default pen thickness to 0.5%.
 
 For this front-end update, no new Supabase migration is required. Replace the deployed app files and redeploy through the connected GitHub/Vercel project.
+
+
+## v6 counter/team layout, portrait framing and sidebar tool fit
+
+- Replaced the Counterpicks roster's left-side `ENEMY TEAM 0/6` tab with a red ENEMY TEAM badge and selection hint, matching the green ALLIED TEAM badge on Synergies. The right-side enemy lineup count remains available beside the lineup.
+- Expanded hero-art frames and removed clipping from roster, counter suggestion, Synergy pair and team-lineup portrait wrappers. Hero artwork is centered and scaled with `object-fit: contain`.
+- Tightened toolbar icon and settings sizing so primary tools, pen-type buttons, color swatches, sliders and tactical markers stay within their borders in narrow Playbook sidebars.
+- Updated the on-screen missing-table guidance and the Supabase setup walkthrough.
+- Restored all required static deployment files in the package (`rivalsnotebook.css`, `rivalsnotebook.js`, `config.js`, `package.json`, and `vercel.json`). Earlier v5 ZIP packaging omitted several files referenced by `index.html`; this release includes them.
+
+No new database migration is required if the full `supabase/schema.sql` was already applied. If the Community Groups / notebook table error is still present, follow section 1A and run the full schema against the exact Supabase project configured in `config.js`.

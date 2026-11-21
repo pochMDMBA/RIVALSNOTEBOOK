@@ -53,7 +53,7 @@
     const raw = String(error?.message || error || 'Unknown database error');
     const missingTable = error?.code === 'PGRST205' || /could not find the table .*schema cache/i.test(raw);
     if (!missingTable) return raw;
-    return `${raw}\n\nDATABASE SETUP REQUIRED: In the Supabase project connected in config.js, open SQL Editor and run the complete supabase/schema.sql file from this RIVALSNOTEBOOK package. Make sure public is listed under Project Settings → Data API → Exposed schemas, then run: NOTIFY pgrst, 'reload schema';. Confirm public.notebooks and public.community_groups exist before retrying.`;
+    return `${raw}\n\nDATABASE SETUP REQUIRED\n1. Confirm config.js points to the same Supabase project where you will run the SQL.\n2. In that project's SQL Editor, run the entire supabase/schema.sql file from this package.\n3. In Integrations → Data API → Settings, make sure public is listed under Exposed schemas (older dashboards may show Project Settings → Data API). If an Exposed tables list is shown, make sure notebooks and community_groups are enabled.\n4. Run supabase/verify_schema.sql, then run NOTIFY pgrst, 'reload schema'; if the error remains.\n5. Confirm public.notebooks and public.community_groups both exist before retrying.`;
   }
 
   function installModals() {
