@@ -917,7 +917,7 @@ initData();bindPlaybook();render();renderPlaybook();
   oldSynergyPage.innerHTML = `
     <section class="panel picker synergy-picker">
       <div class="panel-top"><div><div class="panel-title">Hero roster</div><div class="panel-sub">Click to add an ally, drag into your lineup, or click a selected hero to remove it.</div></div><span class="roster-count" id="synergyRosterCount">55 HEROES</span></div>
-      <div class="team-mode-strip"><span class="role-pill strategist">ALLIED TEAM</span><span class="small-help">Select up to six heroes</span></div>
+      <div class="team-mode-strip"><span class="role-pill strategist synergy-ally-pill"><span class="counter-ally-symbol" aria-hidden="true">✓</span> ALLIED TEAM</span><span class="small-help">Select up to six heroes</span></div>
       <div class="search-wrap"><span class="glass">⌕</span><input class="search" id="synergyHeroSearch" type="search" placeholder="Search hero…" autocomplete="off"></div>
       <div class="roster-scroll" id="synergyRosterScroll"><div id="synergyRosterGrid"></div></div>
     </section>
@@ -2756,7 +2756,7 @@ body.groups-mode .groups-page.group-editing .modal-actions .btn{min-height:30px!
           <div class="group-manage-title-wrap"><span class="group-icon-view" title="${escapeHtml(ICON_LABELS[iconKey] || iconKey)}">${iconSvg(iconKey,'group-svg-icon')}</span>
             <div><div class="group-manage-title">${escapeHtml(g.name)} <span class="tiny-tag">${g.members.length} HERO${g.members.length===1?'':'ES'}</span></div><div class="group-manage-members">${escapeHtml(g.description||'Custom hero group')}</div></div>
           </div>
-          <div class="group-actions"><button class="edit-btn" data-edit-group="${escapeHtml(g.id)}">EDIT</button><button class="edit-btn" data-delete-group="${escapeHtml(g.id)}" title="Delete group">DELETE</button></div>
+          <div class="group-actions"><button type="button" class="edit-btn" data-edit-group="${escapeHtml(g.id)}">EDIT</button><button type="button" class="edit-btn" data-delete-group="${escapeHtml(g.id)}" title="Delete group">DELETE</button></div>
         </div>
         <div class="group-roles">${roleGroupedMemberMarkup(g.members,g.id)}</div>
       </article>`;
@@ -3485,7 +3485,20 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   }
 
   let eraserPointerId=null;
-  function eraseAt(clientX,clientY){const hit=document.elementFromPoint(clientX,clientY)?.closest('.board-item');if(!hit||!stage.contains(hit))return;const id=hit.dataset.boardItem;if(!id)return;state.playItems=state.playItems.filter(item=>item.id!==id);setSelection([...selectedIds].filter(v=>v!==id));persist();}
+  function eraseAt(clientX,clientY){
+    const hit=document.elementFromPoint(clientX,clientY)?.closest('.board-item');
+    if(!hit||!stage.contains(hit))return;
+    const id=hit.dataset.boardItem;
+    if(!id)return;
+    const target=state.playItems.find(item=>item.id===id);
+    // Eraser is intentionally limited to board geometry and freehand marks.
+    // It must never remove heroes, skill icons, pasted images or text callouts.
+    const erasableTypes=new Set(['shape','pen','arrow','wall','broken','pit','number']);
+    if(!target||!erasableTypes.has(target.type))return;
+    state.playItems=state.playItems.filter(item=>item.id!==id);
+    setSelection([...selectedIds].filter(v=>v!==id));
+    persist();
+  }
   board.addEventListener('pointerdown',e=>{if(activeTool!=='eraser'||e.button!==0)return;eraserPointerId=e.pointerId;eraseAt(e.clientX,e.clientY);try{board.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();e.stopImmediatePropagation();},true);
   board.addEventListener('pointermove',e=>{if(eraserPointerId!==e.pointerId)return;eraseAt(e.clientX,e.clientY);e.preventDefault();e.stopImmediatePropagation();},true);
   const finishEraser=e=>{if(eraserPointerId!==e.pointerId)return;eraserPointerId=null;e.preventDefault();e.stopImmediatePropagation();};
@@ -3783,7 +3796,7 @@ body.groups-mode .group-rule-expandable .group-actions [data-delete-group-rule]:
     $('groupManagerList').innerHTML=groups.length?`<div class="group-manager-list">${groups.map(g=>{
       const iconKey=normalizeIcon(g.icon||'layers');
       const members=(g.members||[]).map(name=>{const h=hero(name),initials=String(name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('');return `<div class="group-card-member" title="${esc(name)}"><img loading="lazy" src="${esc(h?.img||'')}" alt="" onerror="this.parentElement.classList.add('broken')"><span class="group-card-fallback">${esc(initials)}</span><span>${esc(name)}</span></div>`;}).join('');
-      return `<article class="group-manage-card trading-card" data-drop-group="${esc(g.id)}"><div class="group-manage-top"><div class="group-manage-title-wrap"><span class="group-icon-view" title="${esc(ICON_LABELS[iconKey]||iconKey)}">${iconSvg(iconKey,'group-svg-icon')}</span><div><div class="group-manage-title">${esc(g.name)} <span class="tiny-tag">${g.members.length} HERO${g.members.length===1?'':'ES'}</span></div><div class="group-manage-members">${esc(g.description||'Custom hero group')}</div></div></div><div class="group-actions"><button class="edit-btn" data-edit-group="${esc(g.id)}">EDIT</button><button class="edit-btn" data-delete-group="${esc(g.id)}" title="Delete group">DELETE</button></div></div><div class="group-card-members">${members}</div></article>`;
+      return `<article class="group-manage-card trading-card" data-drop-group="${esc(g.id)}"><div class="group-manage-top"><div class="group-manage-title-wrap"><span class="group-icon-view" title="${esc(ICON_LABELS[iconKey]||iconKey)}">${iconSvg(iconKey,'group-svg-icon')}</span><div><div class="group-manage-title">${esc(g.name)} <span class="tiny-tag">${g.members.length} HERO${g.members.length===1?'':'ES'}</span></div><div class="group-manage-members">${esc(g.description||'Custom hero group')}</div></div></div><div class="group-actions"><button type="button" class="edit-btn" data-edit-group="${esc(g.id)}">EDIT</button><button type="button" class="edit-btn" data-delete-group="${esc(g.id)}" title="Delete group">DELETE</button></div></div><div class="group-card-members">${members}</div></article>`;
     }).join('')}</div>`:'<div class="empty-state">No custom hero groups yet. Create one to collect heroes by playstyle, matchup archetype or team plan.</div>';
     const rules=(state.groupRules||[]).slice().sort((a,b)=>selectorLabel(a.sourceType,a.sourceValue).localeCompare(selectorLabel(b.sourceType,b.sourceValue))||selectorLabel(a.targetType,a.targetValue).localeCompare(selectorLabel(b.targetType,b.targetValue)));
     $('groupRulesManagerList').innerHTML=rules.length?`<div class="group-rules-grid">${rules.map(r=>{
@@ -4394,6 +4407,188 @@ body.playbook-mode .playbook-tools{min-width:0!important;overflow-x:hidden!impor
   body.playbook-mode .rn-color-chip,body.playbook-mode .rn-custom-color{max-width:11px!important;height:15px!important}
 }
 </style>
+
+
+<style id="rn-v7-group-actions-no-overlap">
+/* Put group actions on their own row so EDIT, X and SUBMIT TO COMMUNITY cannot cover the name/icon. */
+body.groups-mode .group-manage-card.trading-card .group-manage-top{
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important;min-width:0!important;
+}
+body.groups-mode .group-manage-card.trading-card .group-manage-title-wrap{
+  display:flex!important;align-items:center!important;gap:9px!important;width:100%!important;min-width:0!important;padding:0!important;
+}
+body.groups-mode .group-manage-card.trading-card .group-manage-title-wrap>div{min-width:0!important;flex:1 1 auto!important;}
+body.groups-mode .group-manage-card.trading-card .group-manage-title{
+  display:flex!important;align-items:center!important;gap:5px!important;flex-wrap:wrap!important;overflow-wrap:anywhere!important;word-break:normal!important;
+}
+body.groups-mode .group-manage-card.trading-card .group-actions{
+  position:static!important;inset:auto!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  flex-wrap:wrap!important;gap:5px!important;width:100%!important;max-width:100%!important;margin:2px 0 0!important;padding:0!important;
+}
+body.groups-mode .group-manage-card.trading-card .group-actions .edit-btn{
+  position:static!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:100%!important;height:25px!important;min-height:25px!important;
+  padding:4px 7px!important;font-size:8px!important;white-space:nowrap!important;line-height:1!important;
+}
+body.groups-mode .group-manage-card.trading-card .group-actions [data-delete-group]{font-size:0!important;width:25px!important;min-width:25px!important;padding:0!important;display:grid!important;place-items:center!important}
+body.groups-mode .group-manage-card.trading-card .group-actions [data-delete-group]::before{content:'×';font-size:16px!important;line-height:1!important}
+body.groups-mode .group-manage-card.trading-card .group-actions .rn-publish-group{flex:1 1 125px!important;min-width:120px!important;white-space:normal!important;text-align:center!important;font-size:7.5px!important;padding:4px 6px!important}
+</style>
+<style id="rn-v7-group-action-layout-final">
+/* Stable group-card header layout: keep title/icon on a clean line and actions below it. */
+.group-manage-card.trading-card .group-manage-top{
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;
+  gap:8px!important;min-width:0!important;
+}
+.group-manage-card.trading-card .group-manage-title-wrap{
+  display:flex!important;align-items:center!important;gap:9px!important;width:100%!important;min-width:0!important;
+}
+.group-manage-card.trading-card .group-manage-title-wrap>div{min-width:0!important;flex:1 1 auto!important;}
+.group-manage-card.trading-card .group-manage-title{
+  display:flex!important;align-items:center!important;gap:5px!important;flex-wrap:wrap!important;min-width:0!important;
+  overflow-wrap:anywhere!important;word-break:normal!important;
+}
+.group-manage-card.trading-card .group-actions{
+  position:static!important;inset:auto!important;right:auto!important;top:auto!important;align-self:flex-start!important;
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;flex-wrap:wrap!important;
+  gap:5px!important;width:100%!important;max-width:100%!important;margin:2px 0 0!important;padding:0!important;
+}
+.group-manage-card.trading-card .group-actions .edit-btn,
+.group-manage-card.trading-card .group-actions .rn-publish-group{
+  position:static!important;inset:auto!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:100%!important;
+  height:26px!important;min-height:26px!important;padding:4px 8px!important;font-size:8px!important;line-height:1!important;white-space:nowrap!important;
+}
+.group-manage-card.trading-card .group-actions [data-delete-group]{
+  position:static!important;inset:auto!important;right:auto!important;top:auto!important;float:none!important;
+  display:grid!important;place-items:center!important;flex:0 0 26px!important;width:26px!important;min-width:26px!important;max-width:26px!important;
+  height:26px!important;min-height:26px!important;padding:0!important;margin:0!important;font-size:0!important;line-height:0!important;
+}
+.group-manage-card.trading-card .group-actions [data-delete-group]::before{content:'×'!important;font-size:17px!important;line-height:1!important;}
+.group-manage-card.trading-card .group-actions .rn-publish-group{
+  flex:0 1 auto!important;min-width:120px!important;white-space:normal!important;text-align:center!important;padding:4px 8px!important;
+}
+</style>
+<style id="rn-v7-allied-team-pill">
+.synergy-picker .synergy-ally-pill{
+  display:inline-flex!important;align-items:center!important;gap:6px!important;padding:5px 10px!important;border-radius:999px!important;
+  background:linear-gradient(145deg,#247b59,#18563f)!important;color:#effff6!important;border:1px solid #70d7a5!important;
+  box-shadow:0 2px 8px #0003,inset 0 1px #ffffff24!important;font-size:9px!important;font-weight:950!important;letter-spacing:.055em!important;
+}
+.synergy-picker .counter-ally-symbol{display:inline-grid!important;place-items:center!important;width:15px!important;height:15px!important;border-radius:50%!important;
+  background:#d8f8e6!important;color:#176445!important;font-size:10px!important;line-height:1!important;font-weight:1000!important;}
+</style>
+<script id="rn-v7-group-identity-and-playbook-tool-state">
+(()=>{
+  const $=id=>document.getElementById(id);
+  if(typeof state==='undefined')return;
+
+  // Keep the edited group identity independent of global editor state, which may be
+  // refreshed by account sync while the form is open.
+  const currentOpenGroupForm=window.openGroupForm;
+  if(typeof currentOpenGroupForm==='function'){
+    window.openGroupForm=function(group=null){
+      const snapshot=group?JSON.parse(JSON.stringify(group)):null;
+      currentOpenGroupForm.call(this,group);
+      const form=$('groupForm');
+      if(form){
+        form.dataset.rnGroupId=String(snapshot?.id||'');
+        form.dataset.rnGroupSnapshot=snapshot?JSON.stringify(snapshot):'';
+      }
+      const icon=$('groupIcon');
+      if(icon&&snapshot){
+        const iconValue=typeof normalizeIcon==='function'?normalizeIcon(snapshot.icon||'layers'):String(snapshot.icon||'layers');
+        icon.value=iconValue;
+        icon.dispatchEvent(new Event('change',{bubbles:true}));
+      }
+    };
+  }
+
+  const form=$('groupForm');
+  if(form&&!form.dataset.rnV7IdentityGuard){
+    form.dataset.rnV7IdentityGuard='1';
+    form.addEventListener('submit',event=>{
+      event.preventDefault();event.stopImmediatePropagation();
+      let snapshot=null;
+      try{snapshot=form.dataset.rnGroupSnapshot?JSON.parse(form.dataset.rnGroupSnapshot):null;}catch(_){}
+      const stableId=form.dataset.rnGroupId||snapshot?.id||'';
+      const existing=stableId?(state.groups||[]).find(g=>String(g.id)===String(stableId)):null;
+      const name=String($('groupName')?.value||'').trim();
+      const rawIcon=String($('groupIcon')?.value||'').trim();
+      const knownIcon=typeof ICON_PATHS!=='undefined'&&!!ICON_PATHS[rawIcon];
+      const icon=knownIcon?rawIcon:(existing?.icon||snapshot?.icon||(typeof normalizeIcon==='function'?normalizeIcon(rawIcon):rawIcon)||'layers');
+      const description=String($('groupDescription')?.value||'').trim().slice(0,160);
+      const members=typeof selectedGroupMembers==='function'?selectedGroupMembers():[...(state.groupMemberDraft||[])];
+      if(!name||!members.length){toast('Give the group a name and add at least one hero');return;}
+      const duplicate=(state.groups||[]).find(g=>String(g.id)!==String(stableId)&&String(g.name||'').toLowerCase()===name.toLowerCase());
+      if(duplicate){toast('A group with that name already exists');return;}
+      const groupData={id:stableId||`group-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,name,icon,description,members};
+      if(existing){
+        // Update only editable fields. Preserve the ID and any forward-compatible metadata.
+        existing.name=groupData.name;existing.icon=groupData.icon;existing.description=groupData.description;existing.members=groupData.members;
+      }else{
+        // Restore from the opening snapshot if a remote workspace refresh removed it mid-edit.
+        const restored=snapshot?{...snapshot,...groupData}:groupData;
+        state.groups.push(restored);
+      }
+      if(typeof persist==='function')persist();
+      form.classList.add('hidden');$('groupEmptyState')?.classList.remove('hidden');
+      state.editingGroup=null;delete form.dataset.rnGroupId;delete form.dataset.rnGroupSnapshot;
+      $('groupsPage')?.classList.remove('group-editing');
+      if(typeof render==='function')render();
+      if(typeof populateGroupSelect==='function'){
+        populateGroupSelect('counterSourceGroup');populateGroupSelect('counterTargetGroup');
+        populateGroupSelect('comboGroupA');populateGroupSelect('comboGroupB');
+      }
+      toast(existing?'Group updated':'Group created');
+    },true);
+
+    // The X/delete action resolves by the immutable ID captured when Edit was opened.
+    $('deleteGroupBtn')?.addEventListener('click',event=>{
+      event.preventDefault();event.stopImmediatePropagation();
+      const id=form.dataset.rnGroupId||state.editingGroup;
+      if(!id)return;
+      const group=(state.groups||[]).find(g=>String(g.id)===String(id));
+      let snapshot=null;try{snapshot=form.dataset.rnGroupSnapshot?JSON.parse(form.dataset.rnGroupSnapshot):null;}catch(_){}
+      const target=group||snapshot;if(!target)return;
+      if(!confirm(`Delete ${target.name||'this group'}? Group rules using it will also be deleted.`))return;
+      state.groups=(state.groups||[]).filter(g=>String(g.id)!==String(id));
+      state.groupRules=(state.groupRules||[]).filter(r=>!(r.sourceType==='group'&&r.sourceValue===id)&&!(r.targetType==='group'&&r.targetValue===id));
+      state.comboRules=(state.comboRules||[]).filter(r=>!(r.sourceType==='group'&&r.sourceValue===id)&&!(r.targetType==='group'&&r.targetValue===id));
+      state.editingGroup=null;form.classList.add('hidden');$('groupEmptyState')?.classList.remove('hidden');
+      delete form.dataset.rnGroupId;delete form.dataset.rnGroupSnapshot;$('groupsPage')?.classList.remove('group-editing');
+      if(typeof persist==='function')persist();if(typeof render==='function')render();toast('Group deleted');
+    },true);
+  }
+
+  // The Select cursor is the sole active tool on initial load and whenever Playbook is opened.
+  const select=$('boardSelectToolBtn'),pen=$('rnPenPrimaryBtn'),eraser=$('rnEraserPrimaryBtn'),text=$('boardTextToolBtn'),image=$('boardImageBtn');
+  const syncToolHighlights=()=>{
+    const tool=window.__rnGetBoardTool?.()||'select';
+    [select,pen,eraser,text,image].filter(Boolean).forEach(button=>button.classList.remove('active'));
+    document.querySelectorAll('.board-pen-tool-row button').forEach(button=>button.classList.remove('active'));
+    if(tool==='select')select?.classList.add('active');
+    if(tool.startsWith('pen-')){
+      pen?.classList.add('active');
+      document.querySelector(`.board-pen-tool-row [data-pen-tool="${tool}"]`)?.classList.add('active');
+    }
+    if(tool==='eraser')eraser?.classList.add('active');
+    if(tool==='text')text?.classList.add('active');
+    if(tool==='image')image?.classList.add('active');
+  };
+  const originalSetTool=window.__rnSetBoardTool;
+  if(typeof originalSetTool==='function'){
+    window.__rnSetBoardTool=tool=>{const result=originalSetTool(tool);requestAnimationFrame(syncToolHighlights);return result;};
+  }
+  document.addEventListener('click',event=>{
+    if(event.target.closest('#rnPrimaryToolBar button,.board-pen-tool-row button,.board-select-tool-row button'))requestAnimationFrame(syncToolHighlights);
+  });
+  document.querySelectorAll('.page-tab[data-page="playbookPage"]').forEach(button=>button.addEventListener('click',()=>{
+    requestAnimationFrame(()=>{window.__rnSetBoardTool?.('select');syncToolHighlights();});
+  }));
+  window.addEventListener('pageshow',syncToolHighlights);
+  window.__rnSyncPlaybookToolHighlights=syncToolHighlights;
+  window.__rnSetBoardTool?.('select');syncToolHighlights();
+})();
+</script>
 
 </body>
 </html>

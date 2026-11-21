@@ -513,14 +513,32 @@
   }
   async function publishPrivateGroup(groupId) {
     if (!requireAccount('submit a group to Community Groups')) return;
-    const group = (state.groups || []).find(item => item.id === groupId); if (!group) return;
+    // Publish a detached snapshot. Community submission must never mutate the private
+    // group object (especially its name/icon) or reuse an editor draft by reference.
+    const source = (state.groups || []).find(item => String(item.id) === String(groupId));
+    if (!source) { toast('This private group is no longer available. Refresh My Groups and try again.'); return; }
+    const group = {
+      id: String(source.id),
+      name: String(source.name || '').trim(),
+      icon: String(source.icon || '✦'),
+      description: String(source.description || ''),
+      members: Array.isArray(source.members) ? [...source.members] : []
+    };
+    if (!group.name || !group.members.length) { toast('Add a group name and at least one hero before submitting.'); return; }
     const payload = {
       owner_id: currentUser.id, source_group_id: group.id,
-      name: group.name, icon: group.icon || '✦', description: group.description || '',
-      members: group.members || []
+      name: group.name, icon: group.icon, description: group.description,
+      members: group.members
     };
     const { error } = await sb.from('community_groups').upsert(payload, {onConflict:'owner_id,source_group_id'});
     if (error) { toast(`Could not publish group: ${databaseErrorHelp(error)}`); return; }
+    // Verify the in-memory private source is unchanged before refreshing public data.
+    const stillPrivate = (state.groups || []).find(item => String(item.id) === group.id);
+    if (stillPrivate && (stillPrivate.name !== group.name || stillPrivate.icon !== group.icon)) {
+      console.warn('Private group metadata changed during community publish; keeping the original saved values.');
+      stillPrivate.name = group.name; stillPrivate.icon = group.icon;
+      if (typeof persist === 'function') persist();
+    }
     await loadCommunityGroups(); toast('Group submitted to the community'); setGroupView('community');
   }
   async function toggleCommunityGroupVote(groupId) {
@@ -545,9 +563,18 @@
     const publish = e.target.closest('[data-rn-publish-group]');
     const vote = e.target.closest('[data-rn-vote-group]');
     const add = e.target.closest('[data-rn-add-group]');
-    if (publish) { e.preventDefault(); e.stopPropagation(); publishPrivateGroup(publish.dataset.rnPublishGroup); }
-    if (vote) { e.preventDefault(); e.stopPropagation(); toggleCommunityGroupVote(vote.dataset.rnVoteGroup); }
-    if (add) { e.preventDefault(); e.stopPropagation(); addCommunityGroupToMine(add.dataset.rnAddGroup); }
+    if (publish) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      publishPrivateGroup(publish.dataset.rnPublishGroup); return;
+    }
+    if (vote) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      toggleCommunityGroupVote(vote.dataset.rnVoteGroup); return;
+    }
+    if (add) {
+      e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+      addCommunityGroupToMine(add.dataset.rnAddGroup); return;
+    }
   }
 
   // Notebook links invite signed-in accounts to one shared tactical board.
