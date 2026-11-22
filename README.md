@@ -119,7 +119,7 @@ The current collaboration layer synchronizes the notebook document state after a
 ## Files
 
 - `index.html` — app interface, Playbook map picker and existing application logic.
-- `assets/maps/` — ten optimized full tactical maps and their cover thumbnails.
+- `assets/maps/` — ten full tactical maps and their cover thumbnails in broadly supported JPEG format.
 - `map-library.json` — map names, modes, and asset paths.
 - `rivalsnotebook.css` — RIVALSNOTEBOOK brand and community styling.
 - `rivalsnotebook.js` — Supabase Auth, private data sync, votes, Community Groups and collaboration.
@@ -205,4 +205,4 @@ The Playbook now has a **TACTICAL MAP** picker at the top of the left sidebar. I
 
 Each saved Playbook stores its selected map using a `mapId` field. The field is retained by local workspace hydration and Supabase notebook snapshots, so shared plays can restore their chosen map. No Supabase schema migration is required because the map ID is part of the existing saved-play JSON.
 
-Map files are stored in `assets/maps/`; cover thumbnails are in `assets/maps/covers/`. `map-library.json` lists the metadata and relative asset paths.
+Map files are stored as `.jpg` in `assets/maps/`; cover thumbnails are `.jpg` in `assets/maps/covers/`. JPEG is used for the bundled map assets for compatibility with static hosting and image-serving pipelines. `map-library.json` lists the metadata and relative asset paths.

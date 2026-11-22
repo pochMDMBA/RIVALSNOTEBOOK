@@ -5,71 +5,71 @@
       "id": "yggdrasil-path",
       "name": "Yggdrasil Path",
       "mode": "Convoy",
-      "cover": "assets/maps/covers/yggdrasil-path.webp",
-      "image": "assets/maps/yggdrasil-path.webp"
+      "cover": "assets/maps/covers/yggdrasil-path.jpg",
+      "image": "assets/maps/yggdrasil-path.jpg"
     },
     {
       "id": "spider-islands",
       "name": "Spider-Islands",
       "mode": "Convoy",
-      "cover": "assets/maps/covers/spider-islands.webp",
-      "image": "assets/maps/spider-islands.webp"
+      "cover": "assets/maps/covers/spider-islands.jpg",
+      "image": "assets/maps/spider-islands.jpg"
     },
     {
       "id": "midtown",
       "name": "Midtown",
       "mode": "Convoy",
-      "cover": "assets/maps/covers/midtown.webp",
-      "image": "assets/maps/midtown.webp"
+      "cover": "assets/maps/covers/midtown.jpg",
+      "image": "assets/maps/midtown.jpg"
     },
     {
       "id": "arakko",
       "name": "Arakko",
       "mode": "Convoy",
-      "cover": "assets/maps/covers/arakko.webp",
-      "image": "assets/maps/arakko.webp"
+      "cover": "assets/maps/covers/arakko.jpg",
+      "image": "assets/maps/arakko.jpg"
     },
     {
       "id": "thebes",
       "name": "Thebes",
       "mode": "Convoy",
-      "cover": "assets/maps/covers/thebes.webp",
-      "image": "assets/maps/thebes.webp"
+      "cover": "assets/maps/covers/thebes.jpg",
+      "image": "assets/maps/thebes.jpg"
     },
     {
       "id": "shin-shibuya",
       "name": "Shin-Shibuya",
       "mode": "Convergence",
-      "cover": "assets/maps/covers/shin-shibuya.webp",
-      "image": "assets/maps/shin-shibuya.webp"
+      "cover": "assets/maps/covers/shin-shibuya.jpg",
+      "image": "assets/maps/shin-shibuya.jpg"
     },
     {
       "id": "hall-of-djalia",
       "name": "Hall Of Djalia",
       "mode": "Convergence",
-      "cover": "assets/maps/covers/hall-of-djalia.webp",
-      "image": "assets/maps/hall-of-djalia.webp"
+      "cover": "assets/maps/covers/hall-of-djalia.jpg",
+      "image": "assets/maps/hall-of-djalia.jpg"
     },
     {
       "id": "central-park",
       "name": "Central Park",
       "mode": "Convergence",
-      "cover": "assets/maps/covers/central-park.webp",
-      "image": "assets/maps/central-park.webp"
+      "cover": "assets/maps/covers/central-park.jpg",
+      "image": "assets/maps/central-park.jpg"
     },
     {
       "id": "symbiotic-surface",
       "name": "Symbiotic Surface",
       "mode": "Convergence",
-      "cover": "assets/maps/covers/symbiotic-surface.webp",
-      "image": "assets/maps/symbiotic-surface.webp"
+      "cover": "assets/maps/covers/symbiotic-surface.jpg",
+      "image": "assets/maps/symbiotic-surface.jpg"
     },
     {
       "id": "heart-of-heaven",
       "name": "Heart Of Heaven",
       "mode": "Convergence",
-      "cover": "assets/maps/covers/heart-of-heaven.webp",
-      "image": "assets/maps/heart-of-heaven.webp"
+      "cover": "assets/maps/covers/heart-of-heaven.jpg",
+      "image": "assets/maps/heart-of-heaven.jpg"
     }
   ],
   "comingSoon": [
