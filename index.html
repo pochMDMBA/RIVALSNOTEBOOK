@@ -916,7 +916,7 @@ initData();bindPlaybook();render();renderPlaybook();
   // Build a true two-column Synergies workspace, matching Counterpicker's roster/results layout.
   oldSynergyPage.innerHTML = `
     <section class="panel picker synergy-picker">
-      <div class="panel-top"><div><div class="panel-title">Hero roster</div><div class="panel-sub">Click to add an ally, drag into your lineup, or click a selected hero to remove it.</div></div><span class="roster-count" id="synergyRosterCount">55 HEROES</span></div>
+      <div class="panel-top"><div><div class="panel-title">Allied hero roster</div><div class="panel-sub">Select only allied heroes for synergy recommendations.</div></div><span class="roster-count" id="synergyRosterCount">55 HEROES</span></div>
       <div class="team-mode-strip"><span class="role-pill strategist synergy-ally-pill"><span class="counter-ally-symbol" aria-hidden="true">✓</span> ALLIED TEAM</span><span class="small-help">Select up to six heroes</span></div>
       <div class="search-wrap"><span class="glass">⌕</span><input class="search" id="synergyHeroSearch" type="search" placeholder="Search hero…" autocomplete="off"></div>
       <div class="roster-scroll" id="synergyRosterScroll"><div id="synergyRosterGrid"></div></div>
@@ -4919,13 +4919,13 @@ body.groups-mode .rn-v10-group-actions [data-rn-publish-group]{background:#22563
       const icon=typeof iconSvg==='function'?iconSvg(iconKey,'group-svg-icon'):escapeHtml(g.icon||'✦');
       card.classList.add('rn-v10-group-card');
       card.innerHTML=`
-        <button type="button" class="rn-v10-group-delete" data-delete-group="${escapeHtml(g.id)}" aria-label="Delete ${escapeHtml(g.name)}" title="Delete group">×</button>
         <div class="rn-v10-group-head"><span class="group-icon-view">${icon}</span><div class="rn-v10-group-heading"><div class="rn-v10-group-name">${escapeHtml(g.name)} <span class="tiny-tag">${(g.members||[]).length} HERO${(g.members||[]).length===1?'':'ES'}</span></div><div class="rn-v10-group-description">${escapeHtml(g.description||'Custom hero group')}</div></div></div>
         ${roleMarkup(g.members)}
         <div class="rn-v10-group-actions">
           <button type="button" class="edit-btn" data-view-group="${escapeHtml(g.id)}">VIEW GROUP</button>
           <button type="button" class="edit-btn" data-edit-group="${escapeHtml(g.id)}">EDIT</button>
           <button type="button" class="edit-btn rn-publish-group" data-rn-publish-group="${escapeHtml(g.id)}">SUBMIT TO COMMUNITY</button>
+          <button type="button" class="edit-btn rn-v13-group-delete" data-delete-group="${escapeHtml(g.id)}" aria-label="Delete ${escapeHtml(g.name)}" title="Delete group">×</button>
         </div>`;
     });
   }
@@ -5131,11 +5131,45 @@ body.playbook-mode .rn-map-grid-preview:after{content:'';position:absolute;top:5
     const synergy=(state.comboRules||[]).filter(r=>isThisGroup(r.sourceType,r.sourceValue)||isThisGroup(r.targetType,r.targetValue));
     const ruleHtml=(r,kind)=>{
       const left=membersFor(r.sourceType,r.sourceValue),right=membersFor(r.targetType,r.targetValue);
-      const title=kind==='counter'?`${selector(r.sourceType,r.sourceValue)} → ${selector(r.targetType,r.targetValue)}`:`${selector(r.sourceType,r.sourceValue)} + ${selector(r.targetType,r.targetValue)}`;
-      const meta=kind==='counter'?`${left.length} × ${right.length} matchups · ${String(r.tier||'moderate').toUpperCase()}`:`${left.length} × ${right.length} synergy pairs${r.official?' · OFFICIAL':''}`;
-      return `<article class="rn-v11-rule-card"><div class="rn-v11-rule-head"><div class="rn-v11-rule-title">${esc(title)}</div><div class="rn-v11-rule-meta">${esc(meta)}</div></div><div class="rn-v11-rule-description">${esc(r.reason||'No description provided.')}</div>${combinations(left,right,kind==='counter'?'vs.':'+')}</article>`;
+      const sourceLabel=selector(r.sourceType,r.sourceValue),targetLabel=selector(r.targetType,r.targetValue);
+      if(kind==='synergy'){
+        const counterpart=isThisGroup(r.sourceType,r.sourceValue)?targetLabel:sourceLabel;
+        const title=`${sourceLabel} + ${targetLabel}`;
+        const meta=r.official?'OFFICIAL GROUP SYNERGY':'COMMUNITY GROUP SYNERGY';
+        return `<article class="rn-v11-rule-card rn-v13-linked-synergy" data-open-group-synergy="${esc(r.id)}" tabindex="0" role="button" aria-label="Open group synergy rule: ${esc(title)}"><div class="rn-v11-rule-head"><div class="rn-v11-rule-title">Synergistic with ${esc(counterpart)}</div><div class="rn-v11-rule-meta">${esc(meta)}</div></div><div class="rn-v11-rule-description">${esc(r.reason||'No description provided.')}</div><div class="rn-v13-related-groups">${esc(sourceLabel)} + ${esc(targetLabel)}</div></article>`;
+      }
+      const title=`${sourceLabel} → ${targetLabel}`;
+      const meta=`${left.length} × ${right.length} matchups · ${String(r.tier||'moderate').toUpperCase()}`;
+      return `<article class="rn-v11-rule-card"><div class="rn-v11-rule-head"><div class="rn-v11-rule-title">${esc(title)}</div><div class="rn-v11-rule-meta">${esc(meta)}</div></div><div class="rn-v11-rule-description">${esc(r.reason||'No description provided.')}</div>${combinations(left,right,'vs.')}</article>`;
     };
     root.innerHTML=`<section class="rn-v11-rule-section"><h4>Applicable Group Synergy Rules · ${synergy.length}</h4>${synergy.length?synergy.map(r=>ruleHtml(r,'synergy')).join(''):'<div class="rn-v11-rule-empty">No group synergy rules reference this group.</div>'}</section><section class="rn-v11-rule-section"><h4>Applicable Group Counter Rules · ${counter.length}</h4>${counter.length?counter.map(r=>ruleHtml(r,'counter')).join(''):'<div class="rn-v11-rule-empty">No group counter rules reference this group.</div>'}</section>`;
+    if(!root.dataset.rnV13SynergyJumpBound){
+      root.dataset.rnV13SynergyJumpBound='1';
+      const jumpToRule=ruleId=>{
+        const list=$('groupSynergyRulesManagerList');
+        const editButton=[...(list?.querySelectorAll('[data-edit-group-synergy]')||[])].find(button=>button.dataset.editGroupSynergy===String(ruleId));
+        const target=editButton?.closest('details.group-rule-expandable, .group-rule-card');
+        if(!target)return;
+        // Close the group detail overlay so the destination rule is visible after scrolling.
+        $('rnV10GroupViewModal')?.classList.remove('open');
+        requestAnimationFrame(()=>{
+          if(target.tagName==='DETAILS')target.open=true;
+          document.querySelectorAll('.rn-v13-rule-highlight').forEach(node=>node.classList.remove('rn-v13-rule-highlight'));
+          target.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'});
+          target.classList.add('rn-v13-rule-highlight');
+          window.setTimeout(()=>target.classList.remove('rn-v13-rule-highlight'),2800);
+        });
+      };
+      root.addEventListener('click',event=>{
+        const card=event.target.closest('[data-open-group-synergy]');
+        if(card)jumpToRule(card.dataset.openGroupSynergy);
+      });
+      root.addEventListener('keydown',event=>{
+        if(event.key!=='Enter'&&event.key!==' ')return;
+        const card=event.target.closest('[data-open-group-synergy]');
+        if(card){event.preventDefault();jumpToRule(card.dataset.openGroupSynergy);}
+      });
+    }
   }
 
   const list=$('groupManagerList');
@@ -5220,6 +5254,35 @@ body.playbook-mode .rn-map-current{align-items:stretch!important}
   document.querySelectorAll('.page-tab[data-page="playbookPage"]').forEach(tab=>tab.addEventListener('click',()=>requestAnimationFrame(select)));
 })();
 </script>
+
+
+<style id="rn-v13-1-requested-ui-adjustments">
+/* Keep exactly one group-delete control: a larger, neutral X in the action row. */
+body.groups-mode .rn-v10-group-delete{display:none!important}
+body.groups-mode .rn-v10-group-head{padding-left:0!important;padding-right:0!important}
+body.groups-mode .rn-v10-group-actions{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.55fr) 34px!important;gap:5px!important}
+body.groups-mode .rn-v10-group-actions .rn-v13-group-delete{
+  display:grid!important;place-items:center!important;width:34px!important;min-width:34px!important;height:29px!important;min-height:29px!important;
+  padding:0!important;border:0!important;border-radius:5px!important;background:transparent!important;color:#e5edf4!important;
+  font-size:25px!important;font-weight:400!important;line-height:1!important;box-shadow:none!important
+}
+body.groups-mode .rn-v10-group-actions .rn-v13-group-delete:hover{background:#ffffff12!important;color:#fff!important}
+body.groups-mode .rn-v10-group-actions .rn-v13-group-delete:focus-visible{outline:2px solid #e6cf74!important;outline-offset:2px!important}
+
+/* Synergy descriptions are easier to read at a larger size. */
+#synergiesPage .synergy-match-card .combo-reason{font-size:13px!important;line-height:1.5!important}
+#synergiesPage .synergy-match-card .combo-role-hint{font-size:10px!important;line-height:1.35!important}
+.rn-v11-rule-description{font-size:12px!important;line-height:1.5!important}
+
+/* Applicable group synergies are group-level links, not individual hero-pair lists. */
+.rn-v13-linked-synergy{cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+.rn-v13-linked-synergy:hover,.rn-v13-linked-synergy:focus-visible{border-color:#e5cb70!important;background:#1d3543!important;outline:none;transform:translateY(-1px)}
+.rn-v13-linked-synergy:focus-visible{box-shadow:0 0 0 2px #e5cb7055!important}
+.rn-v13-linked-synergy .rn-v11-rule-title{font-size:12px!important;line-height:1.35!important;color:#f5dfa0!important}
+.rn-v13-related-groups{margin-top:7px;font-size:10px;line-height:1.35;color:#b8ceda;font-weight:800;letter-spacing:.025em}
+.rn-v13-rule-highlight{border-color:#f2d46c!important;outline:2px solid #f2d46c!important;outline-offset:2px!important;background:#354331!important;box-shadow:0 0 0 4px #f2d46c33,0 8px 22px #0008!important;animation:rnV13RuleHighlight 1.1s ease-in-out 2;scroll-margin:18px}
+@keyframes rnV13RuleHighlight{0%,100%{filter:none}45%{filter:brightness(1.35)}}
+</style>
 
 </body>
 </html>
