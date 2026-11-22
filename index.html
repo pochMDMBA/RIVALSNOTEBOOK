@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v13</title>
+<title>RIVALSNOTEBOOK · v13.3</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -745,6 +745,16 @@ function reasonHtml(t){
  const edit=t.generated?`<button class="edit-btn" data-edit-generated-counter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="Edit only this hero matchup">EDIT</button>`:`<button class="edit-btn" data-edit-counter="${escapeHtml(t.id)}">EDIT</button>`;
  return `<div class="reason"><div class="reason-top"><span class="reason-target">${target}</span><div class="reason-actions"><span class="tier-badge ${TIER[t.tier].cls}">${TIER[t.tier].label} · ${TIER[t.tier].weight.toFixed(1)}x</span><span class="reason-points">${counterPoints(t)} pts</span>${vote}${pocketAction(t.pocketPlayId)}${edit}</div></div><div class="reason-text">${escapeHtml(t.reason)}</div>${t.source?`<div class="tip-foot">${t.sourceUrl?`<a href="${escapeHtml(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t.source)} ↗</a>`:escapeHtml(t.source)}</div>`:''}</div>`;
 }
+function roleColumnForRole(role){
+ const normalized=String(role||'').toLowerCase();
+ if(normalized==='vanguard')return 'Vanguard';
+ if(normalized==='strategist'||normalized==='support')return 'Support';
+ // Multi-role heroes need to live in one of the three requested columns. Duelist is
+ // the display fallback only; their original in-card role label remains unchanged.
+ return 'Duelist';
+}
+function roleColumnForHero(name){return roleColumnForRole(hero(name)?.role)}
+function roleColumnClass(label){return label==='Vanguard'?'vanguard':label==='Support'?'strategist':'duelist'}
 function renderCounterResults(){
  const enemies=state.enemy;
  if(!enemies.length){$('counterResults').innerHTML='<div class="empty-state"><strong>Select enemy heroes to start.</strong><br>Counter suggestions are ranked from saved ability-interaction tips, counter strength and community votes.</div>';return}
@@ -756,9 +766,13 @@ function renderCounterResults(){
    arr.sort((a,b)=>counterPoints(b)-counterPoints(a)||TIER[b.tier].weight-TIER[a.tier].weight||a.against.localeCompare(b.against));
    return{name,arr,targets:[...new Set(arr.map(t=>t.against))],points:arr.reduce((n,t)=>n+counterPoints(t),0),totalVotes:arr.reduce((n,t)=>n+(Number(t.votes)||0),0),weight:Math.max(...arr.map(t=>TIER[t.tier].weight))};
  }).sort((a,b)=>b.points-a.points||b.totalVotes-a.totalVotes||b.weight-a.weight||b.targets.length-a.targets.length||a.name.localeCompare(b.name));
- const visibleCards=state.showAllCounters?cards:cards.slice(0,5);
+ const roles=['Vanguard','Duelist','Support'];
+ const byRole=new Map(roles.map(role=>[role,[]]));
+ for(const card of cards)byRole.get(roleColumnForHero(card.name)).push(card);
+ const compareCounterCards=(a,b)=>b.points-a.points||b.totalVotes-a.totalVotes||b.weight-a.weight||b.targets.length-a.targets.length||a.name.localeCompare(b.name);
+ for(const entries of byRole.values())entries.sort(compareCounterCards);
  const collapsed=new Set(Array.isArray(state.collapsedCounterHeroes)?state.collapsedCounterHeroes:[]);
- $('counterResults').innerHTML=`<div class="pick-list">${visibleCards.map(c=>{
+ const renderCard=c=>{
    const h=hero(c.name),isCollapsed=collapsed.has(c.name),reasonCount=c.arr.length;
    return `<article class="pick-card counter-suggestion ${isCollapsed?'counter-collapsed':''}" data-counter-suggestion="${escapeHtml(c.name)}">
      <div class="pick-avatar"><div class="pick-portrait"><img src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(c.name)}" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="pick-fallback">${escapeHtml(c.name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div></div>
@@ -771,7 +785,17 @@ function renderCounterResults(){
        <div class="counter-collapsed-summary" ${isCollapsed?'':'hidden'}>${reasonCount} matchup reason${reasonCount===1?'':'s'} hidden. Expand to review.</div>
      </div>
    </article>`;
- }).join('')}</div>${cards.length>5?`<button class="text-button" data-toggle-counters="1">${state.showAllCounters?'SHOW FEWER':'SHOW ALL '+cards.length+' COUNTER PICKS'}</button>`:''}<div class="small-help">Points per matchup: Hard 100 · Moderate 70 · Soft 40 · +5 per upvote. Hero scores sum the applicable matchup points against the selected enemy lineup.</div>`;
+ };
+ const hasMore=roles.some(role=>byRole.get(role).length>5);
+ const columns=roles.map(role=>{
+   const entries=byRole.get(role);
+   const visible=state.showAllCounters?entries:entries.slice(0,5);
+   return `<section class="rn-role-column rn-counter-role-column" data-role="${role.toLowerCase()}">
+     <div class="rn-role-column-head"><span class="role-pill ${roleColumnClass(role)}">${role}</span><span class="rn-role-column-count">${entries.length} ${entries.length===1?'PICK':'PICKS'}</span></div>
+     <div class="rn-role-card-stack">${visible.map(renderCard).join('')||'<div class="rn-role-empty">No recommendations</div>'}</div>
+   </section>`;
+ }).join('');
+ $('counterResults').innerHTML=`<div class="rn-role-columns rn-counter-columns">${columns}</div>${hasMore?`<button class="text-button" data-toggle-counters="1">${state.showAllCounters?'SHOW FEWER':'SHOW ALL COUNTER PICKS'}</button>`:''}<div class="small-help">Each role column is sorted from highest to lowest points. Points per matchup: Hard 100 · Moderate 70 · Soft 40 · +5 per upvote. Hero scores sum the applicable matchup points against the selected enemy lineup.</div>`;
 }
 function comboCardHtml(c){const aIn=state.ally.includes(c.a),bIn=state.ally.includes(c.b),status=aIn&&bIn?'TEAM PAIR ACTIVE':aIn?`SUGGEST ADD · ${c.b.toUpperCase()}`:bIn?`SUGGEST ADD · ${c.a.toUpperCase()}`:'MATCH';const vote=c.generated?`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}">▲ ${c.votes}</button>`:`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}">▲ ${c.votes}</button>`;const edit=c.generated?`<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>`:`<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;return `<article class="combo-card"><div class="combo-head"><div class="combo-icon">${iconSvg(c.icon||'sparkles')}</div><div class="combo-title-wrap"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div><div class="combo-role-hint">${escapeHtml(c.a==='Deadpool'?'Vanguard / Duelist / Support':hero(c.a)?.role==='Strategist'?'Support':hero(c.a)?.role||'')} + ${escapeHtml(c.b==='Deadpool'?'Vanguard / Duelist / Support':hero(c.b)?.role==='Strategist'?'Support':hero(c.b)?.role||'')}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="combo-status">${status}</div>${c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>'}<div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${vote}${pocketAction(c.pocketPlayId)}${edit}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`}
 function renderComboCards(combos,containerId,label){const container=$(containerId);if(!container)return;if(!combos.length){container.innerHTML=state.ally.length?'<div class="empty-state">No saved synergy matches this allied lineup yet. Add a synergy or create a group synergy rule. As you add allies, matching teammate picks appear here.</div>':'<div class="empty-state">Select at least one allied hero to discover suggested teammates from the saved synergy database.</div>';return}const sorted=[...combos].sort((a,b)=>synergyPoints(b)-synergyPoints(a)||b.votes-a.votes||a.a.localeCompare(b.a)||a.b.localeCompare(b.b));container.innerHTML=`<div class="combo-list">${sorted.map(comboCardHtml).join('')}</div><div class="small-help">Synergy points = 100 base (125 for official Team-Ups) + 5 per upvote. Suggestions are triggered by at least one selected ally; pairings already in your team are marked active.</div>`}
@@ -1053,8 +1077,29 @@ initData();bindPlaybook();render();renderPlaybook();
         : '<div class="empty-state"><strong>Select allied heroes to begin.</strong><br>Suggested teammates, ability combinations and official Team-Ups will be ranked here using the current ally lineup.</div>';
       return;
     }
-    const sorted=[...combos].sort((a,b)=>synergyPoints(b)-synergyPoints(a)||(Number(b.votes)||0)-(Number(a.votes)||0)||a.a.localeCompare(b.a)||a.b.localeCompare(b.b));
-    container.innerHTML = `<div class="combo-list">${sorted.map(comboCardHtml).join('')}</div><div class="small-help">Synergy points = 100 base (125 for official Team-Ups) + 5 per upvote. Suggestions are triggered by at least one selected ally. Selected heroes are labelled IN TEAM; recommended partners are labelled SUGGESTED.</div>`;
+    const roles=['Vanguard','Duelist','Support'];
+    const byRole=new Map(roles.map(role=>[role,[]]));
+    const roleForCombo=combo=>{
+      const aIn=state.ally.includes(combo.a),bIn=state.ally.includes(combo.b);
+      // Bucket the pair by the suggested teammate, not by the selected ally.
+      const suggested=aIn&&!bIn?combo.b:bIn&&!aIn?combo.a:(aIn?combo.a:combo.b);
+      const suggestedRole=hero(suggested)?.role;
+      if(suggestedRole==='Multi-role'){
+        const anchor=aIn?combo.a:(bIn?combo.b:combo.a);
+        return roleColumnForRole(hero(anchor)?.role);
+      }
+      return roleColumnForRole(suggestedRole);
+    };
+    for(const combo of combos)byRole.get(roleForCombo(combo)).push(combo);
+    const compare=(a,b)=>synergyPoints(b)-synergyPoints(a)||(Number(b.votes)||0)-(Number(a.votes)||0)||a.a.localeCompare(b.a)||a.b.localeCompare(b.b);
+    const columns=roles.map(role=>{
+      const entries=byRole.get(role).sort(compare);
+      return `<section class="rn-role-column rn-synergy-role-column" data-role="${role.toLowerCase()}">
+        <div class="rn-role-column-head"><span class="role-pill ${roleColumnClass(role)}">${role}</span><span class="rn-role-column-count">${entries.length} ${entries.length===1?'SUGGESTION':'SUGGESTIONS'}</span></div>
+        <div class="rn-role-card-stack">${entries.map(comboCardHtml).join('')||'<div class="rn-role-empty">No recommendations</div>'}</div>
+      </section>`;
+    }).join('');
+    container.innerHTML = `<div class="rn-role-columns rn-synergy-columns">${columns}</div><div class="small-help">Each role column is sorted from highest to lowest points. Synergy points = 100 base (125 for official Team-Ups) + 5 per upvote. Pairings are grouped by the suggested teammate's role.</div>`;
   };
 
   // Remove the old allied roster tab entirely. Enemy selection belongs only to Counterpicks.
@@ -5390,6 +5435,111 @@ body.playbook-mode .board-item.board-ability-token.selected .skill-icon {
 body.playbook-mode .board-item.board-ability-token.selected .skill-icon img,
 body.playbook-mode .board-item.board-ability-token.selected .skill-icon svg {
   filter:drop-shadow(0 0 3px #ffe36a99)!important;
+}
+</style>
+
+
+<style id="rn-v13-3-role-recommendation-columns">
+/* Give the recommendation workspace more room while keeping both tabs aligned. */
+@media(min-width:821px){
+  body:not(.playbook-mode) #counterPage.workspace:not(.hidden),
+  body:not(.playbook-mode) #synergiesPage.synergies-page:not(.hidden){
+    grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)!important;
+  }
+}
+/* Three parallel role lanes, with independent point ranking inside each lane. */
+#counterPage .rn-role-columns,
+#synergiesPage .rn-role-columns{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:7px!important;
+  align-items:start!important;
+  min-width:0!important;
+}
+#counterPage .rn-role-column,
+#synergiesPage .rn-role-column{
+  min-width:0!important;
+  padding:6px!important;
+  border:1px solid #405464!important;
+  border-radius:7px!important;
+  background:linear-gradient(180deg,#1b2b37d9,#15232dcc)!important;
+}
+#counterPage .rn-role-column-head,
+#synergiesPage .rn-role-column-head{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:4px!important;
+  min-width:0!important;
+  margin:0 0 7px!important;
+  padding:0 0 6px!important;
+  border-bottom:1px solid #405260!important;
+}
+.rn-role-column-count{font-size:7px;font-weight:900;letter-spacing:.055em;color:#91a6b4;white-space:nowrap}
+.rn-role-card-stack{display:flex!important;flex-direction:column!important;gap:7px!important;min-width:0!important}
+.rn-role-empty{padding:10px 4px;border:1px dashed #3e5260;border-radius:5px;color:#8398a7;font-size:8px;text-align:center;line-height:1.4}
+#counterPage .rn-counter-role-column .pick-card.counter-suggestion{
+  grid-template-columns:52px minmax(0,1fr)!important;
+  gap:6px!important;
+  padding:6px!important;
+  align-items:start!important;
+}
+#counterPage #counterResults .rn-counter-role-column .pick-card.counter-suggestion .pick-avatar{
+  width:52px!important;min-width:52px!important;max-width:52px!important;
+  height:68px!important;min-height:68px!important;max-height:68px!important;
+}
+#counterPage .rn-counter-role-column .pick-main-head{align-items:flex-start!important;gap:4px!important}
+#counterPage .rn-counter-role-column .pick-name{font-size:10px!important;line-height:1.2!important;overflow-wrap:anywhere}
+#counterPage .rn-counter-role-column .pick-role{font-size:7px!important;line-height:1.25!important}
+#counterPage .rn-counter-role-column .pick-head-actions{display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;gap:3px!important}
+#counterPage .rn-counter-role-column .pick-score strong{font-size:10px!important}
+#counterPage .rn-counter-role-column .pick-score span{font-size:7px!important}
+#counterPage .rn-counter-role-column .counter-collapse-toggle{min-height:21px!important;padding:3px 5px!important;font-size:7px!important}
+#counterPage .rn-counter-role-column .reason-list{gap:5px!important;margin-top:5px!important}
+#counterPage .rn-counter-role-column .reason{padding:5px!important}
+#counterPage .rn-counter-role-column .reason-top{align-items:flex-start!important;flex-direction:column!important;gap:4px!important}
+#counterPage .rn-counter-role-column .reason-actions{display:flex!important;flex-wrap:wrap!important;gap:3px!important;max-width:100%!important}
+#counterPage .rn-counter-role-column .reason-text{font-size:9px!important;line-height:1.35!important}
+#counterPage .rn-counter-role-column .reason-target-name{font-size:8px!important}
+#counterPage .rn-counter-role-column .tip-foot{font-size:7px!important;overflow-wrap:anywhere}
+#synergiesPage .rn-synergy-role-column .synergy-match-card{padding:6px!important;min-width:0!important}
+#synergiesPage .rn-synergy-role-column .combo-head{gap:4px!important;align-items:center!important}
+#synergiesPage .rn-synergy-role-column .combo-icon{width:20px!important;height:20px!important;flex:none!important}
+#synergiesPage .rn-synergy-role-column .combo-names{font-size:9px!important;line-height:1.2!important;overflow-wrap:anywhere}
+#synergiesPage .rn-synergy-role-column .combo-role-hint{font-size:7px!important;line-height:1.25!important;overflow-wrap:anywhere}
+#synergiesPage .rn-synergy-role-column .points-badge{font-size:7px!important;padding:3px 4px!important;white-space:nowrap!important}
+#synergiesPage .rn-synergy-role-column .synergy-hero-pair{grid-template-columns:minmax(0,1fr) 13px minmax(0,1fr)!important;gap:3px!important;margin:6px 0!important;align-items:start!important}
+#synergiesPage .rn-synergy-role-column .synergy-hero-tile{min-width:0!important;padding:3px!important}
+#synergiesPage .rn-synergy-role-column .synergy-portrait{
+  display:grid!important;place-items:center!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;
+  height:68px!important;min-height:68px!important;max-height:68px!important;
+  margin:0 auto!important;padding:2px!important;overflow:hidden!important;
+}
+#synergiesPage .rn-synergy-role-column .synergy-portrait img{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important}
+#synergiesPage .rn-synergy-role-column .synergy-hero-name{font-size:8px!important;line-height:1.2!important;min-height:20px!important;margin-top:3px!important;overflow-wrap:anywhere}
+#synergiesPage .rn-synergy-role-column .synergy-hero-role{font-size:7px!important;line-height:1.2!important}
+#synergiesPage .rn-synergy-role-column .synergy-state{font-size:7px!important}
+#synergiesPage .rn-synergy-role-column .synergy-plus{font-size:14px!important;align-self:center!important}
+#synergiesPage .rn-synergy-role-column .combo-status{font-size:7px!important;line-height:1.25!important;overflow-wrap:anywhere}
+#synergiesPage .rn-synergy-role-column .combo-reason{font-size:13px!important;line-height:1.45!important;margin:5px 0!important}
+#synergiesPage .rn-synergy-role-column .combo-foot{align-items:flex-start!important;flex-wrap:wrap!important;gap:4px!important}
+#synergiesPage .rn-synergy-role-column .reason-actions{display:flex!important;flex-wrap:wrap!important;gap:3px!important}
+#synergiesPage .rn-synergy-role-column .vote-btn,
+#synergiesPage .rn-synergy-role-column .edit-btn{font-size:8px!important;padding:3px 5px!important}
+#synergiesPage .rn-synergy-role-column .tip-foot{font-size:7px!important;overflow-wrap:anywhere}
+/* Preserve the three role lanes down to tablet width; stack them on narrow phones. */
+@media(max-width:820px){
+  #counterPage .rn-role-columns,
+  #synergiesPage .rn-role-columns{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+@media(max-width:600px){
+  #counterPage .rn-role-columns,
+  #synergiesPage .rn-role-columns{grid-template-columns:minmax(0,1fr)!important}
+  #counterPage .rn-counter-role-column .pick-card.counter-suggestion{grid-template-columns:60px minmax(0,1fr)!important}
+  #counterPage #counterResults .rn-counter-role-column .pick-card.counter-suggestion .pick-avatar{width:60px!important;min-width:60px!important;max-width:60px!important;height:76px!important;min-height:76px!important;max-height:76px!important}
+  #synergiesPage .rn-synergy-role-column .synergy-portrait{height:84px!important;min-height:84px!important;max-height:84px!important}
+  #synergiesPage .rn-synergy-role-column .synergy-hero-name{font-size:10px!important}
 }
 </style>
 
