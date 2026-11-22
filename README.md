@@ -225,3 +225,10 @@ This release embeds every tactical-map JPEG and cover thumbnail directly into `i
 - Default whiteboard zoom is 100%.
 
 No Supabase schema migration is required for these frontend changes. Preserve your existing `config.js` values and Supabase project settings when updating the GitHub repository.
+
+
+## v12 performance and asset-loading update
+
+- Tactical map metadata is now lightweight; all 10 cover JPEGs and 10 full-map JPEGs are separate files under `assets/maps/` and referenced with root-absolute `/assets/maps/...` URLs. Keep the complete `assets/maps` directory in the Vercel deployment.
+- The multi-megabyte Base64 map payload has been removed from the inline JavaScript. Covers are lazy-loaded by the map picker; a full map loads only when selected.
+- Supabase JS is dynamically loaded after the page shell has parsed. If the CDN is blocked or slow, the local notebook UI still loads; cloud features show an availability message and can be retried after refreshing.
