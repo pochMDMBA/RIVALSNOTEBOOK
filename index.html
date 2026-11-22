@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v6</title>
+<title>RIVALSNOTEBOOK · v8</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -406,7 +406,7 @@ function normalizeTips(list){return (Array.isArray(list)?list:[]).map(x=>x?({...
 function normalizeCombos(list){return (Array.isArray(list)?list:[]).map(x=>x?({...x,a:({'Bucky':'Winter Soldier','Punisher':'The Punisher'}[x.a]||x.a),b:({'Bucky':'Winter Soldier','Punisher':'The Punisher'}[x.b]||x.b)}):x).filter(x=>x&&HEROES.some(h=>h.name===x.a)&&HEROES.some(h=>h.name===x.b)&&x.a!==x.b&&String(x.reason||'').trim()).map((x,i)=>({id:String(x.id||`combo-${Date.now()}-${i}`),a:x.a,b:x.b,reason:String(x.reason).slice(0,700),official:(String(x.id||'').startsWith('r11-u')?false:(x.official===true||x.official==='true')),votes:Math.max(0,Number(x.votes)||0),myVote:!!x.myVote,source:String(x.source||'Community tip').slice(0,150),sourceUrl:String(x.sourceUrl||'').slice(0,500)}))}
 function normalizeGroups(list){return (Array.isArray(list)?list:[]).filter(g=>g&&String(g.name||'').trim()).map((g,i)=>({id:String(g.id||`group-${Date.now()}-${i}`),name:String(g.name).trim().slice(0,50),icon:String(g.icon||'🧩').slice(0,8),description:String(g.description||'').slice(0,160),members:[...new Set((Array.isArray(g.members)?g.members:[]).filter(n=>HEROES.some(h=>h.name===n)))].sort((a,b)=>{const A=hero(a),B=hero(b);return ROLE_ORDER.indexOf(A?.role)-ROLE_ORDER.indexOf(B?.role)||a.localeCompare(b)})})).filter(g=>g.members.length)}
 function normalizeComboRules(list){return (Array.isArray(list)?list:[]).filter(r=>r&&['hero','group'].includes(r.sourceType)&&['hero','group'].includes(r.targetType)&&String(r.reason||'').trim()).map((r,i)=>({id:String(r.id||`crule-${Date.now()}-${i}`),sourceType:r.sourceType,sourceValue:String(r.sourceValue||''),targetType:r.targetType,targetValue:String(r.targetValue||''),reason:String(r.reason).slice(0,700),official:!!r.official,votesByPair:r.votesByPair&&typeof r.votesByPair==='object'?r.votesByPair:{},myVotesByPair:r.myVotesByPair&&typeof r.myVotesByPair==='object'?r.myVotesByPair:{},source:String(r.source||'Community synergy').slice(0,150),sourceUrl:String(r.sourceUrl||'').slice(0,500)})).filter(r=>selectorExists(r.sourceType,r.sourceValue)&&selectorExists(r.targetType,r.targetValue))}
-function normalizePlays(list){return (Array.isArray(list)?list:[]).filter(p=>p&&String(p.name||'').trim()).map((p,i)=>({id:String(p.id||`play-${Date.now()}-${i}`),name:String(p.name).slice(0,70),items:normalizePlayItems(p.items||[]),updatedAt:String(p.updatedAt||''),synergyLink:p.synergyLink&&typeof p.synergyLink==='object'?{sourceType:String(p.synergyLink.sourceType||''),sourceId:String(p.synergyLink.sourceId||''),pairKey:String(p.synergyLink.pairKey||''),a:String(p.synergyLink.a||''),b:String(p.synergyLink.b||'')}:null}))}
+function normalizePlays(list){return (Array.isArray(list)?list:[]).filter(p=>p&&String(p.name||'').trim()).map((p,i)=>({id:String(p.id||`play-${Date.now()}-${i}`),name:String(p.name).slice(0,70),items:normalizePlayItems(p.items||[]),mapId:String(p.mapId||''),updatedAt:String(p.updatedAt||''),synergyLink:p.synergyLink&&typeof p.synergyLink==='object'?{sourceType:String(p.synergyLink.sourceType||''),sourceId:String(p.synergyLink.sourceId||''),pairKey:String(p.synergyLink.pairKey||''),a:String(p.synergyLink.a||''),b:String(p.synergyLink.b||'')}:null}))}
 function normalizePlayItems(list){
   const allowed = ['hero','text','arrow','wall','pit','broken','number','ability','shape','pen','image'];
   const shapes = ['circle','rectangle','triangle','triangle-down','diamond','cone','star','line','pin','warning','flag','anchor','target','area'];
@@ -4587,6 +4587,181 @@ body.groups-mode .group-manage-card.trading-card .group-actions .rn-publish-grou
   window.addEventListener('pageshow',syncToolHighlights);
   window.__rnSyncPlaybookToolHighlights=syncToolHighlights;
   window.__rnSetBoardTool?.('select');syncToolHighlights();
+})();
+</script>
+
+
+<style id="rn-v8-map-library-styles">
+body.playbook-mode .rn-map-widget{display:flex!important;flex-direction:column!important;gap:6px!important;padding:7px!important;margin:0 0 2px!important;border:1px solid #344a5a!important;border-radius:7px!important;background:linear-gradient(155deg,#1a2a37,#14212c)!important;min-width:0!important}
+body.playbook-mode .rn-map-widget-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:5px!important}
+body.playbook-mode .rn-map-widget-head strong{font-size:8px!important;letter-spacing:.1em!important;color:#9bb3c3!important}
+body.playbook-mode .rn-map-change{border:1px solid #4a7385!important;background:#244457!important;color:#e5f5ff!important;border-radius:4px!important;padding:4px 7px!important;font-size:7px!important;font-weight:950!important;letter-spacing:.06em!important;cursor:pointer!important}
+body.playbook-mode .rn-map-current{display:flex!important;flex-direction:column!important;gap:4px!important;width:100%!important;padding:0!important;border:0!important;background:transparent!important;text-align:left!important;cursor:pointer!important;min-width:0!important}
+body.playbook-mode .rn-map-current img{display:block!important;width:100%!important;height:52px!important;object-fit:cover!important;object-position:center!important;border:1px solid #3b5363!important;border-radius:4px!important;background:#0c151e!important}
+body.playbook-mode .rn-map-current-name{font-size:9px!important;font-weight:900!important;line-height:1.2!important;color:#eff6fb!important;white-space:normal!important;overflow-wrap:anywhere!important}
+body.playbook-mode .rn-map-current-mode{font-size:7px!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:#7fa2b8!important}
+body.playbook-mode .rn-map-clear{align-self:flex-end!important;border:0!important;background:transparent!important;color:#91a6b5!important;font-size:7px!important;font-weight:850!important;letter-spacing:.04em!important;padding:1px 2px!important;cursor:pointer!important}
+body.playbook-mode .rn-map-clear:hover{color:#ffb5b5!important}
+body.playbook-mode .play-board.has-rn-map .board-empty-hint{display:none!important}
+/* Tactical maps are fitted as a true canvas underlay. Preserve their full aspect ratio and keep all board items interactive above them. */
+body.playbook-mode #playBoardStage > .rn-map-background{
+  position:absolute!important;inset:0!important;display:block!important;
+  width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;
+  object-fit:contain!important;object-position:center center!important;
+  margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+  z-index:0!important;pointer-events:none!important;user-select:none!important;
+}
+body.playbook-mode #playBoardStage > .board-item{z-index:2}
+.rn-map-library-overlay{position:fixed;z-index:160;inset:56px 16px 18px 292px;display:none;align-items:flex-start;justify-content:flex-start;padding:12px;background:#050b12b8;backdrop-filter:blur(5px)}
+.rn-map-library-overlay.open{display:flex}
+.rn-map-library-dialog{width:min(1040px,100%);max-height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden;border:1px solid #456174;border-radius:10px;background:linear-gradient(155deg,#152431,#0e1822);box-shadow:0 24px 70px #000b;color:#eff6fb}
+.rn-map-library-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid #304656;flex:none}
+.rn-map-library-head h2{margin:0;font-size:13px;font-weight:950;letter-spacing:.08em;text-transform:uppercase}
+.rn-map-library-head p{margin:3px 0 0;color:#91a7b7;font-size:9px}
+.rn-map-library-close{width:30px;height:30px;border:1px solid #40596a;border-radius:5px;background:#203444;color:#edf7fc;font-size:19px;line-height:1;cursor:pointer}
+.rn-map-library-scroll{padding:12px 14px 16px;overflow:auto;min-height:0;scrollbar-width:thin;scrollbar-color:#49677a transparent}
+.rn-map-mode-section+.rn-map-mode-section{margin-top:16px;padding-top:13px;border-top:1px solid #2b4050}
+.rn-map-mode-heading{display:flex;align-items:center;gap:8px;margin:0 0 9px;font-size:10px;font-weight:950;letter-spacing:.1em;text-transform:uppercase;color:#d9e9f3}
+.rn-map-mode-heading::before{content:'';width:3px;height:13px;border-radius:4px;background:#f2cc5c}
+.rn-map-mode-heading small{font-size:8px;color:#8099aa;font-weight:750;letter-spacing:.03em}
+.rn-map-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:9px}
+.rn-map-card{display:flex;flex-direction:column;min-width:0;overflow:hidden;text-align:left;padding:0;border:1px solid #344c5c;border-radius:7px;background:#192a37;color:#eff6fb;cursor:pointer;transition:border-color .12s,transform .12s,box-shadow .12s}
+.rn-map-card:hover{border-color:#78c9d5;transform:translateY(-2px);box-shadow:0 6px 18px #0006}
+.rn-map-card.selected{border-color:#f2d36b;box-shadow:0 0 0 2px #f2d36b55,0 6px 18px #0008}
+.rn-map-card img{display:block;width:100%;height:auto;aspect-ratio:309/128;object-fit:cover;background:#0c151e}
+.rn-map-card-copy{display:flex;align-items:center;justify-content:space-between;gap:5px;padding:7px 8px;min-height:34px}
+.rn-map-card-copy strong{font-size:9px;line-height:1.2;font-weight:900;overflow-wrap:anywhere}
+.rn-map-card-copy span{font-size:7px;color:#7f9caf;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.rn-map-coming-soon{margin-top:14px;padding:9px 10px;border:1px dashed #405565;border-radius:6px;color:#9ab0bf;font-size:9px;line-height:1.4;background:#101d27}
+@media(max-width:900px){.rn-map-library-overlay{inset:52px 10px 14px 242px;padding:8px}.rn-map-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.rn-map-library-overlay{inset:48px 0 104px 150px;padding:5px}.rn-map-library-head{padding:9px}.rn-map-library-scroll{padding:8px}.rn-map-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.rn-map-card-copy{padding:6px;min-height:30px}.rn-map-card-copy strong{font-size:8px}}
+@media(max-width:720px){.rn-map-library-overlay{inset:10px;padding:8px}.rn-map-library-dialog{width:100%;max-height:100%}}
+@media(max-width:430px){.rn-map-card-grid{grid-template-columns:1fr}}
+</style>
+<script id="rn-v8-tactical-map-library">
+(()=>{
+  const $=id=>document.getElementById(id);
+  if(typeof state==='undefined')return;
+  const MAPS=[
+    {id:'yggdrasil-path',name:'Yggdrasil Path',mode:'Convoy',cover:'assets/maps/covers/yggdrasil-path.webp',image:'assets/maps/yggdrasil-path.webp'},
+    {id:'spider-islands',name:'Spider-Islands',mode:'Convoy',cover:'assets/maps/covers/spider-islands.webp',image:'assets/maps/spider-islands.webp'},
+    {id:'midtown',name:'Midtown',mode:'Convoy',cover:'assets/maps/covers/midtown.webp',image:'assets/maps/midtown.webp'},
+    {id:'arakko',name:'Arakko',mode:'Convoy',cover:'assets/maps/covers/arakko.webp',image:'assets/maps/arakko.webp'},
+    {id:'thebes',name:'Thebes',mode:'Convoy',cover:'assets/maps/covers/thebes.webp',image:'assets/maps/thebes.webp'},
+    {id:'shin-shibuya',name:'Shin-Shibuya',mode:'Convergence',cover:'assets/maps/covers/shin-shibuya.webp',image:'assets/maps/shin-shibuya.webp'},
+    {id:'hall-of-djalia',name:'Hall Of Djalia',mode:'Convergence',cover:'assets/maps/covers/hall-of-djalia.webp',image:'assets/maps/hall-of-djalia.webp'},
+    {id:'central-park',name:'Central Park',mode:'Convergence',cover:'assets/maps/covers/central-park.webp',image:'assets/maps/central-park.webp'},
+    {id:'symbiotic-surface',name:'Symbiotic Surface',mode:'Convergence',cover:'assets/maps/covers/symbiotic-surface.webp',image:'assets/maps/symbiotic-surface.webp'},
+    {id:'heart-of-heaven',name:'Heart Of Heaven',mode:'Convergence',cover:'assets/maps/covers/heart-of-heaven.webp',image:'assets/maps/heart-of-heaven.webp'}
+  ];
+  const known=new Map(MAPS.map(m=>[m.id,m]));
+  const activeAtStart=(state.plays||[]).find(p=>String(p.id)===String(state.activePlayId));
+  let currentMapId=known.has(activeAtStart?.mapId)?activeAtStart.mapId:(localStorage.getItem('rnPlaybookCurrentMapId')||'');
+  if(!known.has(currentMapId))currentMapId='';
+  const sidebar=document.querySelector('#playbookPage .playbook-tools');
+  const stage= $('playBoardStage');
+  const board=$('playBoard');
+  if(!sidebar||!stage||!board)return;
+
+  // Small map control appears at the upper-left, directly below the Playbook heading.
+  const widget=document.createElement('section');
+  widget.className='rn-map-widget';
+  widget.innerHTML=`
+    <div class="rn-map-widget-head"><strong>TACTICAL MAP</strong><button type="button" class="rn-map-change" id="rnMapOpenBtn">CHOOSE MAP</button></div>
+    <button type="button" class="rn-map-current" id="rnMapCurrentBtn" aria-label="Choose tactical map">
+      <img id="rnMapCurrentCover" alt="" src="">
+      <span class="rn-map-current-name" id="rnMapCurrentName">No map selected</span>
+      <span class="rn-map-current-mode" id="rnMapCurrentMode">Choose a map background</span>
+    </button>
+    <button type="button" class="rn-map-clear" id="rnMapClearBtn">REMOVE MAP</button>`;
+  const insertBefore=sidebar.querySelector('.sidebar-play-panel')||sidebar.querySelector('.rn-toolkit')||null;
+  sidebar.insertBefore(widget,insertBefore);
+
+  const overlay=document.createElement('div');
+  overlay.className='rn-map-library-overlay';
+  overlay.id='rnMapLibraryOverlay';
+  const makeCards=mode=>MAPS.filter(m=>m.mode===mode).map(m=>`
+    <button type="button" class="rn-map-card${m.id===currentMapId?' selected':''}" data-map-id="${m.id}" aria-label="Load ${m.name}" aria-pressed="${m.id===currentMapId?'true':'false'}">
+      <img src="${m.cover}" alt="${m.name} cover" loading="lazy">
+      <span class="rn-map-card-copy"><strong>${m.name}</strong><span>${mode}</span></span>
+    </button>`).join('');
+  overlay.innerHTML=`
+    <section class="rn-map-library-dialog" role="dialog" aria-modal="true" aria-labelledby="rnMapLibraryTitle">
+      <header class="rn-map-library-head"><div><h2 id="rnMapLibraryTitle">Choose a tactical map</h2><p>Load the annotated map as the whiteboard background. Your saved plays remember their selected map.</p></div><button type="button" class="rn-map-library-close" id="rnMapLibraryClose" aria-label="Close map library">×</button></header>
+      <div class="rn-map-library-scroll">
+        <section class="rn-map-mode-section"><h3 class="rn-map-mode-heading">Convoy <small>5 maps</small></h3><div class="rn-map-card-grid">${makeCards('Convoy')}</div></section>
+        <section class="rn-map-mode-section"><h3 class="rn-map-mode-heading">Convergence <small>5 maps</small></h3><div class="rn-map-card-grid">${makeCards('Convergence')}</div></section>
+        <div class="rn-map-coming-soon"><strong>Domination maps</strong> will be added when you upload that map set. The Domination cover cards shown in the reference screenshot are not added yet because their full tactical maps have not been supplied.</div>
+      </div>
+    </section>`;
+  document.body.appendChild(overlay);
+
+  function getPlay(){return (state.plays||[]).find(p=>String(p.id)===String(state.activePlayId))||null;}
+  function ensureMapLayer(){
+    let img=stage.querySelector(':scope > .rn-map-background');
+    if(!img){img=document.createElement('img');img.className='rn-map-background';img.alt='Selected Marvel Rivals tactical map';img.draggable=false;stage.insertBefore(img,stage.firstChild);}
+    return img;
+  }
+  function updateMapLayer(){
+    const m=known.get(currentMapId);
+    let layer=stage.querySelector(':scope > .rn-map-background');
+    if(!m){if(layer)layer.remove();board.classList.remove('has-rn-map');return;}
+    layer=layer||ensureMapLayer();
+    const next=new URL(m.image,document.baseURI).href;
+    if(layer.src!==next)layer.src=m.image;
+    layer.alt=`${m.name} tactical map`;
+    board.classList.add('has-rn-map');
+  }
+  function updateMapWidget(){
+    const m=known.get(currentMapId),cover=$('rnMapCurrentCover'),name=$('rnMapCurrentName'),mode=$('rnMapCurrentMode');
+    if(m){cover.src=m.cover;cover.alt=`${m.name} cover`;cover.style.display='block';name.textContent=m.name;mode.textContent=m.mode;}
+    else{cover.removeAttribute('src');cover.alt='';cover.style.display='none';name.textContent='No map selected';mode.textContent='Choose a map background';}
+    overlay.querySelectorAll('[data-map-id]').forEach(b=>{const active=b.dataset.mapId===currentMapId;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});
+  }
+  function saveMapSelection(){
+    localStorage.setItem('rnPlaybookCurrentMapId',currentMapId);
+    const play=getPlay();
+    if(play){play.mapId=currentMapId; if(typeof persist==='function')persist();}
+  }
+  function selectMap(id){
+    currentMapId=known.has(id)?id:'';
+    saveMapSelection();updateMapLayer();updateMapWidget();overlay.classList.remove('open');
+    if(currentMapId)toast(`${known.get(currentMapId).name} loaded on the whiteboard`);
+    else toast('Map background removed');
+  }
+  function openPicker(){updateMapWidget();overlay.classList.add('open');$('rnMapLibraryClose')?.focus();}
+  $('rnMapOpenBtn').addEventListener('click',openPicker);
+  $('rnMapCurrentBtn').addEventListener('click',openPicker);
+  $('rnMapClearBtn').addEventListener('click',()=>selectMap(''));
+  $('rnMapLibraryClose').addEventListener('click',()=>overlay.classList.remove('open'));
+  overlay.addEventListener('click',event=>{
+    if(event.target===overlay){overlay.classList.remove('open');return;}
+    const card=event.target.closest('[data-map-id]');if(card)selectMap(card.dataset.mapId);
+  });
+  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&overlay.classList.contains('open'))overlay.classList.remove('open');});
+
+  // Preserve the map as part of each saved play. normalizePlays() was extended above
+  // so the id survives local reloads and Supabase collaboration snapshots.
+  $('savePlayBtn')?.addEventListener('click',()=>{
+    const play=getPlay();if(play){play.mapId=currentMapId;persist();}
+  });
+  $('loadPlayBtn')?.addEventListener('click',()=>{
+    const play=getPlay();currentMapId=known.has(play?.mapId)?play.mapId:'';
+    localStorage.setItem('rnPlaybookCurrentMapId',currentMapId);updateMapLayer();updateMapWidget();
+  });
+  $('newPlayBtn')?.addEventListener('click',()=>{
+    currentMapId='';localStorage.removeItem('rnPlaybookCurrentMapId');updateMapLayer();updateMapWidget();
+  });
+  $('deletePlayBtn')?.addEventListener('click',()=>{
+    const play=getPlay();currentMapId=known.has(play?.mapId)?play.mapId:'';
+    localStorage.setItem('rnPlaybookCurrentMapId',currentMapId);updateMapLayer();updateMapWidget();
+  });
+  // When the user opens a previously active play after a page refresh, restore its map.
+  const restored=getPlay();if(known.has(restored?.mapId))currentMapId=restored.mapId;
+  updateMapLayer();updateMapWidget();
+  window.RN_TACTICAL_MAPS=MAPS;
+  window.__rnSetTacticalMap=selectMap;
+  window.__rnGetTacticalMap=()=>currentMapId;
 })();
 </script>
 

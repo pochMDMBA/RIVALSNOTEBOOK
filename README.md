@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current package: v7.** See `V7_RELEASE_NOTES.md`, `V6_RELEASE_NOTES.md`, and `SUPABASE_SETUP_STEPS.md`.
+**Current package: v8.** See `V7_RELEASE_NOTES.md`, `V6_RELEASE_NOTES.md`, and `SUPABASE_SETUP_STEPS.md`.
 
 RIVALSNOTEBOOK is the renamed Marvel Rivals counter-pick, synergy, hero-group and tactical whiteboard app. This package adds a Vercel-ready static site and a Supabase backend layer for account sync, shared community votes, public Community Groups, and live collaborative Playbook notebooks.
 
@@ -118,7 +118,9 @@ The current collaboration layer synchronizes the notebook document state after a
 
 ## Files
 
-- `index.html` — app interface and existing application logic.
+- `index.html` — app interface, Playbook map picker and existing application logic.
+- `assets/maps/` — ten optimized full tactical maps and their cover thumbnails.
+- `map-library.json` — map names, modes, and asset paths.
 - `rivalsnotebook.css` — RIVALSNOTEBOOK brand and community styling.
 - `rivalsnotebook.js` — Supabase Auth, private data sync, votes, Community Groups and collaboration.
 - `config.js` — public Supabase URL and publishable/anon key configuration.
@@ -191,3 +193,16 @@ For this front-end update, no new Supabase migration is required. Replace the de
 - Restored all required static deployment files in the package (`rivalsnotebook.css`, `rivalsnotebook.js`, `config.js`, `package.json`, and `vercel.json`). Earlier v5 ZIP packaging omitted several files referenced by `index.html`; this release includes them.
 
 No new database migration is required if the full `supabase/schema.sql` was already applied. If the Community Groups / notebook table error is still present, follow section 1A and run the full schema against the exact Supabase project configured in `config.js`.
+
+
+## v8 tactical map library
+
+The Playbook now has a **TACTICAL MAP** picker at the top of the left sidebar. It contains the ten maps supplied in the November 22, 2026 upload: five Convoy maps and five Convergence maps. Each selectable tile uses the matching cover artwork cropped from the supplied map-selection screenshot. Selecting a tile loads the corresponding full annotated tactical map as a fitted whiteboard background.
+
+- Convoy: Yggdrasil Path, Spider-Islands, Midtown, Arakko and Thebes.
+- Convergence: Shin-Shibuya, Hall Of Djalia, Central Park, Symbiotic Surface and Heart Of Heaven.
+- Domination is intentionally marked as coming soon. Only cover cards appeared in this upload; the full Domination tactical maps have not yet been supplied.
+
+Each saved Playbook stores its selected map using a `mapId` field. The field is retained by local workspace hydration and Supabase notebook snapshots, so shared plays can restore their chosen map. No Supabase schema migration is required because the map ID is part of the existing saved-play JSON.
+
+Map files are stored in `assets/maps/`; cover thumbnails are in `assets/maps/covers/`. `map-library.json` lists the metadata and relative asset paths.

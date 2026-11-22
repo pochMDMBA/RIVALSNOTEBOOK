@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "maps": [
+    {
+      "id": "yggdrasil-path",
+      "name": "Yggdrasil Path",
+      "mode": "Convoy",
+      "cover": "assets/maps/covers/yggdrasil-path.webp",
+      "image": "assets/maps/yggdrasil-path.webp"
+    },
+    {
+      "id": "spider-islands",
+      "name": "Spider-Islands",
+      "mode": "Convoy",
+      "cover": "assets/maps/covers/spider-islands.webp",
+      "image": "assets/maps/spider-islands.webp"
+    },
+    {
+      "id": "midtown",
+      "name": "Midtown",
+      "mode": "Convoy",
+      "cover": "assets/maps/covers/midtown.webp",
+      "image": "assets/maps/midtown.webp"
+    },
+    {
+      "id": "arakko",
+      "name": "Arakko",
+      "mode": "Convoy",
+      "cover": "assets/maps/covers/arakko.webp",
+      "image": "assets/maps/arakko.webp"
+    },
+    {
+      "id": "thebes",
+      "name": "Thebes",
+      "mode": "Convoy",
+      "cover": "assets/maps/covers/thebes.webp",
+      "image": "assets/maps/thebes.webp"
+    },
+    {
+      "id": "shin-shibuya",
+      "name": "Shin-Shibuya",
+      "mode": "Convergence",
+      "cover": "assets/maps/covers/shin-shibuya.webp",
+      "image": "assets/maps/shin-shibuya.webp"
+    },
+    {
+      "id": "hall-of-djalia",
+      "name": "Hall Of Djalia",
+      "mode": "Convergence",
+      "cover": "assets/maps/covers/hall-of-djalia.webp",
+      "image": "assets/maps/hall-of-djalia.webp"
+    },
+    {
+      "id": "central-park",
+      "name": "Central Park",
+      "mode": "Convergence",
+      "cover": "assets/maps/covers/central-park.webp",
+      "image": "assets/maps/central-park.webp"
+    },
+    {
+      "id": "symbiotic-surface",
+      "name": "Symbiotic Surface",
+      "mode": "Convergence",
+      "cover": "assets/maps/covers/symbiotic-surface.webp",
+      "image": "assets/maps/symbiotic-surface.webp"
+    },
+    {
+      "id": "heart-of-heaven",
+      "name": "Heart Of Heaven",
+      "mode": "Convergence",
+      "cover": "assets/maps/covers/heart-of-heaven.webp",
+      "image": "assets/maps/heart-of-heaven.webp"
+    }
+  ],
+  "comingSoon": [
+    "Domination"
+  ]
+}
