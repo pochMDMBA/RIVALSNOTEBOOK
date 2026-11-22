@@ -27,33 +27,6 @@
   let remoteUpdatePending = false;
   let previousSessionUserId = null;
   let pendingLocalImport = null;
-  let supabaseSdkLoadPromise = null;
-
-  // Cloud features are optional at startup. Load the Supabase UMD SDK asynchronously so a
-  // slow or blocked CDN never prevents the local Counterpicker / Synergies / Playbook UI from rendering.
-  function ensureSupabaseSdk() {
-    if (window.supabase?.createClient) return Promise.resolve(true);
-    if (supabaseSdkLoadPromise) return supabaseSdkLoadPromise;
-    supabaseSdkLoadPromise = new Promise(resolve => {
-      let settled = false;
-      const finish = ok => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        supabaseSdkLoadPromise = null;
-        resolve(!!ok && !!window.supabase?.createClient);
-      };
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-      script.async = true;
-      script.crossOrigin = 'anonymous';
-      script.onload = () => finish(true);
-      script.onerror = () => finish(false);
-      const timer = setTimeout(() => finish(false), 8000);
-      document.head.appendChild(script);
-    });
-    return supabaseSdkLoadPromise;
-  }
 
   const getConfig = () => {
     let local = {};
@@ -169,12 +142,7 @@
 
   async function initializeSupabase() {
     if (!hasConfig()) { setLiveStatus('BACKEND NOT CONFIGURED', ''); return false; }
-    const sdkReady = await ensureSupabaseSdk();
-    if (!sdkReady) {
-      setLiveStatus('CLOUD SDK UNAVAILABLE', '');
-      message('The local notebook is available, but the Supabase SDK could not be reached. Check your connection and refresh to retry cloud sync.');
-      return false;
-    }
+    if (!window.supabase?.createClient) { setLiveStatus('SUPABASE SDK UNAVAILABLE', ''); return false; }
     const config = getConfig();
     try {
       sb = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
