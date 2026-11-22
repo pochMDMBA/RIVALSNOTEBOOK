@@ -5284,5 +5284,114 @@ body.groups-mode .rn-v10-group-actions .rn-v13-group-delete:focus-visible{outlin
 @keyframes rnV13RuleHighlight{0%,100%{filter:none}45%{filter:brightness(1.35)}}
 </style>
 
+
+<style id="rn-v13-2-synergy-page-and-board-selection-fixes">
+/* V13.2: A hidden page must remain hidden even when the shared workspace grid is styled with !important. */
+body:not(.playbook-mode) #counterPage.workspace.hidden,
+body:not(.playbook-mode) #synergiesPage.synergies-page.hidden {
+  display:none!important;
+}
+
+/* Both tabs use the same two-panel geometry. Counterpicker selects enemies; Synergies selects allies. */
+body:not(.playbook-mode) #counterPage.workspace:not(.hidden),
+body:not(.playbook-mode) #synergiesPage.synergies-page:not(.hidden) {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(420px,1fr)!important;
+  grid-template-rows:minmax(0,1fr)!important;
+  align-items:stretch!important;
+  gap:10px!important;
+  flex:1 1 auto!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  height:auto!important;
+  overflow:hidden!important;
+}
+body:not(.playbook-mode) #synergiesPage .synergy-picker,
+body:not(.playbook-mode) #synergiesPage .synergy-results {
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:column!important;
+  min-width:0!important;
+  min-height:0!important;
+  height:100%!important;
+  padding:10px 11px 8px!important;
+  overflow:hidden!important;
+}
+body:not(.playbook-mode) #synergiesPage .synergy-picker .roster-scroll,
+body:not(.playbook-mode) #synergiesPage .synergy-results .result-scroll {
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow:auto!important;
+}
+/* Match the Counterpicker lineup size, instead of reserving extra vertical space. */
+body:not(.playbook-mode) #synergiesPage .synergy-results .allied-lineup {
+  display:grid!important;
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  gap:4px!important;
+  min-height:0!important;
+  height:auto!important;
+  padding:0!important;
+  margin:0 0 12px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+}
+body:not(.playbook-mode) #synergiesPage .synergy-results .allied-lineup:empty:before {
+  display:none!important;
+  content:none!important;
+}
+
+/* At tablet/mobile widths, retain one-column scrolling instead of squeezing the two panels. */
+@media(max-width:820px) {
+  body:not(.playbook-mode) #counterPage.workspace:not(.hidden),
+  body:not(.playbook-mode) #synergiesPage.synergies-page:not(.hidden) {
+    display:flex!important;
+    flex-direction:column!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:auto auto!important;
+    overflow:visible!important;
+    height:auto!important;
+  }
+  body:not(.playbook-mode) #synergiesPage .synergy-picker {min-height:480px!important;max-height:78vh!important;height:auto!important}
+  body:not(.playbook-mode) #synergiesPage .synergy-results {min-height:600px!important;height:auto!important}
+}
+@media(max-width:600px) {
+  body:not(.playbook-mode) #synergiesPage .synergy-results .allied-lineup {grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+
+/* Every selected object receives a clear yellow frame, including icon-only hero and skill tokens. */
+body.playbook-mode .board-item.selected {
+  outline:2px solid #ffe36a!important;
+  outline-offset:3px!important;
+  box-shadow:0 0 0 4px #ffe36a42,0 0 16px #ffe36a99!important;
+  z-index:40!important;
+}
+/* The icon-only hero styling intentionally removes its normal border; restore an unmistakable selected frame. */
+body.playbook-mode .board-item.board-hero.hero-icon-only.selected {
+  outline:2px solid #ffe36a!important;
+  outline-offset:3px!important;
+  border:1px solid #ffe36a!important;
+  border-radius:6px!important;
+  box-shadow:0 0 0 4px #ffe36a42,0 0 16px #ffe36a99!important;
+}
+body.playbook-mode .board-item.board-hero.hero-icon-only.selected img {
+  filter:drop-shadow(0 0 3px #ffe36a99)!important;
+}
+/* Draw the frame on the skill artwork itself, as the icon-only token wrapper is transparent. */
+body.playbook-mode .board-item.board-ability-token.selected .skill-icon {
+  box-sizing:border-box!important;
+  border:2px solid #ffe36a!important;
+  outline:2px solid #ffe36a!important;
+  outline-offset:2px!important;
+  border-radius:6px!important;
+  box-shadow:0 0 0 4px #ffe36a35,0 0 14px #ffe36a99!important;
+}
+body.playbook-mode .board-item.board-ability-token.selected .skill-icon img,
+body.playbook-mode .board-item.board-ability-token.selected .skill-icon svg {
+  filter:drop-shadow(0 0 3px #ffe36a99)!important;
+}
+</style>
+
 </body>
 </html>
