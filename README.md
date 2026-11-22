@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current package: v8.** See `V7_RELEASE_NOTES.md`, `V6_RELEASE_NOTES.md`, and `SUPABASE_SETUP_STEPS.md`.
+**Current package: v11.** See `V11_RELEASE_NOTES.md` for the latest changes and `SUPABASE_SETUP_STEPS.md` for backend setup.
 
 RIVALSNOTEBOOK is the renamed Marvel Rivals counter-pick, synergy, hero-group and tactical whiteboard app. This package adds a Vercel-ready static site and a Supabase backend layer for account sync, shared community votes, public Community Groups, and live collaborative Playbook notebooks.
 
@@ -211,3 +211,17 @@ Map files are stored as `.jpg` in `assets/maps/`; cover thumbnails are `.jpg` in
 ## v10 update
 
 This release embeds every tactical-map JPEG and cover thumbnail directly into `index.html`, so the map picker and board backgrounds do not rely on relative asset paths. The separate `assets/maps/` JPEGs remain included for editing/export. Counterpick and Synergy portrait frames and typography are standardized. Group cards now show heroes by Vanguard, Duelist and Support, with Deadpool shown under all three, and include View Group, Edit and Submit to Community actions.
+
+
+## v11 update
+
+- Counterpicker and Synergy page columns now use the same two-panel geometry, portrait dimensions (82×104 desktop, 68×88 small screens), and recommendation typography.
+- Synergies is the first navigation tab; Counterpicker remains the default landing page.
+- Group cards open a full detail view when the card surface is clicked. The view includes applicable Group Synergy Rules and Group Counter Rules with expanded hero combinations.
+- Group Synergy Rules are displayed above Group Counter Rules. Group delete control is at the upper-right of each card.
+- The Playbook no-map state uses a CSS tactical grid preview instead of an empty image. The Playbook header uses the brand SVG mark.
+- Select/Move is the default active whiteboard tool. Pen and eraser are only highlighted when explicitly selected. Multi-selected objects can be dragged together and retain a visible selection outline.
+- Deadpool is displayed under Vanguard, Duelist and Support, including the hero dock role filters and group editor role views. No Multi-role filter is shown.
+- Default whiteboard zoom is 100%.
+
+No Supabase schema migration is required for these frontend changes. Preserve your existing `config.js` values and Supabase project settings when updating the GitHub repository.

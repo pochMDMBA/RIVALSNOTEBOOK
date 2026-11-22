@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v10</title>
+<title>RIVALSNOTEBOOK · v11</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -191,8 +191,8 @@ header{padding:0 260px 0}
  </div>
 </header>
 <nav class="page-nav" aria-label="Main sections">
- <button class="page-tab active" data-page="counterPage">COUNTERPICKS</button>
  <button class="page-tab" data-page="synergiesPage">SYNERGIES <span id="synergyTabCount">0</span></button>
+ <button class="page-tab active" data-page="counterPage">COUNTERPICKER</button>
  <button class="page-tab" data-page="groupsPage">GROUPS <span id="groupTabCount">0</span></button>
  <button class="page-tab" data-page="playbookPage">PLAYBOOK</button>
 </nav>
@@ -241,7 +241,7 @@ header{padding:0 260px 0}
 <main id="groupsPage" class="groups-page hidden">
  <section class="panel group-browser-panel">
   <div class="group-page-heading"><div><div class="panel-title">Hero Groups</div><div class="panel-sub">Reusable archetypes for matchup rules. Groups are alphabetical; members are sorted by role, then name.</div></div><button class="btn accent" type="button" id="newGroupBtn">＋ CREATE GROUP</button></div>
-  <div class="group-page-legend"><span class="role-pill vanguard">Vanguard</span><span class="role-pill duelist">Duelist</span><span class="role-pill strategist">Strategist</span><span class="role-pill multi">Multi-role</span><span class="small-help">Drop a hero onto a group to add it. Drag a member to another group to move it.</span></div>
+  <div class="group-page-legend"><span class="role-pill vanguard">Vanguard</span><span class="role-pill duelist">Duelist</span><span class="role-pill strategist">Support</span><span class="small-help">Drop a hero onto a group to add it. Drag a member to another group to move it.</span></div>
   <div id="groupManagerList" class="group-manager-scroll"></div>
  </section>
  <section class="panel group-editor-panel">
@@ -261,10 +261,10 @@ header{padding:0 260px 0}
   </form>
  </section>
  <section class="panel group-rules-panel">
-  <div class="group-page-heading"><div><div class="panel-title">Group Counter Rules</div><div class="panel-sub">Each rule expands into individual hero-vs-hero matchups.</div></div><button class="btn accent" type="button" id="newGroupRuleBtn">＋ ADD GROUP RULE</button></div>
-  <div id="groupRulesManagerList" class="group-rules-scroll"></div>
   <div class="group-page-heading synergy-rules-heading"><div><div class="panel-title">Group Synergy Rules</div><div class="panel-sub">Reusable group-to-group or hero-to-group teammate pairings.</div></div><button class="btn accent" type="button" id="newGroupSynergyRuleBtn">＋ ADD SYNERGY RULE</button></div>
   <div id="groupSynergyRulesManagerList" class="group-rules-scroll"></div>
+  <div class="group-page-heading"><div><div class="panel-title">Group Counter Rules</div><div class="panel-sub">Each rule expands into individual hero-vs-hero matchups.</div></div><button class="btn accent" type="button" id="newGroupRuleBtn">＋ ADD GROUP RULE</button></div>
+  <div id="groupRulesManagerList" class="group-rules-scroll"></div>
  </section>
 </main>
 <main id="playbookPage" class="playbook-page hidden">
@@ -505,7 +505,7 @@ function render(){renderRoster();renderTeams();renderCounterResults();renderComb
 function addHero(name,side){if(!hero(name))return;const other=side==='enemy'?'ally':'enemy';if(state[side].includes(name)){toast(`${name} already selected`);return}if(state[side].length>=6){toast(`${side==='enemy'?'Enemy':'Allied'} team is full`);return}state[other]=state[other].filter(x=>x!==name);state[side].push(name);state.showAllCounters=false;render();}
 function removeHero(name,side){state[side]=state[side].filter(x=>x!==name);render()}
 function resetTeams(){state.enemy=[];state.ally=[];state.target='enemy';state.showAllCombos=false;state.showAllCounters=false;$('heroSearch').value='';render();toast('Team lineups reset')}
-function populateHeroSelect(id,selected=''){const el=$(id);el.innerHTML='<option value="">Select hero…</option>'+HEROES.map(h=>`<option value="${escapeHtml(h.name)}">${escapeHtml(h.name)} · ${escapeHtml(h.role)}</option>`).join('');if(selected)el.value=selected}
+function populateHeroSelect(id,selected=''){const el=$(id);el.innerHTML='<option value="">Select hero…</option>'+HEROES.map(h=>`<option value="${escapeHtml(h.name)}">${escapeHtml(h.name)} · ${escapeHtml(h.name==='Deadpool'?'Vanguard / Duelist / Support':h.role==='Strategist'?'Support':h.role)}</option>`).join('');if(selected)el.value=selected}
 function openModal(id){$(id).classList.add('open')}
 function closeModal(id){$(id).classList.remove('open')}
 function openCounterEditor(tip=null){state.editingCounter=tip?.id||null;state.editingCounterRule=null;state.editingDerived=null;$('counterModalTitle').textContent=tip?'Edit counter tip':'Add counter rule';populateHeroSelect('counterAgainst',tip?.against||state.enemy[0]||'');populateHeroSelect('counterHero',tip?.hero||'');populateGroupSelect('counterSourceGroup');populateGroupSelect('counterTargetGroup');$('counterSourceType').value='hero';$('counterTargetType').value='hero';$('counterTier').value=tip?.tier||'moderate';$('counterReason').value=tip?.reason||'';$('deleteCounterBtn').classList.toggle('hidden',!tip);syncCounterForm();openModal('counterModal')}
@@ -516,15 +516,15 @@ function openGroupManager(){state.returnToGroupManager=false;switchPage('groupsP
 function populateGroupSelect(id,selected=''){const el=$(id);el.innerHTML='<option value="">Select group…</option>'+state.groups.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(g=>`<option value="${escapeHtml(g.id)}">${escapeHtml(g.icon||'🧩')} ${escapeHtml(g.name)} · ${g.members.length} heroes</option>`).join('');if(selected)el.value=selected}
 const ROLE_ORDER=['Vanguard','Duelist','Strategist','Multi-role'];
 function sortedHeroes(names){return names.map(hero).filter(Boolean).sort((a,b)=>ROLE_ORDER.indexOf(a.role)-ROLE_ORDER.indexOf(b.role)||a.name.localeCompare(b.name))}
-function groupByRole(names){const sorted=sortedHeroes(names),map=new Map();sorted.forEach(h=>{if(!map.has(h.role))map.set(h.role,[]);map.get(h.role).push(h)});return map}
+function groupByRole(names){const sorted=sortedHeroes(names),map=new Map();sorted.forEach(h=>{const roles=h.name==='Deadpool'?['Vanguard','Duelist','Strategist']:[h.role];roles.forEach(role=>{if(!map.has(role))map.set(role,[]);map.get(role).push(h)})});return map}
 function renderGroupMembers(selected=state.groupMemberDraft){
  state.groupMemberDraft=[...new Set(selected)];
  const q=$('groupMemberSearch').value.trim().toLowerCase();
  const available=HEROES.filter(h=>!state.groupMemberDraft.includes(h.name)&&(!q||(h.name+' '+h.role).toLowerCase().includes(q))).sort((a,b)=>ROLE_ORDER.indexOf(a.role)-ROLE_ORDER.indexOf(b.role)||a.name.localeCompare(b.name));
- const availableGroups=new Map();available.forEach(h=>{if(!availableGroups.has(h.role))availableGroups.set(h.role,[]);availableGroups.get(h.role).push(h)});
- $('groupAvailableList').innerHTML=available.length?[...availableGroups.entries()].map(([role,heroes])=>`<div class="member-role-set"><div class="member-role-set-title">${escapeHtml(role)} · ${heroes.length}</div>${heroes.map(h=>`<button type="button" class="member-hero" draggable="true" data-hero="${escapeHtml(h.name)}" data-group-add="${escapeHtml(h.name)}"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.remove()"><span>${escapeHtml(h.name)}</span><span class="member-action">＋</span></button>`).join('')}</div>`).join(''):'<div class="member-drop-hint">No available heroes match this search.</div>';
+ const availableGroups=new Map();available.forEach(h=>{const roles=h.name==='Deadpool'?['Vanguard','Duelist','Strategist']:[h.role];roles.forEach(role=>{if(!availableGroups.has(role))availableGroups.set(role,[]);availableGroups.get(role).push(h)})});
+ $('groupAvailableList').innerHTML=available.length?[...availableGroups.entries()].map(([role,heroes])=>`<div class="member-role-set"><div class="member-role-set-title">${escapeHtml(role==='Strategist'?'Support':role)} · ${heroes.length}</div>${heroes.map(h=>`<button type="button" class="member-hero" draggable="true" data-hero="${escapeHtml(h.name)}" data-group-add="${escapeHtml(h.name)}"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.remove()"><span>${escapeHtml(h.name)}</span><span class="member-action">＋</span></button>`).join('')}</div>`).join(''):'<div class="member-drop-hint">No available heroes match this search.</div>';
  const selectedGroups=groupByRole(state.groupMemberDraft);
- $('groupMemberList').innerHTML=state.groupMemberDraft.length?[...selectedGroups.entries()].map(([role,heroes])=>`<div class="member-role-set"><div class="member-role-set-title">${escapeHtml(role)} · ${heroes.length}</div>${heroes.map(h=>`<button type="button" class="member-hero selected" draggable="true" data-hero="${escapeHtml(h.name)}" data-source-group="${escapeHtml(state.editingGroup||'editor-draft')}" data-group-remove="${escapeHtml(h.name)}"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.remove()"><span>${escapeHtml(h.name)}</span><span class="member-action">×</span></button>`).join('')}</div>`).join(''):'<div class="member-drop-hint">Drag heroes here, or click an available hero.</div>';
+ $('groupMemberList').innerHTML=state.groupMemberDraft.length?[...selectedGroups.entries()].map(([role,heroes])=>`<div class="member-role-set"><div class="member-role-set-title">${escapeHtml(role==='Strategist'?'Support':role)} · ${heroes.length}</div>${heroes.map(h=>`<button type="button" class="member-hero selected" draggable="true" data-hero="${escapeHtml(h.name)}" data-source-group="${escapeHtml(state.editingGroup||'editor-draft')}" data-group-remove="${escapeHtml(h.name)}"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.remove()"><span>${escapeHtml(h.name)}</span><span class="member-action">×</span></button>`).join('')}</div>`).join(''):'<div class="member-drop-hint">Drag heroes here, or click an available hero.</div>';
  $('groupMemberCount').textContent=`${state.groupMemberDraft.length} selected`;
 }
 function selectedGroupMembers(){return sortedHeroes(state.groupMemberDraft).map(h=>h.name)}
@@ -764,7 +764,7 @@ function renderCounterResults(){
      <div class="pick-avatar"><div class="pick-portrait"><img src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(c.name)}" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="pick-fallback">${escapeHtml(c.name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div></div>
      <div class="pick-main">
        <div class="pick-main-head">
-         <div class="pick-identity"><div class="pick-name">${escapeHtml(c.name)}</div><div class="pick-role">${escapeHtml(h?.role||'Hero')} · ${reasonCount} applicable matchup${reasonCount===1?'':'s'}</div></div>
+         <div class="pick-identity"><div class="pick-name">${escapeHtml(c.name)}</div><div class="pick-role">${escapeHtml(c.name==='Deadpool'?'Vanguard / Duelist / Support':h?.role==='Strategist'?'Support':h?.role||'Hero')} · ${reasonCount} applicable matchup${reasonCount===1?'':'s'}</div></div>
          <div class="pick-head-actions"><div class="pick-score"><strong>${c.points}</strong><span>PTS</span></div><button type="button" class="counter-collapse-toggle" data-toggle-counter-card="${escapeHtml(c.name)}" aria-expanded="${!isCollapsed}" title="${isCollapsed?'Expand':'Collapse'} ${escapeHtml(c.name)} suggestion">${isCollapsed?'＋ SHOW':'− HIDE'}</button></div>
        </div>
        <div class="counter-card-body" ${isCollapsed?'hidden':''}><div class="reason-list">${c.arr.map(reasonHtml).join('')}</div></div>
@@ -773,7 +773,7 @@ function renderCounterResults(){
    </article>`;
  }).join('')}</div>${cards.length>5?`<button class="text-button" data-toggle-counters="1">${state.showAllCounters?'SHOW FEWER':'SHOW ALL '+cards.length+' COUNTER PICKS'}</button>`:''}<div class="small-help">Points per matchup: Hard 100 · Moderate 70 · Soft 40 · +5 per upvote. Hero scores sum the applicable matchup points against the selected enemy lineup.</div>`;
 }
-function comboCardHtml(c){const aIn=state.ally.includes(c.a),bIn=state.ally.includes(c.b),status=aIn&&bIn?'TEAM PAIR ACTIVE':aIn?`SUGGEST ADD · ${c.b.toUpperCase()}`:bIn?`SUGGEST ADD · ${c.a.toUpperCase()}`:'MATCH';const vote=c.generated?`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}">▲ ${c.votes}</button>`:`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}">▲ ${c.votes}</button>`;const edit=c.generated?`<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>`:`<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;return `<article class="combo-card"><div class="combo-head"><div class="combo-icon">${iconSvg(c.icon||'sparkles')}</div><div class="combo-title-wrap"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div><div class="combo-role-hint">${escapeHtml(hero(c.a)?.role||'')} + ${escapeHtml(hero(c.b)?.role||'')}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="combo-status">${status}</div>${c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>'}<div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${vote}${pocketAction(c.pocketPlayId)}${edit}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`}
+function comboCardHtml(c){const aIn=state.ally.includes(c.a),bIn=state.ally.includes(c.b),status=aIn&&bIn?'TEAM PAIR ACTIVE':aIn?`SUGGEST ADD · ${c.b.toUpperCase()}`:bIn?`SUGGEST ADD · ${c.a.toUpperCase()}`:'MATCH';const vote=c.generated?`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}">▲ ${c.votes}</button>`:`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}">▲ ${c.votes}</button>`;const edit=c.generated?`<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>`:`<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;return `<article class="combo-card"><div class="combo-head"><div class="combo-icon">${iconSvg(c.icon||'sparkles')}</div><div class="combo-title-wrap"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div><div class="combo-role-hint">${escapeHtml(c.a==='Deadpool'?'Vanguard / Duelist / Support':hero(c.a)?.role==='Strategist'?'Support':hero(c.a)?.role||'')} + ${escapeHtml(c.b==='Deadpool'?'Vanguard / Duelist / Support':hero(c.b)?.role==='Strategist'?'Support':hero(c.b)?.role||'')}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="combo-status">${status}</div>${c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>'}<div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${vote}${pocketAction(c.pocketPlayId)}${edit}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`}
 function renderComboCards(combos,containerId,label){const container=$(containerId);if(!container)return;if(!combos.length){container.innerHTML=state.ally.length?'<div class="empty-state">No saved synergy matches this allied lineup yet. Add a synergy or create a group synergy rule. As you add allies, matching teammate picks appear here.</div>':'<div class="empty-state">Select at least one allied hero to discover suggested teammates from the saved synergy database.</div>';return}const sorted=[...combos].sort((a,b)=>synergyPoints(b)-synergyPoints(a)||b.votes-a.votes||a.a.localeCompare(b.a)||a.b.localeCompare(b.b));container.innerHTML=`<div class="combo-list">${sorted.map(comboCardHtml).join('')}</div><div class="small-help">Synergy points = 100 base (125 for official Team-Ups) + 5 per upvote. Suggestions are triggered by at least one selected ally; pairings already in your team are marked active.</div>`}
 function renderComboResults(){const picks=new Set(state.ally);let combos=[];if(picks.size){const direct=state.combos.filter(c=>picks.has(c.a)||picks.has(c.b));combos=[...direct,...expandComboRules(state.ally)];}const community=combos.filter(c=>!c.official),official=combos.filter(c=>c.official);renderComboCards(community,'comboResults','community');renderComboCards(official,'officialComboResults','official');$('synergyCount').textContent=`${community.length} SUGGESTIONS`;$('officialTeamupCount').textContent=`${official.length} SUGGESTIONS`}
 function renderComboResultsVisibility(){const allied=state.target==='ally',counterTitle=$('counterResults').previousElementSibling,counterNote=$('counterResults').nextElementSibling,community=$('synergyDetails'),official=$('officialTeamupDetails');if(counterTitle)counterTitle.style.display=allied?'none':'';$('counterResults').style.display=allied?'none':'';if(counterNote&&counterNote.classList.contains('footer-note'))counterNote.style.display=allied?'none':'';community.style.display=allied?'':'none';community.open=allied;official.style.display=allied?'':'none';const sum=community.querySelector('summary span');if(sum)sum.textContent='Recommended Teammates / Synergies';const h=community.querySelector('.section-title h2');if(h)h.textContent='Suggested Teammates & Synergies';}
@@ -1010,12 +1010,12 @@ initData();bindPlaybook();render();renderPlaybook();
     const status = aIn&&bIn ? 'TEAM PAIR ACTIVE' : aIn ? `SUGGEST ADD · ${c.b.toUpperCase()}` : `SUGGEST ADD · ${c.a.toUpperCase()}`;
     const heroTile = (name, inTeam) => {
       const h = hero(name);
-      return `<div class="synergy-hero-tile ${inTeam?'in-team':'suggested'}"><div class="synergy-portrait"><img loading="lazy" src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(name)}" onerror="this.parentElement.classList.add('broken');this.remove()"><span>${escapeHtml(name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><div class="synergy-hero-name">${escapeHtml(name)}</div><div class="synergy-hero-role">${escapeHtml(h?.role||'Hero')}</div><div class="synergy-state">${inTeam?'IN TEAM':'SUGGESTED'}</div></div>`;
+      return `<div class="synergy-hero-tile ${inTeam?'in-team':'suggested'}"><div class="synergy-portrait"><img loading="lazy" src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(name)}" onerror="this.parentElement.classList.add('broken');this.remove()"><span>${escapeHtml(name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><div class="synergy-hero-name">${escapeHtml(name)}</div><div class="synergy-hero-role">${escapeHtml(name==='Deadpool'?'Vanguard / Duelist / Support':h?.role==='Strategist'?'Support':h?.role||'Hero')}</div><div class="synergy-state">${inTeam?'IN TEAM':'SUGGESTED'}</div></div>`;
     };
     const vote = c.generated ? `<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}" title="Upvote this matchup">▲ ${Number(c.votes)||0}</button>` : `<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}" title="Upvote this synergy">▲ ${Number(c.votes)||0}</button>`;
     const edit = c.generated ? `<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>` : `<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;
     const icon = typeof iconSvg==='function' ? iconSvg(c.icon||'sparkles') : '✦';
-    return `<article class="combo-card synergy-match-card"><div class="combo-head"><div class="combo-icon">${icon}</div><div class="combo-title-wrap"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div><div class="combo-role-hint">${escapeHtml(hero(c.a)?.role||'')} + ${escapeHtml(hero(c.b)?.role||'')}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="synergy-hero-pair">${heroTile(c.a,aIn)}<div class="synergy-plus">+</div>${heroTile(c.b,bIn)}</div><div class="combo-status">${status}</div>${c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>'}${c.generated?'<span class="group-result-tag">GROUP RULE</span>':''}<div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${vote}${typeof pocketAction==='function'?pocketAction(c.pocketPlayId):''}${edit}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`;
+    return `<article class="combo-card synergy-match-card"><div class="combo-head"><div class="combo-icon">${icon}</div><div class="combo-title-wrap"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div><div class="combo-role-hint">${escapeHtml(c.a==='Deadpool'?'Vanguard / Duelist / Support':hero(c.a)?.role==='Strategist'?'Support':hero(c.a)?.role||'')} + ${escapeHtml(c.b==='Deadpool'?'Vanguard / Duelist / Support':hero(c.b)?.role==='Strategist'?'Support':hero(c.b)?.role||'')}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="synergy-hero-pair">${heroTile(c.a,aIn)}<div class="synergy-plus">+</div>${heroTile(c.b,bIn)}</div><div class="combo-status">${status}</div>${c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>'}${c.generated?'<span class="group-result-tag">GROUP RULE</span>':''}<div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${vote}${typeof pocketAction==='function'?pocketAction(c.pocketPlayId):''}${edit}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`;
   };
 
   function expandComboRulesForSuggestions(team){
@@ -1236,8 +1236,8 @@ initData();bindPlaybook();render();renderPlaybook();
         <button type="button" class="active" data-role-filter="All" title="All heroes">All</button>
         <button type="button" data-role-filter="Vanguard" title="Vanguard">V</button>
         <button type="button" data-role-filter="Duelist" title="Duelist">D</button>
-        <button type="button" data-role-filter="Strategist" title="Strategist">S</button>
-        <button type="button" data-role-filter="Multi-role" title="Multi-role">M</button>
+        <button type="button" data-role-filter="Strategist" title="Support">S</button>
+        
       </div>
       <div class="hero-dock-help">Click to place · hover for skills</div>
     </div>
@@ -1760,13 +1760,13 @@ initData();bindPlaybook();render();renderPlaybook();
   function renderHeroDock() {
     const scroll = $('heroDockScroll');
     if (!scroll) return;
-    const list = HEROES.filter(h => (dockRole === 'All' || h.role === dockRole) && h.name.toLowerCase().includes(dockQuery));
+    const list = HEROES.filter(h => (dockRole === 'All' || h.role === dockRole || (h.name === 'Deadpool' && ['Vanguard','Duelist','Strategist'].includes(dockRole))) && h.name.toLowerCase().includes(dockQuery));
     $('heroDockCount').textContent = `${list.length}/${HEROES.length}`;
     scroll.innerHTML = list.map(h => {
       const initials = h.name.split(/\s+/).map(w => w[0]).slice(0, 2).join('');
-      return `<div class="hero-dock-card" tabindex="0" draggable="true" data-dock-hero="${escapeHtml(h.name)}" title="${escapeHtml(h.name)} · click to place, hover for abilities">
+      return `<div class="hero-dock-card" tabindex="0" draggable="true" data-dock-hero="${escapeHtml(h.name)}" title="${escapeHtml(h.name)} · ${escapeHtml(h.name==='Deadpool'?'Vanguard / Duelist / Support':h.role==='Strategist'?'Support':h.role)} · click to place, hover for abilities">
         <div class="hero-dock-portrait"><img loading="lazy" src="${escapeHtml(h.img || '')}" alt="" onerror="this.parentElement.classList.add('broken');this.remove()"><span>${escapeHtml(initials)}</span></div>
-        <span class="hero-dock-name">${escapeHtml(h.name)}</span><i class="hero-dock-role ${getRoleClass(h.role)}"></i>
+        <span class="hero-dock-name">${escapeHtml(h.name)}</span><i class="hero-dock-role ${getRoleClass(h.name==='Deadpool'&&dockRole!=='All'?dockRole:(h.name==='Deadpool'?'Duelist':h.role))}"></i>
       </div>`;
     }).join('');
     if (!list.length) scroll.innerHTML = '<div class="dock-no-results">No heroes found</div>';
@@ -2709,7 +2709,7 @@ body.groups-mode .groups-page.group-editing .modal-actions .btn{min-height:30px!
       .slice().sort((a,b) => ROLE_ORDER.indexOf(a.role)-ROLE_ORDER.indexOf(b.role) || a.name.localeCompare(b.name));
     grid.innerHTML = heroes.map(h => {
       const initials = h.name.split(/\s+/).map(w=>w[0]).slice(0,2).join('');
-      return `<button type="button" class="compact-group-hero ${selected.has(h.name)?'selected':''}" data-compact-group-hero="${escapeHtml(h.name)}" data-role="${escapeHtml(h.role)}" aria-pressed="${selected.has(h.name)}" title="${escapeHtml(h.name)} · ${escapeHtml(h.role)}">
+      return `<button type="button" class="compact-group-hero ${selected.has(h.name)?'selected':''}" data-compact-group-hero="${escapeHtml(h.name)}" data-role="${escapeHtml(h.name==='Deadpool'?'Duelist':h.role)}" aria-pressed="${selected.has(h.name)}" title="${escapeHtml(h.name)} · ${escapeHtml(h.name==='Deadpool'?'Vanguard / Duelist / Support':h.role==='Strategist'?'Support':h.role)}">
         <img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.style.display='none'">
         <span>${escapeHtml(h.name)}</span><i class="role-dot" aria-hidden="true"></i>
       </button>`;
@@ -2998,7 +2998,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
 
   const MIN_ZOOM = 0.65, MAX_ZOOM = 2.0, ZOOM_STEP = 0.1;
   // Every fresh page load starts at the fully zoomed-out board view.
-  let zoom = MIN_ZOOM;
+  let zoom = 1;
   let panX = 0, panY = 0;
   let selectedIds = new Set(state.selectedBoardItem ? [state.selectedBoardItem] : []);
   let moving = null, rotating = null, resizing = null, panning = null, marquee = null;
@@ -3278,10 +3278,10 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     zoomControls.className='board-surface-zoom';
     zoomControls.setAttribute('role','group');
     zoomControls.setAttribute('aria-label','Whiteboard zoom');
-    zoomControls.innerHTML='<button type="button" id="boardZoomOutBtn" title="Zoom out" aria-label="Zoom out">−</button><label class="zoom-input-wrap"><input class="zoom-value" id="boardZoomValue" type="number" min="65" max="200" step="5" value="65" aria-label="Zoom percentage"><span>%</span></label><button type="button" id="boardZoomInBtn" title="Zoom in" aria-label="Zoom in">+</button>';
+    zoomControls.innerHTML='<button type="button" id="boardZoomOutBtn" title="Zoom out" aria-label="Zoom out">−</button><label class="zoom-input-wrap"><input class="zoom-value" id="boardZoomValue" type="number" min="65" max="200" step="5" value="100" aria-label="Zoom percentage"><span>%</span></label><button type="button" id="boardZoomInBtn" title="Zoom in" aria-label="Zoom in">+</button>';
     board.appendChild(zoomControls);
     ['boardZoomOutBtn','boardZoomInBtn'].forEach(id=>{const button=$(id);button.addEventListener('pointerdown',e=>{e.stopPropagation();});button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setZoom(zoom+(id==='boardZoomInBtn'?ZOOM_STEP:-ZOOM_STEP));});});
-    const zoomInput=$('boardZoomValue');if(zoomInput){zoomInput.addEventListener('pointerdown',e=>e.stopPropagation());zoomInput.addEventListener('click',e=>e.stopPropagation());zoomInput.addEventListener('change',()=>setZoom((Number(zoomInput.value)||65)/100));zoomInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();setZoom((Number(zoomInput.value)||65)/100);zoomInput.blur();}});}
+    const zoomInput=$('boardZoomValue');if(zoomInput){zoomInput.addEventListener('pointerdown',e=>e.stopPropagation());zoomInput.addEventListener('click',e=>e.stopPropagation());zoomInput.addEventListener('change',()=>setZoom((Number(zoomInput.value)||100)/100));zoomInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();setZoom((Number(zoomInput.value)||100)/100);zoomInput.blur();}});}
     $('hideAbilityLabelsBtn').addEventListener('click',()=>{
       hideAbilityLabels=!hideAbilityLabels;localStorage.setItem('mrPlaybookHideAbilityLabels',hideAbilityLabels?'1':'0');
       $('hideAbilityLabelsBtn').setAttribute('aria-pressed',String(hideAbilityLabels));
@@ -3535,7 +3535,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       const next=new Set(selectedIds);if(next.has(item.id))next.delete(item.id);else next.add(item.id);
       setSelection([...next]);
       if(!next.has(item.id))return;
-    }else if(!selectedIds.has(item.id)||selectedIds.size>1)setSelection([item.id]);
+    }else if(!selectedIds.has(item.id))setSelection([item.id]);
     const moveIds=[...selectedIds];
     moving={ids:moveIds,startX:e.clientX,startY:e.clientY,starts:moveIds.map(id=>{const x=state.playItems.find(v=>v.id===id);return{id,x:x?.x||0,y:x?.y||0};}),changed:false};
     e.preventDefault();board.setPointerCapture(e.pointerId);
@@ -4946,6 +4946,269 @@ body.groups-mode .rn-v10-group-actions [data-rn-publish-group]{background:#22563
   document.addEventListener('keydown',e=>{if(e.key==='Escape')$('rnV10GroupViewModal')?.classList.remove('open')});
   // Deadpool stays globally typed as Multi-role for kit data, but in group cards it is shown
   // in Vanguard, Duelist and Support, never in a separate Multi-role category.
+})();
+</script>
+
+
+<style id="rn-v11-layout-and-selection-overrides">
+/* The Counterpicker is the sizing reference. Apply identical panel geometry and typography to Synergies. */
+#counterPage.workspace,
+#synergiesPage.synergies-page:not(.hidden){
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(420px,1fr)!important;
+  gap:10px!important;
+  flex:1!important;min-height:0!important;height:auto!important;overflow:hidden!important;
+}
+#counterPage .picker,#counterPage .results,
+#synergiesPage .synergy-picker,#synergiesPage .synergy-results{
+  box-sizing:border-box!important;min-width:0!important;min-height:0!important;
+  padding:10px 11px 8px!important;overflow:hidden!important;
+}
+#counterPage .picker,#synergiesPage .synergy-picker,
+#counterPage .results,#synergiesPage .synergy-results{display:flex!important;flex-direction:column!important}
+#counterPage .hero-grid,#synergiesPage .hero-grid{grid-template-columns:repeat(auto-fill,minmax(59px,1fr))!important;gap:4px!important}
+#counterPage .hero-card,#synergiesPage .hero-card{min-height:78px!important;padding:3px!important;gap:2px!important}
+#counterPage .hero-portrait,#synergiesPage .hero-portrait{height:49px!important}
+#counterPage .hero-card .hero-name,#synergiesPage .hero-card .hero-name{font-size:8px!important;line-height:1.12!important}
+#counterPage .team-slot,#synergiesPage .team-slot{height:58px!important;padding:2px!important}
+#counterPage .slot-portrait,#synergiesPage .slot-portrait{width:39px!important;height:40px!important}
+#counterPage .team-slot .slot-name,#synergiesPage .team-slot .slot-name{font-size:8px!important}
+#counterPage .panel-title,#synergiesPage .panel-title{font-size:14px!important}
+#counterPage .panel-sub,#synergiesPage .panel-sub{font-size:10px!important}
+#counterPage .section-title h2,#synergiesPage .section-title h2{font-size:13px!important}
+#counterPage .pick-avatar{width:48px!important;height:64px!important}
+#synergiesPage .synergy-portrait{width:82px!important;min-width:82px!important;max-width:82px!important;height:104px!important;min-height:104px!important;max-height:104px!important;margin:0 auto!important;overflow:visible!important;box-sizing:border-box!important}
+#synergiesPage .synergy-portrait img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center center!important;margin:auto!important}
+#synergiesPage .synergy-hero-tile{padding:5px!important}
+#synergiesPage .synergy-hero-name{font-size:12px!important;line-height:1.2!important;min-height:22px!important;font-weight:900!important}
+#synergiesPage .synergy-hero-role{font-size:9px!important;line-height:1.25!important}
+#synergiesPage .synergy-match-card .combo-reason{font-size:10px!important;line-height:1.38!important}
+#synergiesPage .synergy-match-card .combo-names{font-size:12px!important;line-height:1.2!important;font-weight:900!important}
+#synergiesPage .synergy-match-card .combo-status{font-size:8px!important}
+#synergiesPage .synergy-picker .roster-scroll,#synergiesPage .synergy-results .result-scroll{flex:1!important;min-height:0!important;overflow:auto!important}
+#synergiesPage .synergy-results .allied-lineup{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:4px!important;padding:5px!important}
+@media(max-width:820px){
+  #counterPage.workspace,#synergiesPage.synergies-page:not(.hidden){display:flex!important;flex-direction:column!important;overflow:visible!important;min-height:0!important}
+  #counterPage .picker,#synergiesPage .synergy-picker{min-height:480px!important;max-height:78vh!important}
+  #counterPage .results,#synergiesPage .synergy-results{min-height:600px!important}
+}
+/* Clear, persistent visual indication for every selected whiteboard object. */
+body.playbook-mode .board-item.selected{
+  outline:2px solid #ffe36a!important;outline-offset:3px!important;
+  box-shadow:0 0 0 4px #ffe36a30,0 0 15px #ffe36a80!important;
+  z-index:30!important;
+}
+body.playbook-mode .board-item.selected:after{pointer-events:none}
+/* Make every group card act as a detail-view surface while retaining its edit/delete controls. */
+body.groups-mode .rn-v10-group-card{cursor:pointer!important;transition:transform .12s,border-color .12s,box-shadow .12s!important}
+body.groups-mode .rn-v10-group-card:hover{border-color:#9cc8dd!important;box-shadow:0 7px 18px #0007,0 0 0 1px #7fc8e855!important;transform:translateY(-1px)}
+body.groups-mode .rn-v10-group-card:focus-visible{outline:2px solid #f5d54e!important;outline-offset:3px!important}
+/* Group synergy rules are intentionally displayed above group counter rules. */
+body.groups-mode .groups-page:not(.group-editing) .group-rules-panel{
+  grid-template-rows:auto minmax(0,1fr) auto minmax(0,1fr)!important;
+}
+body.groups-mode .groups-page:not(.group-editing) .group-rules-panel>.synergy-rules-heading{grid-column:1!important;grid-row:1!important;border-top:0!important;padding-top:0!important}
+body.groups-mode .groups-page:not(.group-editing) .group-rules-panel>#groupSynergyRulesManagerList{grid-column:1!important;grid-row:2!important}
+body.groups-mode .groups-page:not(.group-editing) .group-rules-panel>.group-page-heading:not(.synergy-rules-heading){grid-column:1!important;grid-row:3!important;border-top:1px solid #4a5b6a!important;padding-top:6px!important}
+body.groups-mode .groups-page:not(.group-editing) .group-rules-panel>#groupRulesManagerList{grid-column:1!important;grid-row:4!important}
+/* No-map state is rendered as a tactical grid preview, never as a blank/placeholder photo. */
+body.playbook-mode .rn-map-grid-preview{
+  display:block;position:relative!important;width:100%!important;height:52px!important;overflow:hidden!important;
+  border:1px solid #3b5363!important;border-radius:4px!important;background-color:#111c27!important;
+  background-image:linear-gradient(#a9c4d515 1px,transparent 1px),linear-gradient(90deg,#a9c4d515 1px,transparent 1px)!important;
+  background-size:14px 14px!important;
+}
+body.playbook-mode .rn-map-grid-preview:before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:#6ca6bb55}
+body.playbook-mode .rn-map-grid-preview:after{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:#6ca6bb55}
+.playbook-topbar-title .rn-logo{display:block!important;width:29px!important;height:29px!important;flex:none!important;filter:drop-shadow(0 2px 5px #0007)!important}
+/* Group details show the complete cartesian matchup expansion in a scrollable view dialog. */
+.rn-v11-applicable-rules{margin-top:16px;padding-top:13px;border-top:1px solid #3b5363}
+.rn-v11-rule-section+.rn-v11-rule-section{margin-top:14px}
+.rn-v11-rule-section h4{margin:0 0 8px;font-size:10px;font-weight:950;letter-spacing:.1em;color:#f0d987;text-transform:uppercase}
+.rn-v11-rule-card{margin:6px 0;padding:9px;border:1px solid #405a6c;border-radius:7px;background:#172a37}
+.rn-v11-rule-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.rn-v11-rule-title{font-size:10px;font-weight:900;color:#f0f5f8;overflow-wrap:anywhere}
+.rn-v11-rule-meta{font-size:8px;color:#9eb6c5;white-space:nowrap}
+.rn-v11-rule-description{margin:7px 0;padding:7px;border-left:2px solid #d9bd5b;background:#223645;border-radius:3px;color:#d6e2e9;font-size:9px;line-height:1.4;white-space:pre-wrap}
+.rn-v11-rule-pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:4px;margin-top:7px}
+.rn-v11-rule-pair{padding:4px 6px;border:1px solid #40596a;border-radius:4px;background:#263b49;color:#dfeaf0;font-size:8px;line-height:1.25;overflow-wrap:anywhere}
+.rn-v11-rule-pair strong{color:#f4dc8b}
+.rn-v11-rule-empty{font-size:9px;color:#9db0bd;padding:5px}
+@media(max-width:520px){.rn-v11-rule-pairs{grid-template-columns:1fr 1fr}.rn-v11-rule-head{flex-direction:column;gap:3px}}
+</style>
+<script id="rn-v11-layout-groups-selection-defaults">
+(()=>{
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // Move the existing Synergies tab ahead of Counterpicker without changing Counterpicker's landing-page default.
+  const nav=document.querySelector('.page-nav');
+  const synergyTab=nav?.querySelector('[data-page="synergiesPage"]');
+  const counterTab=nav?.querySelector('[data-page="counterPage"]');
+  if(nav&&synergyTab&&counterTab)nav.insertBefore(synergyTab,counterTab);
+  if(counterTab)counterTab.textContent='COUNTERPICKER';
+
+  // Keep the group rule sections in the same requested visual order after any page rebuild.
+  const rulesPanel=$('groupsPage')?.querySelector('.group-rules-panel');
+  const synergyHeading=rulesPanel?.querySelector('.synergy-rules-heading');
+  const synergyList=$('groupSynergyRulesManagerList');
+  const counterHeading=rulesPanel?.querySelector('.group-page-heading:not(.synergy-rules-heading)');
+  const counterList=$('groupRulesManagerList');
+  if(rulesPanel&&synergyHeading&&synergyList&&counterHeading&&counterList){
+    rulesPanel.insertBefore(synergyHeading,counterHeading);
+    rulesPanel.insertBefore(synergyList,counterHeading);
+    rulesPanel.append(counterHeading,counterList);
+  }
+  // Remove the outdated fourth role pill. Group cards and the roster now use the requested three categories.
+  document.querySelectorAll('.group-page-legend .role-pill.multi').forEach(el=>el.remove());
+  document.querySelectorAll('.group-page-legend .role-pill.strategist').forEach(el=>el.textContent='Support');
+
+  // Move Deadpool out of a Multi-role bucket and show him under each role in both hero pickers.
+  function normalizeRoster(grid){
+    if(!grid)return;
+    const groups=[...grid.querySelectorAll('.role-group')];
+    const findGroup=label=>groups.find(g=>g.querySelector('.role-pill')?.textContent.trim().toLowerCase()===label.toLowerCase());
+    const multi=groups.find(g=>g.querySelector('.role-pill.multi')||g.querySelector('.role-pill')?.textContent.trim().toLowerCase()==='multi-role');
+    const deadpool=multi?.querySelector('[data-hero="Deadpool"]');
+    if(deadpool){
+      const destinations=[findGroup('Vanguard'),findGroup('Duelist'),findGroup('Strategist'),findGroup('Support')].filter(Boolean);
+      destinations.forEach(group=>{
+        const target=group.querySelector('.hero-grid');
+        if(target&&!target.querySelector('[data-hero="Deadpool"]'))target.appendChild(deadpool.cloneNode(true));
+      });
+      deadpool.remove();
+    }
+    if(multi&&!multi.querySelector('.hero-card'))multi.remove();
+    grid.querySelectorAll('.role-pill.strategist').forEach(pill=>{pill.textContent='Support';});
+  }
+  const watchGrid=id=>{
+    const grid=$(id);if(!grid||grid.dataset.rnV11RoleWatch)return;
+    grid.dataset.rnV11RoleWatch='1';
+    const run=()=>normalizeRoster(grid);
+    new MutationObserver(run).observe(grid,{childList:true,subtree:true});
+    run();
+  };
+  watchGrid('rosterGrid');watchGrid('synergyRosterGrid');
+
+  // Replace the text-only RN Playbook mark with the actual RivalsNotebook brand SVG.
+  const brandLogo=document.querySelector('.rn-brand-lockup .rn-logo');
+  const playbookMark=document.querySelector('.playbook-topbar-title .playbook-mark');
+  if(brandLogo&&playbookMark){const logo=brandLogo.cloneNode(true);const oldGrad=logo.querySelector('#rnLogoGrad');if(oldGrad){oldGrad.id='rnPlaybookLogoGrad';logo.querySelectorAll('[fill="url(#rnLogoGrad)"]').forEach(node=>node.setAttribute('fill','url(#rnPlaybookLogoGrad)'));}logo.setAttribute('aria-label','RIVALSNOTEBOOK');logo.setAttribute('role','img');playbookMark.replaceWith(logo);}
+
+  // Show a CSS-drawn board grid in the map selector whenever no map has been selected.
+  const cover=$('rnMapCurrentCover');
+  if(cover&&!$('rnMapGridPreview')){
+    const preview=document.createElement('div');preview.id='rnMapGridPreview';preview.className='rn-map-grid-preview';preview.setAttribute('aria-label','Blank tactical grid canvas');
+    cover.insertAdjacentElement('afterend',preview);
+    const sync=()=>{const hasMap=!!((cover.getAttribute('src')||'').trim()&&cover.style.display!=='none');cover.classList.toggle('rn-cover-hidden',!hasMap);preview.classList.toggle('rn-preview-hidden',hasMap);};
+    new MutationObserver(sync).observe(cover,{attributes:true,attributeFilter:['src','style']});
+    sync();
+  }
+
+  // Render every rule involving the selected group, including every hero-pair expansion.
+  const membersFor=(type,value)=>typeof groupMembers==='function'?groupMembers(type,value):(type==='hero'&&value?[value]:[]);
+  const selector=(type,value)=>typeof selectorLabel==='function'?selectorLabel(type,value):(type==='group'?(state.groups||[]).find(g=>String(g.id)===String(value))?.name||'Group':String(value||'Hero'));
+  const combinations=(left,right,separator)=>{
+    const pairs=[];for(const a of left)for(const b of right)if(a!==b)pairs.push([a,b]);
+    return pairs.length?`<div class="rn-v11-rule-pairs">${pairs.map(([a,b])=>`<div class="rn-v11-rule-pair"><strong>${esc(a)}</strong> ${separator} ${esc(b)}</div>`).join('')}</div>`:'<div class="rn-v11-rule-empty">No distinct hero combinations in this rule.</div>';
+  };
+  function renderApplicableRules(groupId){
+    const modal=$('rnV10GroupViewModal');const body=modal?.querySelector('.rn-v10-view-body');if(!body)return;
+    let root=$('rnV11ApplicableRules');
+    if(!root){root=document.createElement('div');root.id='rnV11ApplicableRules';root.className='rn-v11-applicable-rules';body.appendChild(root);}
+    const isThisGroup=(type,value)=>type==='group'&&String(value)===String(groupId);
+    const counter=(state.groupRules||[]).filter(r=>isThisGroup(r.sourceType,r.sourceValue)||isThisGroup(r.targetType,r.targetValue));
+    const synergy=(state.comboRules||[]).filter(r=>isThisGroup(r.sourceType,r.sourceValue)||isThisGroup(r.targetType,r.targetValue));
+    const ruleHtml=(r,kind)=>{
+      const left=membersFor(r.sourceType,r.sourceValue),right=membersFor(r.targetType,r.targetValue);
+      const title=kind==='counter'?`${selector(r.sourceType,r.sourceValue)} → ${selector(r.targetType,r.targetValue)}`:`${selector(r.sourceType,r.sourceValue)} + ${selector(r.targetType,r.targetValue)}`;
+      const meta=kind==='counter'?`${left.length} × ${right.length} matchups · ${String(r.tier||'moderate').toUpperCase()}`:`${left.length} × ${right.length} synergy pairs${r.official?' · OFFICIAL':''}`;
+      return `<article class="rn-v11-rule-card"><div class="rn-v11-rule-head"><div class="rn-v11-rule-title">${esc(title)}</div><div class="rn-v11-rule-meta">${esc(meta)}</div></div><div class="rn-v11-rule-description">${esc(r.reason||'No description provided.')}</div>${combinations(left,right,kind==='counter'?'vs.':'+')}</article>`;
+    };
+    root.innerHTML=`<section class="rn-v11-rule-section"><h4>Applicable Group Synergy Rules · ${synergy.length}</h4>${synergy.length?synergy.map(r=>ruleHtml(r,'synergy')).join(''):'<div class="rn-v11-rule-empty">No group synergy rules reference this group.</div>'}</section><section class="rn-v11-rule-section"><h4>Applicable Group Counter Rules · ${counter.length}</h4>${counter.length?counter.map(r=>ruleHtml(r,'counter')).join(''):'<div class="rn-v11-rule-empty">No group counter rules reference this group.</div>'}</section>`;
+  }
+
+  const list=$('groupManagerList');
+  if(list&&!list.dataset.rnV11Clickable){
+    list.dataset.rnV11Clickable='1';
+    const show=id=>requestAnimationFrame(()=>renderApplicableRules(id));
+    list.addEventListener('click',event=>{
+      const card=event.target.closest('.rn-v10-group-card[data-drop-group]');if(!card)return;
+      const action=event.target.closest('button');
+      if(action){if(action.matches('[data-view-group]'))show(action.dataset.viewGroup);return;}
+      const view=card.querySelector('[data-view-group]');
+      if(view)view.click();
+      show(card.dataset.dropGroup);
+    });
+    list.addEventListener('keydown',event=>{
+      if(event.key!=='Enter'&&event.key!==' ')return;
+      const card=event.target.closest('.rn-v10-group-card[data-drop-group]');
+      if(!card||event.target!==card)return;
+      event.preventDefault();card.querySelector('[data-view-group]')?.click();show(card.dataset.dropGroup);
+    });
+  }
+  const decorateCards=()=>document.querySelectorAll('.rn-v10-group-card[data-drop-group]').forEach(card=>{
+    card.tabIndex=0;card.setAttribute('role','button');
+    const name=card.querySelector('.rn-v10-group-name')?.textContent.trim()||'hero group';
+    card.setAttribute('aria-label',`View group ${name}. Use the buttons inside to edit or submit it.`);
+  });
+  decorateCards();
+  if($('groupManagerList'))new MutationObserver(decorateCards).observe($('groupManagerList'),{childList:true,subtree:true});
+
+  // Keep selected objects selected when starting a drag from any selected item.
+  // The core pointer handler captures the complete selected ID set in its move transaction.
+  const zoomInput=$('boardZoomValue');
+  if(zoomInput){zoomInput.value=String(Math.round((window.__rnGetBoardZoom?.()||1)*100));}
+})();
+</script>
+
+
+<style id="rn-v11-final-adjustments">
+/* Keep Synergy portraits identical to Counterpicker recommendation portraits. */
+#synergiesPage .synergy-portrait{
+  width:82px!important;min-width:82px!important;max-width:82px!important;
+  height:104px!important;min-height:104px!important;max-height:104px!important;
+  box-sizing:border-box!important;overflow:visible!important;margin:0 auto!important;
+}
+#synergiesPage .synergy-portrait img{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important}
+#synergiesPage .synergy-hero-name{font-size:12px!important;line-height:1.2!important;font-weight:900!important}
+#synergiesPage .synergy-hero-role{font-size:9px!important;line-height:1.25!important}
+#synergiesPage .synergy-match-card .combo-names{font-size:12px!important;line-height:1.2!important;font-weight:900!important}
+#synergiesPage .synergy-match-card .combo-reason{font-size:10px!important;line-height:1.38!important}
+@media(max-width:600px){
+  #counterResults .pick-card.counter-suggestion .pick-avatar,
+  #synergiesPage .synergy-match-card .synergy-portrait,
+  #synergiesPage .synergy-portrait{
+    width:68px!important;min-width:68px!important;max-width:68px!important;
+    height:88px!important;min-height:88px!important;max-height:88px!important;
+  }
+}
+/* Delete control belongs at the upper-right; keep the group title clear on the left. */
+body.groups-mode .rn-v10-group-delete{
+  left:auto!important;right:8px!important;top:8px!important;
+  position:absolute!important;z-index:8!important;
+}
+body.groups-mode .rn-v10-group-head{padding-left:0!important;padding-right:32px!important}
+/* The hidden cover image must never cover the no-map grid placeholder. */
+body.playbook-mode #rnMapCurrentCover.rn-cover-hidden{display:none!important}
+body.playbook-mode #rnMapGridPreview{display:block!important;position:relative!important}
+body.playbook-mode #rnMapGridPreview.rn-preview-hidden{display:none!important}
+body.playbook-mode .rn-map-current{align-items:stretch!important}
+</style>
+
+
+<script id="rn-v11-default-whiteboard-tool">
+(()=>{
+  const select=()=>{
+    if(typeof window.__rnSetBoardTool==='function')window.__rnSetBoardTool('select');
+    document.querySelectorAll('#rnPrimaryToolBar button,.board-pen-tool-row button,.board-shape-tools button').forEach(button=>button.classList.remove('active'));
+    const cursor=document.getElementById('boardSelectToolBtn');
+    if(cursor)cursor.classList.add('active');
+  };
+  select();
+  document.addEventListener('DOMContentLoaded',select,{once:true});
+  document.querySelectorAll('.page-tab[data-page="playbookPage"]').forEach(tab=>tab.addEventListener('click',()=>requestAnimationFrame(select)));
 })();
 </script>
 
