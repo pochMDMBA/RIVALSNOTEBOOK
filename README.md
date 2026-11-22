@@ -206,3 +206,8 @@ The Playbook now has a **TACTICAL MAP** picker at the top of the left sidebar. I
 Each saved Playbook stores its selected map using a `mapId` field. The field is retained by local workspace hydration and Supabase notebook snapshots, so shared plays can restore their chosen map. No Supabase schema migration is required because the map ID is part of the existing saved-play JSON.
 
 Map files are stored as `.jpg` in `assets/maps/`; cover thumbnails are `.jpg` in `assets/maps/covers/`. JPEG is used for the bundled map assets for compatibility with static hosting and image-serving pipelines. `map-library.json` lists the metadata and relative asset paths.
+
+
+## v10 update
+
+This release embeds every tactical-map JPEG and cover thumbnail directly into `index.html`, so the map picker and board backgrounds do not rely on relative asset paths. The separate `assets/maps/` JPEGs remain included for editing/export. Counterpick and Synergy portrait frames and typography are standardized. Group cards now show heroes by Vanguard, Duelist and Support, with Deadpool shown under all three, and include View Group, Edit and Submit to Community actions.

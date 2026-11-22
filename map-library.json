@@ -74,5 +74,6 @@
   ],
   "comingSoon": [
     "Domination"
-  ]
+  ],
+  "runtimeAssetStrategy": "JPEG maps and cover thumbnails are embedded as data:image/jpeg;base64 in index.html. Relative image paths below are retained for export/asset tooling."
 }
