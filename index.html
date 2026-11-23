@@ -5543,5 +5543,61 @@ body.playbook-mode .board-item.board-ability-token.selected .skill-icon svg {
 }
 </style>
 
+
+<style id="rn-v13.4-synergy-portrait-and-icon-transform-fixes">
+/* V13.4: show the complete source portrait in a square frame instead of stretching
+   the avatar across a shallow, clipped landscape slot in the three role columns. */
+#synergiesPage .rn-synergy-role-column .synergy-match-card .synergy-hero-pair .synergy-hero-tile .synergy-portrait {
+  display:grid!important;
+  place-items:center!important;
+  width:104px!important;
+  min-width:104px!important;
+  max-width:100%!important;
+  height:104px!important;
+  min-height:104px!important;
+  max-height:104px!important;
+  aspect-ratio:1 / 1!important;
+  margin:0 auto!important;
+  padding:3px!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+  background:linear-gradient(145deg,#1d303d,#13222d)!important;
+}
+#synergiesPage .rn-synergy-role-column .synergy-match-card .synergy-hero-pair .synergy-hero-tile .synergy-portrait img {
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  margin:auto!important;
+  flex:none!important;
+}
+/* Icon-only heroes keep the same rotate and resize controls as labelled heroes.
+   The wrapper remains visually transparent until selected; the handles are still
+   rendered by the board for a single selected object. */
+body.playbook-mode .board-item.board-hero.hero-icon-only .rotate-pivot,
+body.playbook-mode .board-item.board-hero.hero-icon-only .resize-handle {
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+  z-index:60!important;
+}
+body.playbook-mode .board-item.board-hero.hero-icon-only .rotate-pivot {
+  top:-25px!important;
+}
+body.playbook-mode .board-item.board-hero.hero-icon-only .resize-handle {
+  right:-7px!important;
+  bottom:-7px!important;
+}
+@media(max-width:600px){
+  #synergiesPage .rn-synergy-role-column .synergy-match-card .synergy-hero-pair .synergy-hero-tile .synergy-portrait {
+    width:88px!important;min-width:88px!important;height:88px!important;min-height:88px!important;max-height:88px!important;
+  }
+}
+</style>
+
 </body>
 </html>

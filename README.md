@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current package: v13.3.** See `V13.3_RELEASE_NOTES.md` for the latest UI refinements, `V13.2_RELEASE_NOTES.md` for the previous layout and board-selection fixes, `V13.1_RELEASE_NOTES.md` for earlier UI refinements and `V13_RELEASE_NOTES.md` for the recovered release changes, `V11_RELEASE_NOTES.md` and `V12_RELEASE_NOTES.md` for the original feature notes, and `SUPABASE_SETUP_STEPS.md` for backend setup.
+**Current package: v13.4.** See `V13.4_RELEASE_NOTES.md` for the latest UI refinements, `V13.3_RELEASE_NOTES.md` for the previous recommendation layout, `V13.2_RELEASE_NOTES.md` for the previous layout and board-selection fixes, `V13.1_RELEASE_NOTES.md` for earlier UI refinements and `V13_RELEASE_NOTES.md` for the recovered release changes, `V11_RELEASE_NOTES.md` and `V12_RELEASE_NOTES.md` for the original feature notes, and `SUPABASE_SETUP_STEPS.md` for backend setup.
 
 RIVALSNOTEBOOK is the renamed Marvel Rivals counter-pick, synergy, hero-group and tactical whiteboard app. This package adds a Vercel-ready static site and a Supabase backend layer for account sync, shared community votes, public Community Groups, and live collaborative Playbook notebooks.
 
