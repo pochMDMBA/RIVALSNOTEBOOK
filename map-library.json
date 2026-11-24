@@ -5,95 +5,95 @@
       "id": "yggdrasil-path",
       "name": "Yggdrasil Path",
       "mode": "Convoy",
-      "cover": "/assets/maps/covers/yggdrasil-path.jpg",
-      "image": "/assets/maps/yggdrasil-path.jpg"
+      "cover": "assets/maps/covers/yggdrasil-path.jpg",
+      "image": "assets/maps/yggdrasil-path.jpg"
     },
     {
       "id": "spider-islands",
       "name": "Spider-Islands",
       "mode": "Convoy",
-      "cover": "/assets/maps/covers/spider-islands.jpg",
-      "image": "/assets/maps/spider-islands.jpg"
+      "cover": "assets/maps/covers/spider-islands.jpg",
+      "image": "assets/maps/spider-islands.jpg"
     },
     {
       "id": "midtown",
       "name": "Midtown",
       "mode": "Convoy",
-      "cover": "/assets/maps/covers/midtown.jpg",
-      "image": "/assets/maps/midtown.jpg"
+      "cover": "assets/maps/covers/midtown.jpg",
+      "image": "assets/maps/midtown.jpg"
     },
     {
       "id": "arakko",
       "name": "Arakko",
       "mode": "Convoy",
-      "cover": "/assets/maps/covers/arakko.jpg",
-      "image": "/assets/maps/arakko.jpg"
+      "cover": "assets/maps/covers/arakko.jpg",
+      "image": "assets/maps/arakko.jpg"
     },
     {
       "id": "thebes",
       "name": "Thebes",
       "mode": "Convoy",
-      "cover": "/assets/maps/covers/thebes.jpg",
-      "image": "/assets/maps/thebes.jpg"
+      "cover": "assets/maps/covers/thebes.jpg",
+      "image": "assets/maps/thebes.jpg"
     },
     {
       "id": "shin-shibuya",
       "name": "Shin-Shibuya",
       "mode": "Convergence",
-      "cover": "/assets/maps/covers/shin-shibuya.jpg",
-      "image": "/assets/maps/shin-shibuya.jpg",
+      "cover": "assets/maps/covers/shin-shibuya.jpg",
+      "image": "assets/maps/shin-shibuya.jpg",
       "points": {
-        "A": "/assets/maps/points/shin-shibuya-a.jpg",
-        "B": "/assets/maps/points/shin-shibuya-b.jpg",
-        "C": "/assets/maps/points/shin-shibuya-c.jpg"
+        "A": "assets/maps/points/shin-shibuya-a.jpg",
+        "B": "assets/maps/points/shin-shibuya-b.jpg",
+        "C": "assets/maps/points/shin-shibuya-c.jpg"
       }
     },
     {
       "id": "hall-of-djalia",
       "name": "Hall of Djalia",
       "mode": "Convergence",
-      "cover": "/assets/maps/covers/hall-of-djalia.jpg",
-      "image": "/assets/maps/hall-of-djalia.jpg",
+      "cover": "assets/maps/covers/hall-of-djalia.jpg",
+      "image": "assets/maps/hall-of-djalia.jpg",
       "points": {
-        "A": "/assets/maps/points/hall-of-djalia-a.jpg",
-        "B": "/assets/maps/points/hall-of-djalia-b.jpg",
-        "C": "/assets/maps/points/hall-of-djalia-c.jpg"
+        "A": "assets/maps/points/hall-of-djalia-a.jpg",
+        "B": "assets/maps/points/hall-of-djalia-b.jpg",
+        "C": "assets/maps/points/hall-of-djalia-c.jpg"
       }
     },
     {
       "id": "central-park",
       "name": "Central Park",
       "mode": "Convergence",
-      "cover": "/assets/maps/covers/central-park.jpg",
-      "image": "/assets/maps/central-park.jpg",
+      "cover": "assets/maps/covers/central-park.jpg",
+      "image": "assets/maps/central-park.jpg",
       "points": {
-        "A": "/assets/maps/points/central-park-a.jpg",
-        "B": "/assets/maps/points/central-park-b.jpg",
-        "C": "/assets/maps/points/central-park-c.jpg"
+        "A": "assets/maps/points/central-park-a.jpg",
+        "B": "assets/maps/points/central-park-b.jpg",
+        "C": "assets/maps/points/central-park-c.jpg"
       }
     },
     {
       "id": "symbiotic-surface",
       "name": "Symbiotic Surface",
       "mode": "Convergence",
-      "cover": "/assets/maps/covers/symbiotic-surface.jpg",
-      "image": "/assets/maps/symbiotic-surface.jpg",
+      "cover": "assets/maps/covers/symbiotic-surface.jpg",
+      "image": "assets/maps/symbiotic-surface.jpg",
       "points": {
-        "A": "/assets/maps/points/symbiotic-surface-a.jpg",
-        "B": "/assets/maps/points/symbiotic-surface-b.jpg",
-        "C": "/assets/maps/points/symbiotic-surface-c.jpg"
+        "A": "assets/maps/points/symbiotic-surface-a.jpg",
+        "B": "assets/maps/points/symbiotic-surface-b.jpg",
+        "C": "assets/maps/points/symbiotic-surface-c.jpg"
       }
     },
     {
       "id": "heart-of-heaven",
       "name": "Heart of Heaven",
       "mode": "Convergence",
-      "cover": "/assets/maps/covers/heart-of-heaven.jpg",
-      "image": "/assets/maps/heart-of-heaven.jpg",
+      "cover": "assets/maps/covers/heart-of-heaven.jpg",
+      "image": "assets/maps/heart-of-heaven.jpg",
       "points": {
-        "A": "/assets/maps/points/heart-of-heaven-a.jpg",
-        "B": "/assets/maps/points/heart-of-heaven-b.jpg",
-        "C": "/assets/maps/points/heart-of-heaven-c.jpg"
+        "A": "assets/maps/points/heart-of-heaven-a.jpg",
+        "B": "assets/maps/points/heart-of-heaven-b.jpg",
+        "C": "assets/maps/points/heart-of-heaven-c.jpg"
       }
     },
     {
@@ -101,12 +101,12 @@
       "name": "Lower Manhattan",
       "mode": "Convergence",
       "cover": "https://api.rivalsheroes.com/public/maps-rivalsapi/map_lower-manhattan_1778889484.webp",
-      "coverFallback": "/assets/maps/points/lower-manhattan-a.jpg",
+      "coverFallback": "assets/maps/points/lower-manhattan-a.jpg",
       "image": "",
       "points": {
-        "A": "/assets/maps/points/lower-manhattan-a.jpg",
-        "B": "/assets/maps/points/lower-manhattan-b.jpg",
-        "C": "/assets/maps/points/lower-manhattan-c.jpg"
+        "A": "assets/maps/points/lower-manhattan-a.jpg",
+        "B": "assets/maps/points/lower-manhattan-b.jpg",
+        "C": "assets/maps/points/lower-manhattan-c.jpg"
       },
       "layoutNote": "Full 2D overview pending; Points A, B and C are available."
     }
