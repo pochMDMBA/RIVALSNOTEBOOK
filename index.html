@@ -248,14 +248,14 @@ header{padding:0 260px 0}
   <div class="group-page-heading"><div><div class="panel-title">Group Editor</div><div class="panel-sub">Create a category, search heroes and add members by click or drag-and-drop.</div></div></div>
   <div id="groupEmptyState" class="empty-state group-empty-state"><strong>Select a group or create one.</strong><br>Your groups will appear as visual cards. Select EDIT to manage membership, or drag heroes directly between groups.</div>
   <form id="groupForm" class="group-editor-form hidden">
-   <div class="modal-head"><h3 id="groupFormTitle">Create hero group</h3><button class="text-button" type="button" id="cancelGroupEdit">CANCEL</button></div>
-   <div class="form-grid group-name-grid"><div class="field"><label for="groupName">Group name</label><input id="groupName" maxlength="50" required placeholder="e.g. Dive"></div><div class="field icon-field"><label for="groupIcon">Group icon</label><input id="groupIcon" maxlength="8" placeholder="🧩" value="🧩" aria-label="Group icon emoji"></div></div>
+   <div class="modal-head"><h3 id="groupFormTitle">Create Hero Group</h3><button class="text-button" type="button" id="cancelGroupEdit">CANCEL</button></div>
+   <div class="form-grid group-name-grid"><div class="field"><label for="groupName">Group Name</label><input id="groupName" maxlength="50" required placeholder="e.g. Dive"></div><div class="field icon-field"><label for="groupIcon">Group Icon</label><input id="groupIcon" maxlength="8" placeholder="🧩" value="🧩" aria-label="Group Icon emoji"></div></div>
    <div class="field"><label for="groupDescription">Description (optional)</label><textarea id="groupDescription" rows="3" maxlength="160" placeholder="e.g. Heroes who can rapidly reach the backline"></textarea></div>
    <div class="member-editor-heading"><strong>Members</strong><span class="tiny-tag" id="groupMemberCount">0 selected</span></div>
    <input id="groupMemberSearch" class="search member-search" placeholder="Search heroes…" autocomplete="off">
    <div class="member-editor-grid">
-    <div class="member-editor-column"><div class="member-list-heading">AVAILABLE HEROES <span class="small-help">Click or drag to add</span></div><div id="groupAvailableList" class="member-picker available-member-list" data-drop-members="available"></div></div>
-    <div class="member-editor-column"><div class="member-list-heading">IN THIS GROUP <span class="small-help">Drop heroes here</span></div><div id="groupMemberList" class="member-picker selected-member-list" data-drop-members="selected"><div class="member-drop-hint">Drag heroes here, or click an available hero.</div></div></div>
+    <div class="member-editor-column"><div class="member-list-heading">Individual Heroes <span class="small-help">Click or drag to add</span></div><div id="groupAvailableList" class="member-picker available-member-list" data-drop-members="available"></div></div>
+    <div class="member-editor-column"><div class="member-list-heading">In This Group <span class="small-help">Drop heroes here</span></div><div id="groupMemberList" class="member-picker selected-member-list" data-drop-members="selected"><div class="member-drop-hint">Drag heroes here, or click an available hero.</div></div></div>
    </div>
    <div class="modal-actions"><button class="btn danger hidden" type="button" id="deleteGroupBtn">DELETE GROUP</button><div class="right"><button class="btn primary" type="submit">SAVE GROUP</button></div></div>
   </form>
@@ -263,7 +263,7 @@ header{padding:0 260px 0}
  <section class="panel group-rules-panel">
   <div class="group-page-heading synergy-rules-heading"><div><div class="panel-title">Group Synergy Rules</div><div class="panel-sub">Reusable group-to-group or hero-to-group teammate pairings.</div></div><button class="btn accent" type="button" id="newGroupSynergyRuleBtn">＋ ADD SYNERGY RULE</button></div>
   <div id="groupSynergyRulesManagerList" class="group-rules-scroll"></div>
-  <div class="group-page-heading"><div><div class="panel-title">Group Counter Rules</div><div class="panel-sub">Each rule expands into individual hero-vs-hero matchups.</div></div><button class="btn accent" type="button" id="newGroupRuleBtn">＋ ADD GROUP RULE</button></div>
+  <div class="group-page-heading"><div><div class="panel-title">Group Counter Rules</div><div class="panel-sub">Reusable group matchup rules. Select a rule to inspect its members and tactical details.</div></div><button class="btn accent" type="button" id="newGroupRuleBtn">＋ ADD GROUP RULE</button></div>
   <div id="groupRulesManagerList" class="group-rules-scroll"></div>
  </section>
 </main>
@@ -298,8 +298,8 @@ header{padding:0 260px 0}
  <div class="modal-head"><h3 id="counterModalTitle">Add counter tip</h3><button class="modal-close" data-close="counterModal">×</button></div>
  <form id="counterForm">
   <div class="matchup-grid">
-   <section class="matchup-side"><div class="matchup-side-title"><span class="matchup-index">1</span><strong>Counterpick</strong></div><div class="field"><label for="counterSourceType">Pick a hero or group</label><select id="counterSourceType"><option value="hero">Individual hero</option><option value="group">Hero group</option></select></div><div class="field" id="counterHeroWrap"><label for="counterHero">Your counterpick</label><select id="counterHero" required></select></div><div class="field hidden" id="counterSourceGroupWrap"><label for="counterSourceGroup">Your counterpick group</label><select id="counterSourceGroup"></select></div></section>
-   <section class="matchup-side"><div class="matchup-side-title"><span class="matchup-index">2</span><strong>Against</strong></div><div class="field"><label for="counterTargetType">Choose target type</label><select id="counterTargetType"><option value="hero">Individual hero</option><option value="group">Hero group</option></select></div><div class="field" id="counterAgainstWrap"><label for="counterAgainst">Enemy hero</label><select id="counterAgainst" required></select></div><div class="field hidden" id="counterTargetGroupWrap"><label for="counterTargetGroup">Enemy group</label><select id="counterTargetGroup"></select></div></section>
+   <section class="matchup-side"><div class="matchup-side-title"><span class="matchup-index">1</span><strong>Counterpick</strong></div><div class="field"><label for="counterSourceType">Pick a Hero or Group</label><select id="counterSourceType"><option value="hero">Individual Hero</option><option value="group">Hero Group</option></select></div><div class="field" id="counterHeroWrap"><label for="counterHero">Your Counterpick</label><select id="counterHero" required></select></div><div class="field hidden" id="counterSourceGroupWrap"><label for="counterSourceGroup">Your Counterpick Group</label><select id="counterSourceGroup"></select></div></section>
+   <section class="matchup-side"><div class="matchup-side-title"><span class="matchup-index">2</span><strong>Against</strong></div><div class="field"><label for="counterTargetType">Choose Target Type</label><select id="counterTargetType"><option value="hero">Individual Hero</option><option value="group">Hero Group</option></select></div><div class="field" id="counterAgainstWrap"><label for="counterAgainst">Enemy Hero</label><select id="counterAgainst" required></select></div><div class="field hidden" id="counterTargetGroupWrap"><label for="counterTargetGroup">Enemy Group</label><select id="counterTargetGroup"></select></div></section>
   </div>
   <div class="matchup-explainer" id="counterExpansionHelp">Choose one hero on each side, or choose a group to apply the same matchup reasoning to every individual member combination.</div>
   <div class="field"><label for="counterTier">Counter strength</label><select id="counterTier"><option value="hard">Hard counter · 1.0x</option><option value="moderate" selected>Moderate counter · 0.7x</option><option value="soft">Soft counter · 0.4x</option></select><div class="small-help">Strength is converted into ranking points. Use hard only for a reliable, direct advantage.</div></div>
@@ -311,8 +311,8 @@ header{padding:0 260px 0}
  <div class="modal-head"><h3 id="comboModalTitle">Add teammate combo</h3><button class="modal-close" data-close="comboModal">×</button></div>
  <form id="comboForm">
   <div class="matchup-grid">
-   <section class="matchup-side"><div class="matchup-side-title"><span class="matchup-index">1</span><strong>Teammate A</strong></div><div class="field"><label for="comboSourceType">Choose hero or group</label><select id="comboSourceType"><option value="hero">Individual hero</option><option value="group">Hero group</option></select></div><div class="field" id="comboHeroAWrap"><label for="comboHeroA">First hero</label><select id="comboHeroA"></select></div><div class="field hidden" id="comboGroupAWrap"><label for="comboGroupA">First group</label><select id="comboGroupA"></select></div></section>
-   <section class="matchup-side"><div class="matchup-side-title"><span class="matchup-index">2</span><strong>Teammate B</strong></div><div class="field"><label for="comboTargetType">Choose hero or group</label><select id="comboTargetType"><option value="hero">Individual hero</option><option value="group">Hero group</option></select></div><div class="field" id="comboHeroBWrap"><label for="comboHeroB">Second hero</label><select id="comboHeroB"></select></div><div class="field hidden" id="comboGroupBWrap"><label for="comboGroupB">Second group</label><select id="comboGroupB"></select></div></section>
+   <section class="matchup-side"><div class="matchup-side-title"><span class="matchup-index">1</span><strong>Teammate A</strong></div><div class="field"><label for="comboSourceType">Choose Hero or Group</label><select id="comboSourceType"><option value="hero">Individual Hero</option><option value="group">Hero Group</option></select></div><div class="field" id="comboHeroAWrap"><label for="comboHeroA">First Hero</label><select id="comboHeroA"></select></div><div class="field hidden" id="comboGroupAWrap"><label for="comboGroupA">First Group</label><select id="comboGroupA"></select></div></section>
+   <section class="matchup-side"><div class="matchup-side-title"><span class="matchup-index">2</span><strong>Teammate B</strong></div><div class="field"><label for="comboTargetType">Choose Hero or Group</label><select id="comboTargetType"><option value="hero">Individual Hero</option><option value="group">Hero Group</option></select></div><div class="field" id="comboHeroBWrap"><label for="comboHeroB">Second Hero</label><select id="comboHeroB"></select></div><div class="field hidden" id="comboGroupBWrap"><label for="comboGroupB">Second Group</label><select id="comboGroupB"></select></div></section>
   </div>
   <div class="matchup-explainer" id="comboExpansionHelp">Choose two heroes for one synergy, or use groups to apply the reason to matching members when both are selected in your current team.</div>
   <div class="field"><label for="comboReason">Why are they good teammates?</label><textarea id="comboReason" required maxlength="700" placeholder="Explain the team-up ability, setup/follow-up, role coverage, peel, damage window, or other synergy…"></textarea></div>
@@ -408,7 +408,7 @@ function normalizeTips(list){return (Array.isArray(list)?list:[]).map(x=>x?({...
 function normalizeCombos(list){return (Array.isArray(list)?list:[]).map(x=>x?({...x,a:({'Bucky':'Winter Soldier','Punisher':'The Punisher'}[x.a]||x.a),b:({'Bucky':'Winter Soldier','Punisher':'The Punisher'}[x.b]||x.b)}):x).filter(x=>x&&HEROES.some(h=>h.name===x.a)&&HEROES.some(h=>h.name===x.b)&&x.a!==x.b&&String(x.reason||'').trim()).map((x,i)=>({id:String(x.id||`combo-${Date.now()}-${i}`),a:x.a,b:x.b,reason:String(x.reason).slice(0,700),official:(String(x.id||'').startsWith('r11-u')?false:(x.official===true||x.official==='true')),votes:Math.max(0,Number(x.votes)||0),myVote:!!x.myVote,source:String(x.source||'Community tip').slice(0,150),sourceUrl:String(x.sourceUrl||'').slice(0,500)}))}
 function normalizeGroups(list){return (Array.isArray(list)?list:[]).filter(g=>g&&String(g.name||'').trim()).map((g,i)=>({id:String(g.id||`group-${Date.now()}-${i}`),name:String(g.name).trim().slice(0,50),icon:String(g.icon||'🧩').slice(0,8),description:String(g.description||'').slice(0,160),members:[...new Set((Array.isArray(g.members)?g.members:[]).filter(n=>HEROES.some(h=>h.name===n)))].sort((a,b)=>{const A=hero(a),B=hero(b);return ROLE_ORDER.indexOf(A?.role)-ROLE_ORDER.indexOf(B?.role)||a.localeCompare(b)})})).filter(g=>g.members.length)}
 function normalizeComboRules(list){return (Array.isArray(list)?list:[]).filter(r=>r&&['hero','group'].includes(r.sourceType)&&['hero','group'].includes(r.targetType)&&String(r.reason||'').trim()).map((r,i)=>({id:String(r.id||`crule-${Date.now()}-${i}`),sourceType:r.sourceType,sourceValue:String(r.sourceValue||''),targetType:r.targetType,targetValue:String(r.targetValue||''),reason:String(r.reason).slice(0,700),official:!!r.official,votesByPair:r.votesByPair&&typeof r.votesByPair==='object'?r.votesByPair:{},myVotesByPair:r.myVotesByPair&&typeof r.myVotesByPair==='object'?r.myVotesByPair:{},source:String(r.source||'Community synergy').slice(0,150),sourceUrl:String(r.sourceUrl||'').slice(0,500)})).filter(r=>selectorExists(r.sourceType,r.sourceValue)&&selectorExists(r.targetType,r.targetValue))}
-function normalizePlays(list){return (Array.isArray(list)?list:[]).filter(p=>p&&String(p.name||'').trim()).map((p,i)=>({id:String(p.id||`play-${Date.now()}-${i}`),name:String(p.name).slice(0,70),items:normalizePlayItems(p.items||[]),mapId:String(p.mapId||''),updatedAt:String(p.updatedAt||''),synergyLink:p.synergyLink&&typeof p.synergyLink==='object'?{sourceType:String(p.synergyLink.sourceType||''),sourceId:String(p.synergyLink.sourceId||''),pairKey:String(p.synergyLink.pairKey||''),a:String(p.synergyLink.a||''),b:String(p.synergyLink.b||'')}:null}))}
+function normalizePlays(list){return (Array.isArray(list)?list:[]).filter(p=>p&&String(p.name||'').trim()).map((p,i)=>({id:String(p.id||`play-${Date.now()}-${i}`),name:String(p.name).slice(0,70),items:normalizePlayItems(p.items||[]),mapId:String(p.mapId||''),mapView:String(p.mapView||'2d'),updatedAt:String(p.updatedAt||''),synergyLink:p.synergyLink&&typeof p.synergyLink==='object'?{sourceType:String(p.synergyLink.sourceType||''),sourceId:String(p.synergyLink.sourceId||''),pairKey:String(p.synergyLink.pairKey||''),a:String(p.synergyLink.a||''),b:String(p.synergyLink.b||'')}:null}))}
 function normalizePlayItems(list){
   const allowed = ['hero','text','arrow','wall','pit','broken','number','ability','shape','pen','image'];
   const shapes = ['circle','rectangle','triangle','triangle-down','diamond','cone','star','line','pin','warning','flag','anchor','target','area'];
@@ -472,7 +472,7 @@ function pairComboKey(a,b){return [a,b].sort((x,y)=>x.localeCompare(y)).join('||
 function expandComboRules(team=state.ally){const picks=new Set(team),out=[];for(const rule of state.comboRules){const seen=new Set(),left=groupMembers(rule.sourceType,rule.sourceValue),right=groupMembers(rule.targetType,rule.targetValue);for(const a of left){for(const b of right){const key=pairComboKey(a,b);if(a===b||seen.has(key)||!picks.has(a)||!picks.has(b))continue;seen.add(key);out.push({id:`group-synergy:${rule.id}:${encodeURIComponent(a)}:${encodeURIComponent(b)}`,ruleId:rule.id,pairKey:key,generated:true,a,b,reason:rule.reason,official:rule.official,votes:Number(rule.votesByPair[key])||0,myVote:!!rule.myVotesByPair[key],pocketPlayId:String((rule.pocketPlayByPair&&rule.pocketPlayByPair[key])||rule.pocketPlayId||''),source:`Group synergy · ${selectorLabel(rule.sourceType,rule.sourceValue)} + ${selectorLabel(rule.targetType,rule.targetValue)}`,sourceUrl:rule.sourceUrl||''})}}}return out}
 function counterPoints(t){return Math.round(TIER[t.tier].weight*100)+(Number(t.votes)||0)*5}
 function synergyPoints(c){return (c.official?125:100)+(Number(c.votes)||0)*5}
-function selectorLabel(type,value){if(type==='hero')return value;const g=state.groups.find(x=>x.id===value);return g?`${g.icon||'🧩'} ${g.name}`:'Deleted group'}
+function selectorLabel(type,value){if(type==='hero')return value;const g=state.groups.find(x=>x.id===value);return g?g.name:'Deleted group'}
 function renderRoster(){
  const q=$('heroSearch').value.trim().toLowerCase();const groups=[['Vanguard','vanguard'],['Duelist','duelist'],['Strategist','strategist'],['Multi-role','multi']];
  $('rosterGrid').innerHTML=groups.map(([role,cls])=>{const items=HEROES.filter(h=>h.role===role&&(!q||(h.name+' '+h.ult).toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name));if(!items.length)return'';return `<div class="role-group"><div class="role-head"><span class="role-pill ${cls}">${role}</span><span>${role==='Vanguard'?'Tank':role==='Duelist'?'Damage':role==='Strategist'?'Support':'Flexible'}</span></div><div class="hero-grid">${items.map(h=>`<button class="hero-card ${(state.enemy.includes(h.name)||state.ally.includes(h.name))?'selected':''}" draggable="true" data-hero="${escapeHtml(h.name)}" title="${escapeHtml(h.name)} · ${escapeHtml(h.ult||'')}" aria-label="Add ${escapeHtml(h.name)}"><div class="hero-portrait"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="portrait-fallback">${escapeHtml(h.name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><span class="hero-name">${escapeHtml(h.name)}</span></button>`).join('')}</div></div>`}).join('')||'<div class="empty-state">No heroes match that search.</div>';
@@ -515,7 +515,7 @@ function openGroupRuleEditor(rule=null){state.returnToGroupManager=true;state.ed
 function openIndividualFromGroup(ruleId,key){const rule=state.groupRules.find(r=>r.id===ruleId);if(!rule)return;const [heroName,against]=key.split('|||');const found=state.counterTips.find(t=>t.hero===heroName&&t.against===against);state.editingCounter=found?.id||null;state.editingCounterRule=null;state.editingDerived={ruleId,pairKey:key,hero:heroName,against,votes:Number(rule.votesByPair[key])||0,myVote:!!rule.myVotesByPair[key]};$('counterModalTitle').textContent=`Edit ${heroName} vs ${against}`;populateHeroSelect('counterAgainst',against);populateHeroSelect('counterHero',heroName);populateGroupSelect('counterSourceGroup');populateGroupSelect('counterTargetGroup');$('counterSourceType').value='hero';$('counterTargetType').value='hero';$('counterTier').value=found?.tier||rule.tier;$('counterReason').value=found?.reason||rule.reason;$('deleteCounterBtn').classList.toggle('hidden',!found);syncCounterForm();openModal('counterModal')}
 function syncCounterForm(){const sourceGroup=$('counterSourceType').value==='group',targetGroup=$('counterTargetType').value==='group';$('counterHeroWrap').classList.toggle('hidden',sourceGroup);$('counterSourceGroupWrap').classList.toggle('hidden',!sourceGroup);$('counterAgainstWrap').classList.toggle('hidden',targetGroup);$('counterTargetGroupWrap').classList.toggle('hidden',!targetGroup);$('counterHero').required=!sourceGroup;$('counterSourceGroup').required=sourceGroup;$('counterAgainst').required=!targetGroup;$('counterTargetGroup').required=targetGroup;$('counterExpansionHelp').textContent=sourceGroup||targetGroup?'This rule expands to individual hero-vs-hero matchups for every member of the selected group(s). Each generated matchup can later be edited separately.':'One individual hero-vs-hero counter matchup.'}
 function openGroupManager(){state.returnToGroupManager=false;switchPage('groupsPage');renderGroupManager()}
-function populateGroupSelect(id,selected=''){const el=$(id);el.innerHTML='<option value="">Select group…</option>'+state.groups.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(g=>`<option value="${escapeHtml(g.id)}">${escapeHtml(g.icon||'🧩')} ${escapeHtml(g.name)} · ${g.members.length} heroes</option>`).join('');if(selected)el.value=selected}
+function populateGroupSelect(id,selected=''){const el=$(id);if(!el)return;el.innerHTML='<option value="">Select Hero Group…</option>'+state.groups.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(g=>`<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)} · ${g.members.length} heroes</option>`).join('');if(selected)el.value=selected;el.dispatchEvent(new Event('change',{bubbles:true}))}
 const ROLE_ORDER=['Vanguard','Duelist','Strategist','Multi-role'];
 function sortedHeroes(names){return names.map(hero).filter(Boolean).sort((a,b)=>ROLE_ORDER.indexOf(a.role)-ROLE_ORDER.indexOf(b.role)||a.name.localeCompare(b.name))}
 function groupByRole(names){const sorted=sortedHeroes(names),map=new Map();sorted.forEach(h=>{const roles=h.name==='Deadpool'?['Vanguard','Duelist','Strategist']:[h.role];roles.forEach(role=>{if(!map.has(role))map.set(role,[]);map.get(role).push(h)})});return map}
@@ -530,7 +530,7 @@ function renderGroupMembers(selected=state.groupMemberDraft){
  $('groupMemberCount').textContent=`${state.groupMemberDraft.length} selected`;
 }
 function selectedGroupMembers(){return sortedHeroes(state.groupMemberDraft).map(h=>h.name)}
-function openGroupForm(group=null){state.editingGroup=group?.id||null;$('groupFormTitle').textContent=group?'Edit hero group':'Create hero group';$('groupName').value=group?.name||'';$('groupIcon').value=group?.icon||'🧩';$('groupDescription').value=group?.description||'';$('groupMemberSearch').value='';state.groupMemberDraft=[...(group?.members||[])];renderGroupMembers(state.groupMemberDraft);$('deleteGroupBtn').classList.toggle('hidden',!group);$('groupEmptyState').classList.add('hidden');$('groupForm').classList.remove('hidden');$('groupName').focus()}
+function openGroupForm(group=null){state.editingGroup=group?.id||null;$('groupFormTitle').textContent=group?'Edit Hero Group':'Create Hero Group';$('groupName').value=group?.name||'';$('groupIcon').value=group?.icon||'🧩';$('groupDescription').value=group?.description||'';$('groupMemberSearch').value='';state.groupMemberDraft=[...(group?.members||[])];renderGroupMembers(state.groupMemberDraft);$('deleteGroupBtn').classList.toggle('hidden',!group);$('groupEmptyState').classList.add('hidden');$('groupForm').classList.remove('hidden');$('groupName').focus()}
 function roleGroupedMemberMarkup(members,groupId){
  const map=groupByRole(members);if(!map.size)return '<div class="member-drop-hint">No members yet. Drag heroes here to add them.</div>';
  return [...map.entries()].map(([role,heroes])=>`<div class="group-role-row"><div class="group-role-label">${escapeHtml(role)}</div><div class="group-role-members">${heroes.map(h=>`<button type="button" class="group-hero-chip" draggable="true" data-hero="${escapeHtml(h.name)}" data-source-group="${escapeHtml(groupId)}" title="Drag to another group to move"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.remove()"><span>${escapeHtml(h.name)}</span></button>`).join('')}</div></div>`).join('');
@@ -539,11 +539,11 @@ function renderGroupManager(){
  const groups=state.groups.slice().sort((a,b)=>a.name.localeCompare(b.name));
  $('groupManagerList').innerHTML=groups.length?`<div class="group-manager-list">${groups.map(g=>`<article class="group-manage-card" data-drop-group="${escapeHtml(g.id)}"><div class="group-manage-top"><div><div class="group-manage-title">${escapeHtml(g.icon||'🧩')} ${escapeHtml(g.name)} <span class="tiny-tag">${g.members.length} MEMBERS</span></div><div class="group-manage-members">${escapeHtml(g.description||'No description')}</div></div><div class="group-actions"><button class="edit-btn" data-edit-group="${escapeHtml(g.id)}">EDIT</button><button class="edit-btn" data-delete-group="${escapeHtml(g.id)}">DELETE</button></div></div><div class="group-roles">${roleGroupedMemberMarkup(g.members,g.id)}</div><div class="small-help">Drop a hero here to add it. Drag a member here from another group to move it.</div></article>`).join('')}</div>`:'<div class="empty-state">No custom groups yet. Create one to collect heroes by playstyle, ability pattern or team archetype.</div>';
  const rules=state.groupRules.slice().sort((a,b)=>selectorLabel(a.sourceType,a.sourceValue).localeCompare(selectorLabel(b.sourceType,b.sourceValue))||selectorLabel(a.targetType,a.targetValue).localeCompare(selectorLabel(b.targetType,b.targetValue)));
- $('groupRulesManagerList').innerHTML=rules.length?`<div class="group-rules-grid">${rules.map(r=>{const a=groupMembers(r.sourceType,r.sourceValue).length,b=groupMembers(r.targetType,r.targetValue).length;return `<div class="group-rule-card"><div class="group-rule-title">${escapeHtml(selectorLabel(r.sourceType,r.sourceValue))} → ${escapeHtml(selectorLabel(r.targetType,r.targetValue))} <span class="tier-badge ${TIER[r.tier].cls}">${TIER[r.tier].label} · ${TIER[r.tier].weight.toFixed(1)}x</span></div><div class="group-rule-detail">${a} counterpick member${a===1?'':'s'} × ${b} target member${b===1?'':'s'} = ${a*b} individual matchup${a*b===1?'':'s'}<br>${escapeHtml(r.reason)}</div><div class="group-actions" style="margin-top:6px"><button class="edit-btn" data-edit-group-rule="${escapeHtml(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-rule="${escapeHtml(r.id)}">DELETE</button></div></div>`}).join('')}</div>`:'<div class="empty-state">No group counter rules yet. Add rules such as Emma Frost → Dive or Sustained Damage → No-Shield Vanguards.</div>';
+ $('groupRulesManagerList').innerHTML=rules.length?`<div class="group-rules-grid">${rules.map(r=>{const a=groupMembers(r.sourceType,r.sourceValue).length,b=groupMembers(r.targetType,r.targetValue).length;return `<div class="group-rule-card"><div class="group-rule-title">${escapeHtml(selectorLabel(r.sourceType,r.sourceValue))} → ${escapeHtml(selectorLabel(r.targetType,r.targetValue))} <span class="tier-badge ${TIER[r.tier].cls}">${TIER[r.tier].label} · ${TIER[r.tier].weight.toFixed(1)}x</span></div><div class="group-rule-detail">${escapeHtml(r.reason)}</div><div class="group-actions" style="margin-top:6px"><button class="edit-btn" data-edit-group-rule="${escapeHtml(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-rule="${escapeHtml(r.id)}">DELETE</button></div></div>`}).join('')}</div>`:'<div class="empty-state">No group counter rules yet. Add rules such as Emma Frost → Dive or Sustained Damage → No-Shield Vanguards.</div>';
  renderGroupSynergyRules();
  $('groupTabCount').textContent=groups.length;
 }
-function renderGroupSynergyRules(){const el=$('groupSynergyRulesManagerList');if(!el)return;const rules=state.comboRules.slice().sort((a,b)=>selectorLabel(a.sourceType,a.sourceValue).localeCompare(selectorLabel(b.sourceType,b.sourceValue))||selectorLabel(a.targetType,a.targetValue).localeCompare(selectorLabel(b.targetType,b.targetValue)));el.innerHTML=rules.length?`<div class="group-rules-grid">${rules.map(r=>{const a=groupMembers(r.sourceType,r.sourceValue).length,b=groupMembers(r.targetType,r.targetValue).length;return `<div class="group-rule-card"><div class="group-rule-title">${escapeHtml(selectorLabel(r.sourceType,r.sourceValue))} + ${escapeHtml(selectorLabel(r.targetType,r.targetValue))} ${r.official?'<span class="combo-official">OFFICIAL</span>':'<span class="tiny-tag">COMMUNITY</span>'}</div><div class="group-rule-detail">${a} member${a===1?'':'s'} × ${b} member${b===1?'':'s'} potential pairs<br>${escapeHtml(r.reason)}</div><div class="group-actions" style="margin-top:6px"><button class="edit-btn" data-edit-group-synergy="${escapeHtml(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-synergy="${escapeHtml(r.id)}">DELETE</button></div></div>`}).join('')}</div>`:'<div class="empty-state">No group synergy rules yet. Add reusable group pairings such as Dive + Follow-up or Poke + Peel.</div>'}
+function renderGroupSynergyRules(){const el=$('groupSynergyRulesManagerList');if(!el)return;const rules=state.comboRules.slice().sort((a,b)=>selectorLabel(a.sourceType,a.sourceValue).localeCompare(selectorLabel(b.sourceType,b.sourceValue))||selectorLabel(a.targetType,a.targetValue).localeCompare(selectorLabel(b.targetType,b.targetValue)));el.innerHTML=rules.length?`<div class="group-rules-grid">${rules.map(r=>{const a=groupMembers(r.sourceType,r.sourceValue).length,b=groupMembers(r.targetType,r.targetValue).length;return `<div class="group-rule-card"><div class="group-rule-title">${escapeHtml(selectorLabel(r.sourceType,r.sourceValue))} + ${escapeHtml(selectorLabel(r.targetType,r.targetValue))} ${r.official?'<span class="combo-official">OFFICIAL</span>':'<span class="tiny-tag">COMMUNITY</span>'}</div><div class="group-rule-detail">${escapeHtml(r.reason)}</div><div class="group-actions" style="margin-top:6px"><button class="edit-btn" data-edit-group-synergy="${escapeHtml(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-synergy="${escapeHtml(r.id)}">DELETE</button></div></div>`}).join('')}</div>`:'<div class="empty-state">No group synergy rules yet. Add reusable group pairings such as Dive + Follow-up or Poke + Peel.</div>'}
 function updateGroupDraft(name,add){const set=new Set(state.groupMemberDraft);if(add)set.add(name);else set.delete(name);renderGroupMembers([...set]);}
 function applyHeroToGroup(heroName,targetGroupId,sourceGroupId=null){const target=state.groups.find(g=>g.id===targetGroupId);if(!target||!hero(heroName))return;if(sourceGroupId&&sourceGroupId!==targetGroupId){if(sourceGroupId==='editor-draft'){state.groupMemberDraft=state.groupMemberDraft.filter(n=>n!==heroName);renderGroupMembers(state.groupMemberDraft)}else{const source=state.groups.find(g=>g.id===sourceGroupId);if(source)source.members=source.members.filter(n=>n!==heroName);if(sourceGroupId===state.editingGroup){state.groupMemberDraft=state.groupMemberDraft.filter(n=>n!==heroName);renderGroupMembers(state.groupMemberDraft)}}}if(!target.members.includes(heroName))target.members.push(heroName);target.members=selectedRoleSorted(target.members);persist();render();populateGroupSelect('counterSourceGroup');populateGroupSelect('counterTargetGroup');toast(`${heroName} added to ${target.name}`)}
 function selectedRoleSorted(names){return sortedHeroes(names).map(h=>h.name)}
@@ -805,9 +805,9 @@ function renderComboCards(combos,containerId,label){const container=$(containerI
 function renderComboResults(){const picks=new Set(state.ally);let combos=[];if(picks.size){const direct=state.combos.filter(c=>picks.has(c.a)||picks.has(c.b));combos=[...direct,...expandComboRules(state.ally)];}const community=combos.filter(c=>!c.official),official=combos.filter(c=>c.official);renderComboCards(community,'comboResults','community');renderComboCards(official,'officialComboResults','official');$('synergyCount').textContent=`${community.length} SUGGESTIONS`;$('officialTeamupCount').textContent=`${official.length} SUGGESTIONS`}
 function renderComboResultsVisibility(){const allied=state.target==='ally',counterTitle=$('counterResults').previousElementSibling,counterNote=$('counterResults').nextElementSibling,community=$('synergyDetails'),official=$('officialTeamupDetails');if(counterTitle)counterTitle.style.display=allied?'none':'';$('counterResults').style.display=allied?'none':'';if(counterNote&&counterNote.classList.contains('footer-note'))counterNote.style.display=allied?'none':'';community.style.display=allied?'':'none';community.open=allied;official.style.display=allied?'':'none';const sum=community.querySelector('summary span');if(sum)sum.textContent='Recommended Teammates / Synergies';const h=community.querySelector('.section-title h2');if(h)h.textContent='Suggested Teammates & Synergies';}
 function selectorLabel(type,value){if(type==='hero')return value;const g=state.groups.find(x=>x.id===value);return g?g.name:'Deleted group'}
-function renderGroupSynergyRules(){const el=$('groupSynergyRulesManagerList');if(!el)return;const rules=state.comboRules.slice().sort((a,b)=>selectorLabel(a.sourceType,a.sourceValue).localeCompare(selectorLabel(b.sourceType,b.sourceValue))||selectorLabel(a.targetType,a.targetValue).localeCompare(selectorLabel(b.targetType,b.targetValue)));el.innerHTML=rules.length?`<div class="group-rules-grid">${rules.map(r=>{const a=groupMembers(r.sourceType,r.sourceValue).length,b=groupMembers(r.targetType,r.targetValue).length;return `<div class="group-rule-card"><div class="group-rule-title"><span class="rule-icon">${iconSvg(r.icon||'sparkles')}</span>${selectorVisual(r.sourceType,r.sourceValue)} + ${selectorVisual(r.targetType,r.targetValue)} ${r.official?'<span class="combo-official">OFFICIAL</span>':'<span class="tiny-tag">COMMUNITY</span>'}</div><div class="group-rule-detail">${a} member${a===1?'':'s'} × ${b} member${b===1?'':'s'} potential pairs<br>${escapeHtml(r.reason)}${pocketAction(r.pocketPlayId)}</div><div class="group-actions" style="margin-top:6px"><button class="edit-btn" data-edit-group-synergy="${escapeHtml(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-synergy="${escapeHtml(r.id)}">DELETE</button></div></div>`}).join('')}</div>`:'<div class="empty-state">No group synergy rules yet. Add reusable group pairings such as Dive + Follow-up or Poke + Peel.</div>'}
-function renderGroupManager(){const groups=state.groups.slice().sort((a,b)=>a.name.localeCompare(b.name));$('groupManagerList').innerHTML=groups.length?`<div class="group-manager-list">${groups.map(g=>`<article class="group-manage-card" data-drop-group="${escapeHtml(g.id)}"><div class="group-manage-top"><div class="group-manage-title-wrap"><span class="group-icon-view">${iconSvg(g.icon,'group-svg-icon')}</span><div><div class="group-manage-title">${escapeHtml(g.name)} <span class="tiny-tag">${g.members.length} MEMBERS</span></div><div class="group-manage-members">${escapeHtml(g.description||'No description')}</div></div></div><div class="group-actions"><button class="edit-btn" data-edit-group="${escapeHtml(g.id)}">EDIT</button><button class="edit-btn" data-delete-group="${escapeHtml(g.id)}">DELETE</button></div></div><div class="group-roles">${roleGroupedMemberMarkup(g.members,g.id)}</div><div class="small-help">Drop a hero here to add it. Drag a member here from another group to move it.</div></article>`).join('')}</div>`:'<div class="empty-state">No custom groups yet. Create one to collect heroes by playstyle, ability pattern or team archetype.</div>';const rules=state.groupRules.slice().sort((a,b)=>selectorLabel(a.sourceType,a.sourceValue).localeCompare(selectorLabel(b.sourceType,b.sourceValue))||selectorLabel(a.targetType,a.targetValue).localeCompare(selectorLabel(b.targetType,b.targetValue)));$('groupRulesManagerList').innerHTML=rules.length?`<div class="group-rules-grid">${rules.map(r=>{const a=groupMembers(r.sourceType,r.sourceValue).length,b=groupMembers(r.targetType,r.targetValue).length;return `<div class="group-rule-card"><div class="group-rule-title">${selectorVisual(r.sourceType,r.sourceValue)} → ${selectorVisual(r.targetType,r.targetValue)} <span class="tier-badge ${TIER[r.tier].cls}">${TIER[r.tier].label} · ${TIER[r.tier].weight.toFixed(1)}x</span></div><div class="group-rule-detail">${a} counterpick member${a===1?'':'s'} × ${b} target member${b===1?'':'s'} = ${a*b} individual matchup${a*b===1?'':'s'}<br>${escapeHtml(r.reason)}${pocketAction(r.pocketPlayId)}</div><div class="group-actions" style="margin-top:6px"><button class="edit-btn" data-edit-group-rule="${escapeHtml(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-rule="${escapeHtml(r.id)}">DELETE</button></div></div>`}).join('')}</div>`:'<div class="empty-state">No group counter rules yet. Add rules such as Emma Frost → Dive or Sustained Damage → No-Shield Vanguards.</div>';renderGroupSynergyRules();$('groupTabCount').textContent=groups.length}
-function openGroupForm(group=null){state.editingGroup=group?.id||null;$('groupFormTitle').textContent=group?'Edit hero group':'Create hero group';$('groupName').value=group?.name||'';$('groupIcon').value=normalizeIcon(group?.icon||'layers');$('groupDescription').value=group?.description||'';$('groupMemberSearch').value='';state.groupMemberDraft=[...(group?.members||[])];renderGroupMembers(state.groupMemberDraft);$('deleteGroupBtn').classList.toggle('hidden',!group);$('groupEmptyState').classList.add('hidden');$('groupForm').classList.remove('hidden');updateIconPreview('groupIcon');$('groupName').focus()}
+function renderGroupSynergyRules(){const el=$('groupSynergyRulesManagerList');if(!el)return;const rules=state.comboRules.slice().sort((a,b)=>selectorLabel(a.sourceType,a.sourceValue).localeCompare(selectorLabel(b.sourceType,b.sourceValue))||selectorLabel(a.targetType,a.targetValue).localeCompare(selectorLabel(b.targetType,b.targetValue)));el.innerHTML=rules.length?`<div class="group-rules-grid">${rules.map(r=>{const a=groupMembers(r.sourceType,r.sourceValue).length,b=groupMembers(r.targetType,r.targetValue).length;return `<div class="group-rule-card"><div class="group-rule-title"><span class="rule-icon">${iconSvg(r.icon||'sparkles')}</span>${selectorVisual(r.sourceType,r.sourceValue)} + ${selectorVisual(r.targetType,r.targetValue)} ${r.official?'<span class="combo-official">OFFICIAL</span>':'<span class="tiny-tag">COMMUNITY</span>'}</div><div class="group-rule-detail">${escapeHtml(r.reason)}${pocketAction(r.pocketPlayId)}</div><div class="group-actions" style="margin-top:6px"><button class="edit-btn" data-edit-group-synergy="${escapeHtml(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-synergy="${escapeHtml(r.id)}">DELETE</button></div></div>`}).join('')}</div>`:'<div class="empty-state">No group synergy rules yet. Add reusable group pairings such as Dive + Follow-up or Poke + Peel.</div>'}
+function renderGroupManager(){const groups=state.groups.slice().sort((a,b)=>a.name.localeCompare(b.name));$('groupManagerList').innerHTML=groups.length?`<div class="group-manager-list">${groups.map(g=>`<article class="group-manage-card" data-drop-group="${escapeHtml(g.id)}"><div class="group-manage-top"><div class="group-manage-title-wrap"><span class="group-icon-view">${iconSvg(g.icon,'group-svg-icon')}</span><div><div class="group-manage-title">${escapeHtml(g.name)} <span class="tiny-tag">${g.members.length} MEMBERS</span></div><div class="group-manage-members">${escapeHtml(g.description||'No description')}</div></div></div><div class="group-actions"><button class="edit-btn" data-edit-group="${escapeHtml(g.id)}">EDIT</button><button class="edit-btn" data-delete-group="${escapeHtml(g.id)}">DELETE</button></div></div><div class="group-roles">${roleGroupedMemberMarkup(g.members,g.id)}</div><div class="small-help">Drop a hero here to add it. Drag a member here from another group to move it.</div></article>`).join('')}</div>`:'<div class="empty-state">No custom groups yet. Create one to collect heroes by playstyle, ability pattern or team archetype.</div>';const rules=state.groupRules.slice().sort((a,b)=>selectorLabel(a.sourceType,a.sourceValue).localeCompare(selectorLabel(b.sourceType,b.sourceValue))||selectorLabel(a.targetType,a.targetValue).localeCompare(selectorLabel(b.targetType,b.targetValue)));$('groupRulesManagerList').innerHTML=rules.length?`<div class="group-rules-grid">${rules.map(r=>{const a=groupMembers(r.sourceType,r.sourceValue).length,b=groupMembers(r.targetType,r.targetValue).length;return `<div class="group-rule-card"><div class="group-rule-title">${selectorVisual(r.sourceType,r.sourceValue)} → ${selectorVisual(r.targetType,r.targetValue)} <span class="tier-badge ${TIER[r.tier].cls}">${TIER[r.tier].label} · ${TIER[r.tier].weight.toFixed(1)}x</span></div><div class="group-rule-detail">${escapeHtml(r.reason)}${pocketAction(r.pocketPlayId)}</div><div class="group-actions" style="margin-top:6px"><button class="edit-btn" data-edit-group-rule="${escapeHtml(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-rule="${escapeHtml(r.id)}">DELETE</button></div></div>`}).join('')}</div>`:'<div class="empty-state">No group counter rules yet. Add rules such as Emma Frost → Dive or Sustained Damage → No-Shield Vanguards.</div>';renderGroupSynergyRules();$('groupTabCount').textContent=groups.length}
+function openGroupForm(group=null){state.editingGroup=group?.id||null;$('groupFormTitle').textContent=group?'Edit Hero Group':'Create Hero Group';$('groupName').value=group?.name||'';$('groupIcon').value=normalizeIcon(group?.icon||'layers');$('groupDescription').value=group?.description||'';$('groupMemberSearch').value='';state.groupMemberDraft=[...(group?.members||[])];renderGroupMembers(state.groupMemberDraft);$('deleteGroupBtn').classList.toggle('hidden',!group);$('groupEmptyState').classList.add('hidden');$('groupForm').classList.remove('hidden');updateIconPreview('groupIcon');$('groupName').focus()}
 function openCounterEditor(tip=null){state.editingCounter=tip?.id||null;state.editingCounterRule=null;state.editingDerived=null;$('counterModalTitle').textContent=tip?'Edit counter tip':'Add counter rule';populateHeroSelect('counterAgainst',tip?.against||state.enemy[0]||'');populateHeroSelect('counterHero',tip?.hero||'');populateGroupSelect('counterSourceGroup');populateGroupSelect('counterTargetGroup');$('counterSourceType').value='hero';$('counterTargetType').value='hero';$('counterTier').value=tip?.tier||'moderate';$('counterReason').value=tip?.reason||'';populatePocketPlaySelect('counterPocketPlay',tip?.pocketPlayId||'');$('deleteCounterBtn').classList.toggle('hidden',!tip);syncCounterForm();openModal('counterModal')}
 function openGroupRuleEditor(rule=null){state.returnToGroupManager=true;state.editingCounter=null;state.editingCounterRule=rule?.id||null;state.editingDerived=null;$('counterModalTitle').textContent=rule?'Edit group counter rule':'Add group counter rule';populateHeroSelect('counterAgainst',rule?.targetType==='hero'?rule.targetValue:state.enemy[0]||'');populateHeroSelect('counterHero',rule?.sourceType==='hero'?rule.sourceValue:'');populateGroupSelect('counterSourceGroup',rule?.sourceType==='group'?rule.sourceValue:'');populateGroupSelect('counterTargetGroup',rule?.targetType==='group'?rule.targetValue:'');$('counterSourceType').value=rule?.sourceType||'hero';$('counterTargetType').value=rule?.targetType||'group';$('counterTier').value=rule?.tier||'moderate';$('counterReason').value=rule?.reason||'';populatePocketPlaySelect('counterPocketPlay',rule?.pocketPlayId||'');$('deleteCounterBtn').classList.add('hidden');syncCounterForm();openModal('counterModal')}
 function openIndividualFromGroup(ruleId,key){const rule=state.groupRules.find(r=>r.id===ruleId);if(!rule)return;const [heroName,against]=key.split('|||');const found=state.counterTips.find(t=>t.hero===heroName&&t.against===against);state.editingCounter=found?.id||null;state.editingCounterRule=null;state.editingDerived={ruleId,pairKey:key,hero:heroName,against,votes:Number(rule.votesByPair[key])||0,myVote:!!rule.myVotesByPair[key]};$('counterModalTitle').textContent=`Edit ${heroName} vs ${against}`;populateHeroSelect('counterAgainst',against);populateHeroSelect('counterHero',heroName);populateGroupSelect('counterSourceGroup');populateGroupSelect('counterTargetGroup');$('counterSourceType').value='hero';$('counterTargetType').value='hero';$('counterTier').value=found?.tier||rule.tier;$('counterReason').value=found?.reason||rule.reason;populatePocketPlaySelect('counterPocketPlay',found?.pocketPlayId||rule.pocketPlayId||'');$('deleteCounterBtn').classList.toggle('hidden',!found);syncCounterForm();openModal('counterModal')}
@@ -2805,7 +2805,7 @@ body.groups-mode .groups-page.group-editing .modal-actions .btn{min-height:30px!
       return `<article class="group-manage-card" data-drop-group="${escapeHtml(g.id)}">
         <div class="group-manage-top">
           <div class="group-manage-title-wrap"><span class="group-icon-view" title="${escapeHtml(ICON_LABELS[iconKey] || iconKey)}">${iconSvg(iconKey,'group-svg-icon')}</span>
-            <div><div class="group-manage-title">${escapeHtml(g.name)} <span class="tiny-tag">${g.members.length} HERO${g.members.length===1?'':'ES'}</span></div><div class="group-manage-members">${escapeHtml(g.description||'Custom hero group')}</div></div>
+            <div><div class="group-manage-title">${escapeHtml(g.name)} <span class="tiny-tag">${g.members.length} HERO${g.members.length===1?'':'ES'}</span></div><div class="group-manage-members">${escapeHtml(g.description||'')}</div></div>
           </div>
           <div class="group-actions"><button type="button" class="edit-btn" data-edit-group="${escapeHtml(g.id)}">EDIT</button><button type="button" class="edit-btn" data-delete-group="${escapeHtml(g.id)}" title="Delete group">DELETE</button></div>
         </div>
@@ -3826,7 +3826,7 @@ body.playbook-mode .inline-board-text-actions button[data-cancel-text]{backgroun
 
 </style>
 <style id="finalGroupTradingCardsPatch">
-/* Hero groups are collectible-style cards; the group editor is a focused full-screen edit view. */
+/* Hero Groups are collectible-style cards; the group editor is a focused full-screen edit view. */
 body.groups-mode .groups-page:not(.group-editing){grid-template-columns:minmax(260px,.78fr) minmax(0,1.22fr)!important;grid-template-rows:minmax(0,1fr)!important;gap:9px!important}
 body.groups-mode .groups-page:not(.group-editing) .group-editor-panel{display:none!important}
 body.groups-mode .groups-page:not(.group-editing) .group-browser-panel{grid-column:1!important;grid-row:1!important}
@@ -3887,14 +3887,14 @@ body.groups-mode .group-rule-expandable .group-actions [data-delete-group-rule]:
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const memberList=(type,value)=>typeof groupMembers==='function'?groupMembers(type,value):type==='hero'?[value]:[];
   const memberChip=name=>{const h=typeof hero==='function'?hero(name):null;const initials=String(name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('');return `<span class="rule-member-chip"><img loading="lazy" src="${esc(h?.img||'')}" alt="" onerror="this.remove()"><span>${esc(name)}</span></span>`;};
-  const sideMembers=(label,type,value)=>{const names=memberList(type,value);return `<div class="rule-member-side"><div class="rule-member-heading">${esc(label)} · ${names.length}</div><div class="rule-member-list">${names.map(memberChip).join('')||'<span class="tiny-tag">No members</span>'}</div></div>`;};
+  const sideMembers=(label,type,value)=>{const names=memberList(type,value);return `<div class="rule-member-side"><div class="rule-member-heading">${esc(label)}</div><div class="rule-member-list">${names.map(memberChip).join('')||'<span class="tiny-tag">No members</span>'}</div></div>`;};
   const pocket=(id)=>typeof pocketAction==='function'?pocketAction(id):'';
   window.renderGroupSynergyRules=function(){
     const el=$('groupSynergyRulesManagerList');if(!el)return;
     const rules=(state.comboRules||[]).slice().sort((a,b)=>selectorLabel(a.sourceType,a.sourceValue).localeCompare(selectorLabel(b.sourceType,b.sourceValue))||selectorLabel(a.targetType,a.targetValue).localeCompare(selectorLabel(b.targetType,b.targetValue)));
     el.innerHTML=rules.length?`<div class="group-rules-grid">${rules.map(r=>{
       const left=memberList(r.sourceType,r.sourceValue),right=memberList(r.targetType,r.targetValue),title=`${selectorLabel(r.sourceType,r.sourceValue)} + ${selectorLabel(r.targetType,r.targetValue)}`;
-      return `<details class="group-rule-card group-rule-expandable"><summary class="group-rule-summary"><span class="group-rule-title"><span class="rule-icon">${iconSvg(r.icon||'sparkles')}</span>${esc(title)} ${r.official?'<span class="combo-official">OFFICIAL</span>':'<span class="tiny-tag">COMMUNITY</span>'}</span><span class="rule-stats">${left.length} × ${right.length} pairs</span></summary><div class="group-rule-detail"><div class="rule-member-columns">${sideMembers('SYNERGY SIDE A',r.sourceType,r.sourceValue)}${sideMembers('SYNERGY SIDE B',r.targetType,r.targetValue)}</div><div class="rule-description">${esc(r.reason)}</div>${pocket(r.pocketPlayId)}<div class="group-actions"><button class="edit-btn" data-edit-group-synergy="${esc(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-synergy="${esc(r.id)}" title="Delete rule">DELETE</button></div></div></details>`;
+      return `<details class="group-rule-card group-rule-expandable"><summary class="group-rule-summary"><span class="group-rule-title"><span class="rule-icon">${iconSvg(r.icon||'sparkles')}</span>${esc(title)} ${r.official?'<span class="combo-official">OFFICIAL</span>':'<span class="tiny-tag">COMMUNITY</span>'}</span></summary><div class="group-rule-detail"><div class="rule-member-columns">${sideMembers('SYNERGY SIDE A',r.sourceType,r.sourceValue)}${sideMembers('SYNERGY SIDE B',r.targetType,r.targetValue)}</div><div class="rule-description">${esc(r.reason)}</div>${pocket(r.pocketPlayId)}<div class="group-actions"><button class="edit-btn" data-edit-group-synergy="${esc(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-synergy="${esc(r.id)}" title="Delete rule">DELETE</button></div></div></details>`;
     }).join('')}</div>`:'<div class="empty-state">No group synergy rules yet. Add a reusable group-to-group or hero-to-group pairing.</div>';
   };
   window.renderGroupManager=function(){
@@ -3902,12 +3902,12 @@ body.groups-mode .group-rule-expandable .group-actions [data-delete-group-rule]:
     $('groupManagerList').innerHTML=groups.length?`<div class="group-manager-list">${groups.map(g=>{
       const iconKey=normalizeIcon(g.icon||'layers');
       const members=(g.members||[]).map(name=>{const h=hero(name),initials=String(name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('');return `<div class="group-card-member" title="${esc(name)}"><img loading="lazy" src="${esc(h?.img||'')}" alt="" onerror="this.parentElement.classList.add('broken')"><span class="group-card-fallback">${esc(initials)}</span><span>${esc(name)}</span></div>`;}).join('');
-      return `<article class="group-manage-card trading-card" data-drop-group="${esc(g.id)}"><div class="group-manage-top"><div class="group-manage-title-wrap"><span class="group-icon-view" title="${esc(ICON_LABELS[iconKey]||iconKey)}">${iconSvg(iconKey,'group-svg-icon')}</span><div><div class="group-manage-title">${esc(g.name)} <span class="tiny-tag">${g.members.length} HERO${g.members.length===1?'':'ES'}</span></div><div class="group-manage-members">${esc(g.description||'Custom hero group')}</div></div></div><div class="group-actions"><button type="button" class="edit-btn" data-edit-group="${esc(g.id)}">EDIT</button><button type="button" class="edit-btn" data-delete-group="${esc(g.id)}" title="Delete group">DELETE</button></div></div><div class="group-card-members">${members}</div></article>`;
+      return `<article class="group-manage-card trading-card" data-drop-group="${esc(g.id)}"><div class="group-manage-top"><div class="group-manage-title-wrap"><span class="group-icon-view" title="${esc(ICON_LABELS[iconKey]||iconKey)}">${iconSvg(iconKey,'group-svg-icon')}</span><div><div class="group-manage-title">${esc(g.name)} <span class="tiny-tag">${g.members.length} HERO${g.members.length===1?'':'ES'}</span></div><div class="group-manage-members">${esc(/^custom hero group$/i.test(String(g.description||'').trim())?'':(g.description||''))}</div></div></div><div class="group-actions"><button type="button" class="edit-btn" data-edit-group="${esc(g.id)}">EDIT</button><button type="button" class="edit-btn" data-delete-group="${esc(g.id)}" title="Delete group">DELETE</button></div></div><div class="group-card-members">${members}</div></article>`;
     }).join('')}</div>`:'<div class="empty-state">No custom hero groups yet. Create one to collect heroes by playstyle, matchup archetype or team plan.</div>';
     const rules=(state.groupRules||[]).slice().sort((a,b)=>selectorLabel(a.sourceType,a.sourceValue).localeCompare(selectorLabel(b.sourceType,b.sourceValue))||selectorLabel(a.targetType,a.targetValue).localeCompare(selectorLabel(b.targetType,b.targetValue)));
     $('groupRulesManagerList').innerHTML=rules.length?`<div class="group-rules-grid">${rules.map(r=>{
       const left=memberList(r.sourceType,r.sourceValue),right=memberList(r.targetType,r.targetValue),tier=TIER[r.tier]||TIER.moderate,title=`${selectorLabel(r.sourceType,r.sourceValue)} → ${selectorLabel(r.targetType,r.targetValue)}`;
-      return `<details class="group-rule-card group-rule-expandable"><summary class="group-rule-summary"><span class="group-rule-title rn-group-counter-title"><span class="rn-group-counter-sides"><span class="rn-group-counter-side">${selectorVisual(r.sourceType,r.sourceValue)}</span><span class="rn-group-counter-divider" aria-hidden="true"></span><span class="rn-group-counter-side">${selectorVisual(r.targetType,r.targetValue)}</span></span><span class="tier-badge ${tier.cls}">${tier.label} · ${tier.weight.toFixed(1)}x</span></span><span class="rule-stats">${left.length} × ${right.length} matchups</span></summary><div class="group-rule-detail"><div class="rule-member-columns">${sideMembers('COUNTERPICK SIDE',r.sourceType,r.sourceValue)}${sideMembers('TARGET SIDE',r.targetType,r.targetValue)}</div><div class="rule-description">${esc(r.reason)}</div>${pocket(r.pocketPlayId)}<div class="group-actions"><button class="edit-btn" data-edit-group-rule="${esc(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-rule="${esc(r.id)}" title="Delete rule">DELETE</button></div></div></details>`;
+      return `<details class="group-rule-card group-rule-expandable"><summary class="group-rule-summary"><span class="group-rule-title rn-group-counter-title"><span class="rn-group-counter-sides"><span class="rn-group-counter-side">${selectorVisual(r.sourceType,r.sourceValue)}</span><span class="rn-group-counter-divider" aria-hidden="true"></span><span class="rn-group-counter-side">${selectorVisual(r.targetType,r.targetValue)}</span></span><span class="tier-badge ${tier.cls}">${tier.label} · ${tier.weight.toFixed(1)}x</span></span></summary><div class="group-rule-detail"><div class="rule-member-columns">${sideMembers('COUNTERPICK SIDE',r.sourceType,r.sourceValue)}${sideMembers('TARGET SIDE',r.targetType,r.targetValue)}</div><div class="rule-description">${esc(r.reason)}</div>${pocket(r.pocketPlayId)}<div class="group-actions"><button class="edit-btn" data-edit-group-rule="${esc(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-rule="${esc(r.id)}" title="Delete rule">DELETE</button></div></div></details>`;
     }).join('')}</div>`:'<div class="empty-state">No group counter rules yet. Add a group-to-hero or group-to-group matchup rule.</div>';
     if(typeof renderGroupSynergyRules==='function')renderGroupSynergyRules();
     if($('groupTabCount'))$('groupTabCount').textContent=groups.length;
@@ -4766,16 +4766,20 @@ body.playbook-mode #playBoardStage > .board-item{z-index:2}
     {"id":"midtown","name":"Midtown","mode":"Convoy","cover":"/assets/maps/covers/midtown.jpg","image":"/assets/maps/midtown.jpg"},
     {"id":"arakko","name":"Arakko","mode":"Convoy","cover":"/assets/maps/covers/arakko.jpg","image":"/assets/maps/arakko.jpg"},
     {"id":"thebes","name":"Thebes","mode":"Convoy","cover":"/assets/maps/covers/thebes.jpg","image":"/assets/maps/thebes.jpg"},
-    {"id":"shin-shibuya","name":"Shin-Shibuya","mode":"Convergence","cover":"/assets/maps/covers/shin-shibuya.jpg","image":"/assets/maps/shin-shibuya.jpg"},
-    {"id":"hall-of-djalia","name":"Hall Of Djalia","mode":"Convergence","cover":"/assets/maps/covers/hall-of-djalia.jpg","image":"/assets/maps/hall-of-djalia.jpg"},
-    {"id":"central-park","name":"Central Park","mode":"Convergence","cover":"/assets/maps/covers/central-park.jpg","image":"/assets/maps/central-park.jpg"},
-    {"id":"symbiotic-surface","name":"Symbiotic Surface","mode":"Convergence","cover":"/assets/maps/covers/symbiotic-surface.jpg","image":"/assets/maps/symbiotic-surface.jpg"},
-    {"id":"heart-of-heaven","name":"Heart Of Heaven","mode":"Convergence","cover":"/assets/maps/covers/heart-of-heaven.jpg","image":"/assets/maps/heart-of-heaven.jpg"}
+    {"id":"shin-shibuya","name":"Shin-Shibuya","mode":"Convergence","cover":"/assets/maps/covers/shin-shibuya.jpg","image":"/assets/maps/shin-shibuya.jpg","points":{"A":"/assets/maps/points/shin-shibuya-a.webp","B":"/assets/maps/points/shin-shibuya-b.webp","C":"/assets/maps/points/shin-shibuya-c.webp"}},
+    {"id":"hall-of-djalia","name":"Hall of Djalia","mode":"Convergence","cover":"/assets/maps/covers/hall-of-djalia.jpg","image":"/assets/maps/hall-of-djalia.jpg","points":{"A":"/assets/maps/points/hall-of-djalia-a.webp","B":"/assets/maps/points/hall-of-djalia-b.webp","C":"/assets/maps/points/hall-of-djalia-c.webp"}},
+    {"id":"central-park","name":"Central Park","mode":"Convergence","cover":"/assets/maps/covers/central-park.jpg","image":"/assets/maps/central-park.jpg","points":{"A":"/assets/maps/points/central-park-a.webp","B":"/assets/maps/points/central-park-b.webp","C":"/assets/maps/points/central-park-c.webp"}},
+    {"id":"symbiotic-surface","name":"Symbiotic Surface","mode":"Convergence","cover":"/assets/maps/covers/symbiotic-surface.jpg","image":"/assets/maps/symbiotic-surface.jpg","points":{"A":"/assets/maps/points/symbiotic-surface-a.webp","B":"/assets/maps/points/symbiotic-surface-b.webp","C":"/assets/maps/points/symbiotic-surface-c.webp"}},
+    {"id":"heart-of-heaven","name":"Heart of Heaven","mode":"Convergence","cover":"/assets/maps/covers/heart-of-heaven.jpg","image":"/assets/maps/heart-of-heaven.jpg","points":{"A":"/assets/maps/points/heart-of-heaven-a.webp","B":"/assets/maps/points/heart-of-heaven-b.webp","C":"/assets/maps/points/heart-of-heaven-c.webp"}},{"id":"lower-manhattan","name":"Lower Manhattan","mode":"Convergence","cover":"https://api.rivalsheroes.com/public/maps-rivalsapi/map_lower-manhattan_1778889484.webp","coverFallback":"/assets/maps/points/lower-manhattan-a.webp","image":"","points":{"A":"/assets/maps/points/lower-manhattan-a.webp","B":"/assets/maps/points/lower-manhattan-b.webp","C":"/assets/maps/points/lower-manhattan-c.webp"},"layoutNote":"Full 2D overview pending; Points A, B and C are available."}
   ];
   const known=new Map(MAPS.map(m=>[m.id,m]));
   const activeAtStart=(state.plays||[]).find(p=>String(p.id)===String(state.activePlayId));
   let currentMapId=known.has(activeAtStart?.mapId)?activeAtStart.mapId:(localStorage.getItem('rnPlaybookCurrentMapId')||'');
   if(!known.has(currentMapId))currentMapId='';
+  let currentMapView=String(activeAtStart?.mapView||localStorage.getItem('rnPlaybookCurrentMapView')||'2d').toUpperCase();
+  if(currentMapView==='2D')currentMapView='2d';
+  const validView=(m,v)=>v==='2d'?!!m?.image:!!m?.points?.[v];
+  if(!validView(known.get(currentMapId),currentMapView))currentMapView=known.get(currentMapId)?.points?.A?'A':'2d';
   const sidebar=document.querySelector('#playbookPage .playbook-tools');
   const stage= $('playBoardStage');
   const board=$('playBoard');
@@ -4791,6 +4795,13 @@ body.playbook-mode #playBoardStage > .board-item{z-index:2}
       <span class="rn-map-current-name" id="rnMapCurrentName">No map selected</span>
       <span class="rn-map-current-mode" id="rnMapCurrentMode">Choose a map background</span>
     </button>
+    <div class="rn-map-view-label">MAP VIEW</div>
+    <div class="rn-map-view-selector" id="rnMapViewSelector" role="group" aria-label="Map view">
+      <button type="button" data-map-view="2d" aria-pressed="true">2D</button>
+      <button type="button" data-map-view="A" aria-pressed="false">POINT A</button>
+      <button type="button" data-map-view="B" aria-pressed="false">POINT B</button>
+      <button type="button" data-map-view="C" aria-pressed="false">POINT C</button>
+    </div>
     <button type="button" class="rn-map-clear" id="rnMapClearBtn">REMOVE MAP</button>`;
   const insertBefore=sidebar.querySelector('.sidebar-play-panel')||sidebar.querySelector('.rn-toolkit')||null;
   sidebar.insertBefore(widget,insertBefore);
@@ -4800,19 +4811,20 @@ body.playbook-mode #playBoardStage > .board-item{z-index:2}
   overlay.id='rnMapLibraryOverlay';
   const makeCards=mode=>MAPS.filter(m=>m.mode===mode).map(m=>`
     <button type="button" class="rn-map-card${m.id===currentMapId?' selected':''}" data-map-id="${m.id}" aria-label="Load ${m.name}" aria-pressed="${m.id===currentMapId?'true':'false'}">
-      <img src="${m.cover}" alt="${m.name} cover" loading="lazy">
-      <span class="rn-map-card-copy"><strong>${m.name}</strong><span>${mode}</span></span>
+      <img src="${m.cover}" data-cover-fallback="${m.coverFallback||''}" alt="${m.name} cover" loading="lazy">
+      <span class="rn-map-card-copy"><strong>${m.name}</strong><span>${m.image?'2D + POINTS A–C':'POINTS A–C · 2D PENDING'}</span></span>
     </button>`).join('');
   overlay.innerHTML=`
     <section class="rn-map-library-dialog" role="dialog" aria-modal="true" aria-labelledby="rnMapLibraryTitle">
-      <header class="rn-map-library-head"><div><h2 id="rnMapLibraryTitle">Choose a tactical map</h2><p>Load the annotated map as the whiteboard background. Your saved plays remember their selected map.</p></div><button type="button" class="rn-map-library-close" id="rnMapLibraryClose" aria-label="Close map library">×</button></header>
+      <header class="rn-map-library-head"><div><h2 id="rnMapLibraryTitle">Choose a tactical map</h2><p>Choose a 2D overview or a point-specific view. Each saved play remembers its map and selected view.</p></div><button type="button" class="rn-map-library-close" id="rnMapLibraryClose" aria-label="Close map library">×</button></header>
       <div class="rn-map-library-scroll">
         <section class="rn-map-mode-section"><h3 class="rn-map-mode-heading">Convoy <small>5 maps</small></h3><div class="rn-map-card-grid">${makeCards('Convoy')}</div></section>
-        <section class="rn-map-mode-section"><h3 class="rn-map-mode-heading">Convergence <small>5 maps</small></h3><div class="rn-map-card-grid">${makeCards('Convergence')}</div></section>
+        <section class="rn-map-mode-section"><h3 class="rn-map-mode-heading">Convergence <small>6 maps</small></h3><div class="rn-map-card-grid">${makeCards('Convergence')}</div></section>
         <div class="rn-map-coming-soon"><strong>Domination maps</strong> will be added when you upload that map set. The Domination cover cards shown in the reference screenshot are not added yet because their full tactical maps have not been supplied.</div>
       </div>
     </section>`;
   document.body.appendChild(overlay);
+  overlay.querySelectorAll('img[data-cover-fallback]').forEach(img=>{img.addEventListener('error',()=>{if(img.dataset.coverFallback){img.src=img.dataset.coverFallback;img.removeAttribute('data-cover-fallback');}},{once:true});});
 
   function getPlay(){return (state.plays||[]).find(p=>String(p.id)===String(state.activePlayId))||null;}
   function ensureMapLayer(){
@@ -4823,30 +4835,49 @@ body.playbook-mode #playBoardStage > .board-item{z-index:2}
   function updateMapLayer(){
     const m=known.get(currentMapId);
     let layer=stage.querySelector(':scope > .rn-map-background');
-    if(!m){if(layer)layer.remove();board.classList.remove('has-rn-map');return;}
+    let notice=stage.querySelector(':scope > .rn-map-view-unavailable');
+    if(!m){if(layer)layer.remove();if(notice)notice.remove();board.classList.remove('has-rn-map');return;}
+    const source=currentMapView==='2d'?String(m.image||''):String(m.points?.[currentMapView]||'');
+    if(!source){if(layer)layer.remove();board.classList.add('has-rn-map');if(!notice){notice=document.createElement('div');notice.className='rn-map-view-unavailable';stage.appendChild(notice);}notice.textContent=`${m.name} 2D overview is not available yet. Choose Point A, Point B or Point C to load an available map section.`;return;}
+    if(notice)notice.remove();
     layer=layer||ensureMapLayer();
-    const next=String(m.image||'');
-    if(layer.getAttribute('src')!==next)layer.src=next;
-    layer.alt=`${m.name} tactical map`;
+    if(layer.getAttribute('src')!==source)layer.src=source;
+    layer.alt=`${m.name} ${currentMapView==='2d'?'2D tactical layout':`Point ${currentMapView}`} view`;
     board.classList.add('has-rn-map');
   }
   function updateMapWidget(){
     const m=known.get(currentMapId),cover=$('rnMapCurrentCover'),name=$('rnMapCurrentName'),mode=$('rnMapCurrentMode');
-    if(m){cover.src=m.cover;cover.alt=`${m.name} cover`;cover.style.display='block';name.textContent=m.name;mode.textContent=m.mode;}
-    else{cover.removeAttribute('src');cover.alt='';cover.style.display='none';name.textContent='No map selected';mode.textContent='Choose a map background';}
+    if(m){
+      cover.onerror=()=>{cover.onerror=null;if(m.coverFallback)cover.src=m.coverFallback;};
+      cover.src=m.cover;cover.alt=`${m.name} cover`;cover.style.display='block';name.textContent=m.name;
+      mode.textContent=`${m.mode} · ${currentMapView==='2d'?'2D':`POINT ${currentMapView}`}${currentMapView==='2d'&&!m.image?' · PENDING':''}`;
+    }else{cover.removeAttribute('src');cover.alt='';cover.style.display='none';name.textContent='No map selected';mode.textContent='Choose a map background';}
+    const selector=$('rnMapViewSelector');
+    selector?.querySelectorAll('[data-map-view]').forEach(b=>{
+      const view=b.dataset.mapView,available=!!m&&validView(m,view),active=currentMapView===view;
+      b.disabled=!available;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));
+      b.title=available?(view==='2d'?'Full 2D overview':`Point ${view}`):(view==='2d'?'2D overview not available for this map':`Point ${view} not available`);
+    });
     overlay.querySelectorAll('[data-map-id]').forEach(b=>{const active=b.dataset.mapId===currentMapId;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});
   }
   function saveMapSelection(){
     localStorage.setItem('rnPlaybookCurrentMapId',currentMapId);
+    localStorage.setItem('rnPlaybookCurrentMapView',currentMapView);
     const play=getPlay();
-    if(play){play.mapId=currentMapId; if(typeof persist==='function')persist();}
+    if(play){play.mapId=currentMapId;play.mapView=currentMapView;if(typeof persist==='function')persist();}
+  }
+  function selectMapView(view){
+    const m=known.get(currentMapId);if(!m||!validView(m,view)){if(m&&view==='2d')toast('The Lower Manhattan 2D overview is not available yet');return;}
+    currentMapView=view;saveMapSelection();updateMapLayer();updateMapWidget();
   }
   function selectMap(id){
     currentMapId=known.has(id)?id:'';
+    const m=known.get(currentMapId);currentMapView=m?.image?'2d':(m?.points?.A?'A':'2d');
     saveMapSelection();updateMapLayer();updateMapWidget();overlay.classList.remove('open');
-    if(currentMapId)toast(`${known.get(currentMapId).name} loaded on the whiteboard`);
+    if(currentMapId)toast(`${m.name} loaded · ${currentMapView==='2d'?'2D':`Point ${currentMapView}`}`);
     else toast('Map background removed');
   }
+  $('rnMapViewSelector')?.addEventListener('click',event=>{const button=event.target.closest('[data-map-view]');if(button&&!button.disabled)selectMapView(button.dataset.mapView);});
   function openPicker(){updateMapWidget();overlay.classList.add('open');$('rnMapLibraryClose')?.focus();}
   $('rnMapOpenBtn').addEventListener('click',openPicker);
   $('rnMapCurrentBtn').addEventListener('click',openPicker);
@@ -4861,25 +4892,27 @@ body.playbook-mode #playBoardStage > .board-item{z-index:2}
   // Preserve the map as part of each saved play. normalizePlays() was extended above
   // so the id survives local reloads and Supabase collaboration snapshots.
   $('savePlayBtn')?.addEventListener('click',()=>{
-    const play=getPlay();if(play){play.mapId=currentMapId;persist();}
+    const play=getPlay();if(play){play.mapId=currentMapId;play.mapView=currentMapView;persist();}
   });
   $('loadPlayBtn')?.addEventListener('click',()=>{
-    const play=getPlay();currentMapId=known.has(play?.mapId)?play.mapId:'';
-    localStorage.setItem('rnPlaybookCurrentMapId',currentMapId);updateMapLayer();updateMapWidget();
+    const play=getPlay();currentMapId=known.has(play?.mapId)?play.mapId:'';currentMapView=play?.mapView||'2d';if(!validView(known.get(currentMapId),currentMapView))currentMapView=known.get(currentMapId)?.points?.A?'A':'2d';
+    localStorage.setItem('rnPlaybookCurrentMapId',currentMapId);localStorage.setItem('rnPlaybookCurrentMapView',currentMapView);updateMapLayer();updateMapWidget();
   });
   $('newPlayBtn')?.addEventListener('click',()=>{
-    currentMapId='';localStorage.removeItem('rnPlaybookCurrentMapId');updateMapLayer();updateMapWidget();
+    currentMapId='';currentMapView='2d';localStorage.removeItem('rnPlaybookCurrentMapId');localStorage.removeItem('rnPlaybookCurrentMapView');updateMapLayer();updateMapWidget();
   });
   $('deletePlayBtn')?.addEventListener('click',()=>{
-    const play=getPlay();currentMapId=known.has(play?.mapId)?play.mapId:'';
-    localStorage.setItem('rnPlaybookCurrentMapId',currentMapId);updateMapLayer();updateMapWidget();
+    const play=getPlay();currentMapId=known.has(play?.mapId)?play.mapId:'';currentMapView=play?.mapView||'2d';if(!validView(known.get(currentMapId),currentMapView))currentMapView=known.get(currentMapId)?.points?.A?'A':'2d';
+    localStorage.setItem('rnPlaybookCurrentMapId',currentMapId);localStorage.setItem('rnPlaybookCurrentMapView',currentMapView);updateMapLayer();updateMapWidget();
   });
   // When the user opens a previously active play after a page refresh, restore its map.
-  const restored=getPlay();if(known.has(restored?.mapId))currentMapId=restored.mapId;
+  const restored=getPlay();if(known.has(restored?.mapId)){currentMapId=restored.mapId;currentMapView=restored.mapView||currentMapView;}if(!validView(known.get(currentMapId),currentMapView))currentMapView=known.get(currentMapId)?.points?.A?'A':'2d';
   updateMapLayer();updateMapWidget();
   window.RN_TACTICAL_MAPS=MAPS;
   window.__rnSetTacticalMap=selectMap;
   window.__rnGetTacticalMap=()=>currentMapId;
+  window.__rnSetTacticalMapView=selectMapView;
+  window.__rnGetTacticalMapView=()=>currentMapView;
 })();
 </script>
 
@@ -4983,9 +5016,11 @@ body.groups-mode .rn-v10-group-actions [data-rn-publish-group]{background:#22563
   // Map images are external JPEG files loaded only when the map picker or a map is opened.
   // Root-relative URLs work with Vercel clean URLs and prevent multi-megabyte JS parsing on startup.
   const maps=window.RN_TACTICAL_MAPS||[];
-  const mapImageSources=maps.map(m=>({id:m.id,cover:m.cover,image:m.image}));
-  const isMapAsset=v=>typeof v==='string'&&/^\/assets\/maps\/.+\.jpg(?:[?#].*)?$/i.test(v);
-  window.RN_MAP_ASSET_DIAGNOSTICS={count:mapImageSources.length,externalJpegAssets:mapImageSources.every(m=>isMapAsset(m.cover)&&isMapAsset(m.image)),assetMode:'lazy-root-jpeg',maps:mapImageSources.map(m=>m.id)};
+  const mapImageSources=maps.map(m=>({id:m.id,cover:m.cover,image:m.image,points:m.points||{}}));
+  const isLocalMapAsset=v=>typeof v==='string'&&/^\/assets\/maps\/.+\.(?:jpg|webp)(?:[?#].*)?$/i.test(v);
+  const coverAvailable=v=>typeof v==='string'&&(/^(?:https?:)?\/\//i.test(v)||isLocalMapAsset(v));
+  const mapAssetsValid=mapImageSources.every(m=>coverAvailable(m.cover)&&(!m.image||isLocalMapAsset(m.image))&&Object.values(m.points).every(isLocalMapAsset));
+  window.RN_MAP_ASSET_DIAGNOSTICS={count:mapImageSources.length,pointLayerCount:mapImageSources.reduce((n,m)=>n+Object.keys(m.points).length,0),allDeclaredAssetsValid:mapAssetsValid,assetMode:'root-jpeg-and-webp-points',maps:mapImageSources.map(m=>m.id)};
 
   const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const roleNames=['Vanguard','Duelist','Support'];
@@ -5037,7 +5072,7 @@ body.groups-mode .rn-v10-group-actions [data-rn-publish-group]{background:#22563
       const icon=typeof iconSvg==='function'?iconSvg(iconKey,'group-svg-icon'):escapeHtml(g.icon||'✦');
       card.classList.add('rn-v10-group-card');
       card.innerHTML=`
-        <div class="rn-v10-group-head"><span class="group-icon-view">${icon}</span><div class="rn-v10-group-heading"><div class="rn-v10-group-name">${escapeHtml(g.name)} <span class="tiny-tag">${(g.members||[]).length} HERO${(g.members||[]).length===1?'':'ES'}</span></div><div class="rn-v10-group-description">${escapeHtml(g.description||'Custom hero group')}</div></div></div>
+        <div class="rn-v10-group-head"><span class="group-icon-view">${icon}</span><div class="rn-v10-group-heading"><div class="rn-v10-group-name">${escapeHtml(g.name)} <span class="tiny-tag">${(g.members||[]).length} HERO${(g.members||[]).length===1?'':'ES'}</span></div><div class="rn-v10-group-description">${escapeHtml(g.description||'')}</div></div></div>
         ${roleMarkup(g.members)}
         <div class="rn-v10-group-actions">
           <button type="button" class="edit-btn" data-view-group="${escapeHtml(g.id)}">VIEW GROUP</button>
@@ -5257,7 +5292,7 @@ body.playbook-mode .rn-map-grid-preview:after{content:'';position:absolute;top:5
         return `<article class="rn-v11-rule-card rn-v13-linked-synergy" data-open-group-synergy="${esc(r.id)}" tabindex="0" role="button" aria-label="Open group synergy rule: ${esc(title)}"><div class="rn-v11-rule-head"><div class="rn-v11-rule-title">Synergistic with ${esc(counterpart)}</div><div class="rn-v11-rule-meta">${esc(meta)}</div></div><div class="rn-v11-rule-description">${esc(r.reason||'No description provided.')}</div><div class="rn-v13-related-groups">${esc(sourceLabel)} + ${esc(targetLabel)}</div></article>`;
       }
       const title=`${sourceLabel} → ${targetLabel}`;
-      const meta=`${left.length} × ${right.length} matchups · ${String(r.tier||'moderate').toUpperCase()}`;
+      const meta=`GROUP COUNTER · ${String(r.tier||'moderate').toUpperCase()}`;
       return `<article class="rn-v11-rule-card"><div class="rn-v11-rule-head"><div class="rn-v11-rule-title">${esc(title)}</div><div class="rn-v11-rule-meta">${esc(meta)}</div></div><div class="rn-v11-rule-description">${esc(r.reason||'No description provided.')}</div>${combinations(left,right,'vs.')}</article>`;
     };
     root.innerHTML=`<section class="rn-v11-rule-section"><h4>Applicable Group Synergy Rules · ${synergy.length}</h4>${synergy.length?synergy.map(r=>ruleHtml(r,'synergy')).join(''):'<div class="rn-v11-rule-empty">No group synergy rules reference this group.</div>'}</section><section class="rn-v11-rule-section"><h4>Applicable Group Counter Rules · ${counter.length}</h4>${counter.length?counter.map(r=>ruleHtml(r,'counter')).join(''):'<div class="rn-v11-rule-empty">No group counter rules reference this group.</div>'}</section>`;
@@ -5830,7 +5865,13 @@ body.groups-mode .group-rule-expandable .rn-group-counter-title{display:flex!imp
   const grid=document.createElement('div');grid.className='rn-group-hero-grid';pop.append(search,grid);wrapper.append(trigger,pop);select.insertAdjacentElement('afterend',wrapper);
   const renderOptions=()=>{
    const q=search.value.trim().toLowerCase();
-   grid.innerHTML=(HEROES||[]).filter(h=>!q||`${h.name} ${h.role}`.toLowerCase().includes(q)).map(h=>`<button type="button" class="rn-group-hero-option${select.value===h.name?' active':''}" data-hero="${String(h.name).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}" title="${h.name} · ${h.role}"><img loading="lazy" src="${h.img}" alt=""><span>${h.name}</span></button>`).join('');
+   const available=(HEROES||[]).filter(h=>!q||`${h.name} ${h.role}`.toLowerCase().includes(q));
+   const roles=[['Vanguard','Vanguard'],['Duelist','Duelist'],['Support','Strategist'],['Multi-role','Multi-role']];
+   grid.innerHTML=roles.map(([label,role])=>{
+    const heroes=available.filter(h=>h.role===role).sort((a,b)=>a.name.localeCompare(b.name));
+    if(!heroes.length)return '';
+    return `<div class="rn-group-hero-role-heading"><span>${label}</span><small>${heroes.length}</small></div>`+heroes.map(h=>`<button type="button" class="rn-group-hero-option${select.value===h.name?' active':''}" data-hero="${String(h.name).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}" title="${h.name} · ${label}"><img loading="lazy" src="${h.img}" alt=""><span>${h.name}</span></button>`).join('');
+   }).join('');
   };
   const sync=()=>{const h=heroData(select.value);thumb.hidden=!h;thumb.src=h?.img||'';label.textContent=h?.name||'Choose a hero';renderOptions();};
   trigger.addEventListener('click',()=>{wrapper.classList.toggle('open');if(wrapper.classList.contains('open')){search.value='';renderOptions();search.focus();}});
@@ -5938,6 +5979,137 @@ body.playbook-mode #playBoardStage>.pen-preview{pointer-events:none!important}
  const style=document.createElement('style');style.textContent='body.playbook-mode .board-pen.pen-final-preview-match path:not(.pen-arrow-head){stroke:currentColor!important;fill:none!important;stroke-linecap:round!important;stroke-linejoin:round!important} body.playbook-mode .board-pen.pen-final-preview-match .pen-arrow-head{fill:currentColor!important;stroke:none!important}';document.head.appendChild(style);
 })();
 </script>
+
+
+<style id="rn-v13-7-map-points-and-groups">
+/* Map point selector sits in the upper-left Playbook toolbox under the chosen map. */
+body.playbook-mode .rn-map-view-label{margin-top:5px!important;font-size:7px!important;font-weight:950!important;letter-spacing:.12em!important;color:#86a5b8!important}
+body.playbook-mode .rn-map-view-selector{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:3px!important;margin-top:3px!important}
+body.playbook-mode .rn-map-view-selector button{min-width:0!important;min-height:24px!important;padding:3px 2px!important;border:1px solid #395466!important;border-radius:4px!important;background:#172735!important;color:#a8bfcd!important;font-size:7px!important;font-weight:950!important;letter-spacing:.035em!important;cursor:pointer!important}
+body.playbook-mode .rn-map-view-selector button.active{background:#31566a!important;border-color:#a9d7e1!important;color:#fff!important;box-shadow:inset 0 -2px #f0d36d!important}
+body.playbook-mode .rn-map-view-selector button:disabled{opacity:.32!important;cursor:not-allowed!important}
+body.playbook-mode #playBoardStage>.rn-map-view-unavailable{position:absolute!important;inset:0!important;z-index:1!important;display:grid!important;place-items:center!important;padding:28px!important;text-align:center!important;pointer-events:none!important;color:#c4d7e2!important;font-size:13px!important;font-weight:800!important;line-height:1.55!important;text-shadow:0 2px 8px #000!important;background:radial-gradient(ellipse at center,#182a38cc 0%,#101b27aa 50%,#07101955 100%)!important}
+/* Role headings divide the image-based Individual Hero picker. */
+.rn-group-hero-role-heading{grid-column:1/-1!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;margin:5px 0 1px!important;padding:4px 6px!important;border-bottom:1px solid #425b6b!important;color:#dceaf2!important;font-size:9px!important;font-weight:950!important;letter-spacing:.09em!important;text-transform:uppercase!important;background:#1d3040!important;border-radius:4px!important}
+.rn-group-hero-role-heading small{font-size:8px!important;color:#91aabb!important}
+/* Use icon artwork plus the group name in group-rule selectors. */
+.rn-group-select-native{display:none!important}
+.rn-group-select-picker{display:none;position:relative;min-width:0}
+.rn-group-rule-mode .rn-group-select-native{display:none!important}
+.rn-group-rule-mode .rn-group-select-picker{display:block!important}
+.rn-group-select-trigger{width:100%;min-height:42px;display:flex;align-items:center;gap:8px;text-align:left;background:#273543;border:1px solid #526879;border-radius:6px;color:#eff6fb;padding:5px 8px;cursor:pointer}
+.rn-group-select-trigger:hover,.rn-group-select-picker.open .rn-group-select-trigger{border-color:#8fbdc8;background:#304556}
+.rn-group-select-trigger .group-svg-icon,.rn-group-select-option .group-svg-icon{width:26px;height:26px;flex:none;color:#f0d36d}
+.rn-group-select-trigger span{min-width:0;font-size:11px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rn-group-select-popover{display:none;position:absolute;z-index:121;left:0;right:0;top:calc(100% + 4px);padding:7px;background:#17232e;border:1px solid #617789;border-radius:7px;box-shadow:0 12px 28px #000b}
+.rn-group-select-picker.open .rn-group-select-popover{display:block}
+.rn-group-select-search{width:100%;height:31px;margin:0 0 6px;padding:5px 7px;border:1px solid #415c6c;border-radius:5px;background:#0d1821;color:#fff;font-size:10px}
+.rn-group-select-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;max-height:220px;overflow:auto}
+.rn-group-select-option{min-width:0;display:flex;align-items:center;gap:7px;padding:6px;border:1px solid #3c5363;border-radius:5px;background:#20313f;color:#e9f2f7;text-align:left;cursor:pointer}
+.rn-group-select-option span{min-width:0;font-size:9px;font-weight:850;line-height:1.2;overflow-wrap:anywhere}
+.rn-group-select-option.active{border-color:#f0d36d;background:#3a3a32;box-shadow:inset 0 0 0 1px #f0d36d55}
+.rn-group-select-empty{grid-column:1/-1;padding:8px;color:#9fb4c2;font-size:9px}
+/* Group card actions: name first, edit directly underneath, X at top-right, submit at bottom-right. */
+body.groups-mode .group-manage-card.rn-v13-group-layout{position:relative!important;display:block!important;padding:10px 39px 9px 10px!important;min-width:0!important;overflow:visible!important}
+body.groups-mode .rn-v13-group-top{display:flex!important;align-items:flex-start!important;gap:8px!important;min-width:0!important}
+body.groups-mode .rn-v13-group-top .group-icon-view{width:30px!important;height:30px!important;flex:none!important;display:grid!important;place-items:center!important}
+body.groups-mode .rn-v13-group-top .group-svg-icon{width:25px!important;height:25px!important}
+body.groups-mode .rn-v13-group-heading{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:4px!important;min-width:0!important;flex:1!important}
+body.groups-mode .rn-v13-group-name{font-size:12px!important;font-weight:950!important;line-height:1.2!important;color:#f2f6f9!important;overflow-wrap:anywhere!important}
+body.groups-mode .rn-v13-group-count{font-size:7px!important;color:#9eb3c1!important;letter-spacing:.05em!important;margin-left:4px!important}
+body.groups-mode .rn-v13-group-inline-actions{display:flex!important;align-items:center!important;gap:5px!important;margin:1px 0!important}
+body.groups-mode .rn-v13-group-inline-actions button{height:22px!important;min-height:22px!important;padding:3px 7px!important;font-size:7px!important;font-weight:950!important;border-radius:4px!important;line-height:1!important}
+body.groups-mode .rn-v13-group-edit{background:#315a70!important;border:1px solid #69b9cf!important;color:#effaff!important}
+body.groups-mode .rn-v13-group-view{background:#354b59!important;border:1px solid #7897a8!important;color:#eff6fb!important}
+body.groups-mode .rn-v13-group-description{margin:1px 0 0!important;color:#aebfcb!important;font-size:8px!important;line-height:1.35!important;overflow-wrap:anywhere!important}
+body.groups-mode .rn-v13-group-delete{position:absolute!important;right:6px!important;top:6px!important;display:grid!important;place-items:center!important;width:25px!important;height:25px!important;min-width:25px!important;min-height:25px!important;padding:0!important;border:1px solid #705f5f!important;border-radius:5px!important;background:#382c31!important;color:#f0caca!important;font-size:17px!important;line-height:1!important;font-weight:600!important;cursor:pointer!important}
+body.groups-mode .rn-v13-group-delete::before,body.groups-mode .rn-v13-group-delete::after{content:none!important;display:none!important}
+body.groups-mode .rn-v13-group-footer{display:flex!important;justify-content:flex-end!important;align-items:center!important;margin-top:8px!important;padding-top:6px!important;border-top:1px solid #485967!important}
+body.groups-mode .rn-v13-group-submit{height:22px!important;min-height:22px!important;padding:3px 7px!important;font-size:7px!important;line-height:1!important;font-weight:950!important;white-space:nowrap!important;background:#22563f!important;border:1px solid #64b58d!important;color:#e9fff4!important;border-radius:4px!important;cursor:pointer!important}
+@media(max-width:540px){.rn-group-select-grid{grid-template-columns:1fr!important}body.groups-mode .rn-v13-group-name{font-size:11px!important}}
+</style>
+<script id="rn-v13-7-group-picker-and-card-layout">
+(()=>{
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ if(typeof state==='undefined')return;
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const groupIcon=g=>typeof iconSvg==='function'?iconSvg(typeof normalizeIcon==='function'?normalizeIcon(g?.icon||'layers'):'layers','group-svg-icon'):'✦';
+ const groupLabel=id=>(state.groups||[]).find(g=>String(g.id)===String(id))?.name||'Choose a Hero Group';
+ function buildGroupPicker(id){
+  const select=$(id);if(!select||select.dataset.rnV137Picker)return;
+  select.dataset.rnV137Picker='1';select.classList.add('rn-group-select-native');
+  const wrapper=document.createElement('div');wrapper.className='rn-group-select-picker';wrapper.dataset.forSelect=id;
+  const trigger=document.createElement('button');trigger.type='button';trigger.className='rn-group-select-trigger';
+  const icon=document.createElement('span');icon.className='rn-group-select-icon';
+  const label=document.createElement('span');label.textContent='Choose a Hero Group';trigger.append(icon,label);
+  const pop=document.createElement('div');pop.className='rn-group-select-popover';
+  const search=document.createElement('input');search.type='search';search.className='rn-group-select-search';search.placeholder='Search hero groups…';search.autocomplete='off';
+  const grid=document.createElement('div');grid.className='rn-group-select-grid';pop.append(search,grid);wrapper.append(trigger,pop);select.insertAdjacentElement('afterend',wrapper);
+  const renderOptions=()=>{
+   const q=search.value.trim().toLowerCase();
+   const groups=(state.groups||[]).filter(g=>!q||`${g.name} ${(g.members||[]).join(' ')}`.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name));
+   grid.innerHTML=groups.length?groups.map(g=>`<button type="button" class="rn-group-select-option${String(select.value)===String(g.id)?' active':''}" data-group-select="${esc(g.id)}" title="${esc(g.name)}">${groupIcon(g)}<span>${esc(g.name)}</span></button>`).join(''):'<div class="rn-group-select-empty">No hero groups match your search.</div>';
+  };
+  const sync=()=>{
+   const g=(state.groups||[]).find(x=>String(x.id)===String(select.value));
+   icon.innerHTML=g?groupIcon(g):groupIcon({icon:'layers'});label.textContent=g?.name||'Choose a Hero Group';
+   renderOptions();
+   const field=select.closest('.field');wrapper.style.display=field?.classList.contains('hidden')?'none':'';
+  };
+  trigger.addEventListener('click',()=>{wrapper.classList.toggle('open');if(wrapper.classList.contains('open')){search.value='';renderOptions();search.focus();}});
+  search.addEventListener('input',renderOptions);
+  grid.addEventListener('click',e=>{const button=e.target.closest('[data-group-select]');if(!button)return;select.value=button.dataset.groupSelect;select.dispatchEvent(new Event('change',{bubbles:true}));wrapper.classList.remove('open');sync();});
+  select.addEventListener('change',sync);
+  const observer=new MutationObserver(sync);observer.observe(select,{childList:true,subtree:true});
+  document.addEventListener('click',e=>{if(!wrapper.contains(e.target))wrapper.classList.remove('open')});
+  wrapper.__rnSync=sync;sync();
+ }
+ ['counterSourceGroup','counterTargetGroup','comboGroupA','comboGroupB'].forEach(buildGroupPicker);
+ const syncGroupPickers=()=>document.querySelectorAll('.rn-group-select-picker').forEach(w=>w.__rnSync?.());
+ ['counterSourceGroupWrap','counterTargetGroupWrap','comboGroupAWrap','comboGroupBWrap'].forEach(id=>{const n=$(id);if(n)new MutationObserver(syncGroupPickers).observe(n,{attributes:true,attributeFilter:['class']});});
+ ['counterModal','comboModal'].forEach(id=>{const modal=$(id);if(modal)new MutationObserver(syncGroupPickers).observe(modal,{attributes:true,attributeFilter:['class']});});
+ // Keep the group image selectors current after adding, editing or deleting groups.
+ const list=$('groupManagerList');
+ function renderCards(){
+  if(!list)return;
+  const groups=(state.groups||[]).slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+  list.querySelectorAll('.group-manage-card[data-drop-group]').forEach(card=>{
+   const g=groups.find(x=>String(x.id)===String(card.dataset.dropGroup));if(!g)return;
+   const members=(g.members||[]).map(name=>{
+    const h=typeof hero==='function'?hero(name):null;
+    const initials=String(name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('');
+    return `<div class="group-card-member" title="${esc(name)}"><img loading="lazy" src="${esc(h?.img||'')}" alt="${esc(name)}" onerror="this.style.display='none'"><span class="group-card-fallback">${esc(initials)}</span><span>${esc(name)}</span></div>`;
+   }).join('');
+   card.classList.add('rn-v10-group-card','rn-v13-group-layout');
+   card.innerHTML=`
+    <button type="button" class="rn-v13-group-delete" data-delete-group="${esc(g.id)}" aria-label="Delete ${esc(g.name)}" title="Delete group">×</button>
+    <div class="rn-v13-group-top"><span class="group-icon-view">${groupIcon(g)}</span><div class="rn-v13-group-heading">
+      <div class="rn-v13-group-name">${esc(g.name)}<span class="rn-v13-group-count">${(g.members||[]).length} HERO${g.members?.length===1?'':'ES'}</span></div>
+      <div class="rn-v13-group-inline-actions"><button type="button" class="edit-btn rn-v13-group-edit" data-edit-group="${esc(g.id)}">EDIT</button><button type="button" class="edit-btn rn-v13-group-view" data-view-group="${esc(g.id)}">VIEW GROUP</button></div>
+      ${g.description&& !/^custom hero group$/i.test(String(g.description).trim())?`<div class="rn-v13-group-description">${esc(g.description)}</div>`:''}
+    </div></div>
+    <div class="group-card-members">${members}</div>
+    <div class="rn-v13-group-footer"><button type="button" class="edit-btn rn-publish-group rn-v13-group-submit" data-rn-publish-group="${esc(g.id)}">SUBMIT TO COMMUNITY</button></div>`;
+  });
+ }
+ const originalRender=window.renderGroupManager;
+ if(typeof originalRender==='function'&&!originalRender.__rnV137Wrapped){
+  const wrapped=function(...args){const result=originalRender.apply(this,args);renderCards();syncGroupPickers();return result;};
+  wrapped.__rnV137Wrapped=true;window.renderGroupManager=wrapped;
+ }
+ renderCards();syncGroupPickers();
+})();
+</script>
+
+
+<style id="rn-v137-role-title-case">
+/* Use title case consistently in the Group Editor and hero-role partitions. */
+.member-list-heading,.member-role-set-title,.rn-group-hero-role-heading{
+  text-transform:none!important;
+  letter-spacing:.02em!important;
+}
+</style>
 
 </body>
 </html>

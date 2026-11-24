@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current package: v13.6.** See `V13.6_RELEASE_NOTES.md` for the latest Playbook canvas, drawing controls, group-rule editor and navigation refinements, `V13.5_RELEASE_NOTES.md` for the previous counter, synergy and Playbook refinements, `V13.4_RELEASE_NOTES.md` for the previous UI refinements, `V13.3_RELEASE_NOTES.md` for the previous recommendation layout, `V13.2_RELEASE_NOTES.md` for the previous layout and board-selection fixes, `V13.1_RELEASE_NOTES.md` for earlier UI refinements and `V13_RELEASE_NOTES.md` for the recovered release changes, `V11_RELEASE_NOTES.md` and `V12_RELEASE_NOTES.md` for the original feature notes, and `SUPABASE_SETUP_STEPS.md` for backend setup.
+**Current package: v13.7.** See `V13.7_RELEASE_NOTES.md` for the latest map library, map point views, and Hero Groups refinements, and `V13.6_RELEASE_NOTES.md` for the previous Playbook canvas, drawing controls, group-rule editor and navigation refinements, `V13.5_RELEASE_NOTES.md` for the previous counter, synergy and Playbook refinements, `V13.4_RELEASE_NOTES.md` for the previous UI refinements, `V13.3_RELEASE_NOTES.md` for the previous recommendation layout, `V13.2_RELEASE_NOTES.md` for the previous layout and board-selection fixes, `V13.1_RELEASE_NOTES.md` for earlier UI refinements and `V13_RELEASE_NOTES.md` for the recovered release changes, `V11_RELEASE_NOTES.md` and `V12_RELEASE_NOTES.md` for the original feature notes, and `SUPABASE_SETUP_STEPS.md` for backend setup.
 
 RIVALSNOTEBOOK is the renamed Marvel Rivals counter-pick, synergy, hero-group and tactical whiteboard app. This package adds a Vercel-ready static site and a Supabase backend layer for account sync, shared community votes, public Community Groups, and live collaborative Playbook notebooks.
 
@@ -232,3 +232,12 @@ No Supabase schema migration is required for these frontend changes. Preserve yo
 - Tactical map metadata is now lightweight; all 10 cover JPEGs and 10 full-map JPEGs are separate files under `assets/maps/` and referenced with root-absolute `/assets/maps/...` URLs. Keep the complete `assets/maps` directory in the Vercel deployment.
 - The multi-megabyte Base64 map payload has been removed from the inline JavaScript. Covers are lazy-loaded by the map picker; a full map loads only when selected.
 - Supabase JS is dynamically loaded after the page shell has parsed. If the CDN is blocked or slow, the local notebook UI still loads; cloud features show an availability message and can be retried after refreshing.
+
+
+## Map library and point views (V13.7)
+
+- Existing Convergence overview images remain the **2D** view.
+- The uploaded Point A, Point B and Point C screenshots are available as separate selectable views for Central Park, Hall of Djalia, Symbiotic Surface, Heart of Heaven, Shin-Shibuya and Lower Manhattan.
+- Lower Manhattan is listed under Convergence and has a hosted cover image. A verified full-map 2D overview was not available for this package, so its 2D option stays disabled while Points A, B and C remain available.
+- Map choice and selected point view are saved with the active play and in browser storage.
+- User-supplied point screenshots are stored under `assets/maps/points/` as optimized WebP files.
