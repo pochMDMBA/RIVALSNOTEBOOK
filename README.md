@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current package: v13.9.** See `V13.9_RELEASE_NOTES.md` for the latest map-image loading, Point A/B/C controls, icon-only synergy picker, role-specific Deadpool variants, and group-rule styling updates. Earlier release notes are retained below for version history.
+**Current package: v13.13.** See `V13.13_RELEASE_NOTES.md` for one-click text placement, Enemy role-row placement, Point A map defaults, and isolated A/B/C/2D board sets. Earlier release notes are retained below for version history.
 
 RIVALSNOTEBOOK is the renamed Marvel Rivals counter-pick, synergy, hero-group and tactical whiteboard app. This package adds a Vercel-ready static site and a Supabase backend layer for account sync, shared community votes, public Community Groups, and live collaborative Playbook notebooks.
 
@@ -251,6 +251,6 @@ See `V13.8_RELEASE_NOTES.md` for the JPEG point-map conversion, group counter ru
 See `V13.9_RELEASE_NOTES.md` for the latest changes.
 
 
-## V13.12
+## V13.13
 
-See [V13.12 Release Notes](V13.12_RELEASE_NOTES.md) for deployment-safe embedded Convergence point images and Playbook text styling/editor improvements.
+See [V13.13 Release Notes](V13.13_RELEASE_NOTES.md) for deployment-safe embedded Convergence point images and Playbook text styling/editor improvements.

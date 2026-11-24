@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v13.12</title>
+<title>RIVALSNOTEBOOK · v13.13</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -172,6 +172,28 @@ header{padding:0 260px 0}
 @media(max-width:520px){.matchup-grid{grid-template-columns:1fr}.combo-list{grid-template-columns:1fr}.group-name-grid{grid-template-columns:1fr}.playbook-page{display:flex;flex-direction:column}.playbook-tools{min-height:420px}.playbook-board-panel{min-height:500px}}
 </style>
 <link rel="stylesheet" href="./rivalsnotebook.css">
+
+<style id="rn-v13-13-enemy-row-and-text-mode">
+/* Keep All / Vanguard / Duelist / Strategist / Enemy in one compact row. */
+body.playbook-mode .hero-role-filters{
+  display:grid!important;grid-template-columns:minmax(0,1.15fr) minmax(0,.72fr) minmax(0,.72fr) minmax(0,.72fr) minmax(0,1.5fr)!important;
+  grid-auto-flow:row!important;grid-template-rows:23px!important;grid-auto-columns:unset!important;flex-wrap:nowrap!important;align-items:stretch!important;justify-items:stretch!important;
+  gap:3px!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow:visible!important;
+}
+body.playbook-mode .hero-role-filters>button{
+  display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;height:23px!important;min-height:23px!important;
+  padding:0 2px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important;font-size:8px!important;
+}
+@media(max-width:580px){body.playbook-mode .hero-role-filters>button{font-size:6px!important;padding:0 1px!important;height:21px!important;min-height:21px!important}body.playbook-mode .hero-role-filters>#rnEnemyPlacementToggle{font-size:6px!important;height:21px!important;min-height:21px!important}}
+body.playbook-mode .hero-role-filters>#rnEnemyPlacementToggle{
+  grid-column:5!important;grid-row:1!important;align-self:stretch!important;justify-self:stretch!important;
+  min-width:0!important;width:100%!important;height:23px!important;padding:0 3px!important;font-size:7px!important;
+}
+@media(max-width:580px){body.playbook-mode .hero-dock-filters{grid-template-columns:38px minmax(60px,1fr) minmax(108px,1.2fr)!important}body.playbook-mode .hero-role-filters{grid-column:3!important;min-width:0!important;width:100%!important;justify-self:stretch!important}}
+body.playbook-mode .inline-board-text-editor{z-index:120!important;pointer-events:auto!important;display:block!important;opacity:1!important;visibility:visible!important;}
+</style>
+
 </head>
 <body>
 <div class="app">
@@ -3493,12 +3515,13 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     stage.appendChild(editor);
     let finished=false;const initialText=String(item.text||'');
     const fit=()=>{editor.style.height='auto';editor.style.height=`${Math.max(44,Math.min(220,editor.scrollHeight))}px`;};
-    const finish=(save)=>{if(finished||!editor.isConnected)return;finished=true;if(save){item.text=editor.value.slice(0,240).trim();}else{item.text=initialText;}editor.remove();if(!item.text.trim())state.playItems=state.playItems.filter(x=>x.id!==item.id);window.__rnSetBoardTool?.('select');renderBoard();persist();};
+    const finish=(save)=>{if(finished||!editor.isConnected)return;finished=true;if(save){item.text=editor.value.slice(0,240).trim();}else{item.text=initialText;}editor.remove();if(!item.text.trim())state.playItems=state.playItems.filter(x=>x.id!==item.id);window.__rnSetBoardTool?.('select');document.getElementById('boardTextToolBtn')?.setAttribute('aria-pressed','false');renderBoard();persist();};
     editor.addEventListener('input',()=>{item.text=editor.value.slice(0,240);fit();persist();});
     editor.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();finish(false);}else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();finish(true);}});
     editor.addEventListener('blur',()=>finish(true));
     fit();editor.focus();editor.setSelectionRange(editor.value.length,editor.value.length);
     window.__rnActiveTextEditor=editor;
+    return editor;
   }
   window.__rnShowInlineTextEditor = point => showInlineTextEditor(point);
   window.__rnEditBoardTextItem = id => {const item=state.playItems.find(x=>x.id===id&&x.type==='text');if(item){setSelection([item.id]);showInlineTextEditor({x:item.x,y:item.y},item);}};
@@ -4839,6 +4862,9 @@ window.RN_POINT_MAP_IMAGES={"central-park-point-a.jpg":"data:image/jpeg;base64,/
   if(currentMapView==='2D')currentMapView='2d';
   const validView=(m,v)=>v==='2d'?!!m?.image:!!m?.points?.[v];
   if(!validView(known.get(currentMapId),currentMapView))currentMapView=known.get(currentMapId)?.points?.A?'A':'2d';
+  // V13.12 may have stored 2D as the default simply because an overview image exists.
+  // On a fresh workspace (not opening a saved play), prefer Point A when available.
+  if(!activeAtStart&&currentMapId&&currentMapView==='2d'&&known.get(currentMapId)?.points?.A)currentMapView='A';
   const sidebar=document.querySelector('#playbookPage .playbook-tools');
   const stage= $('playBoardStage');
   const board=$('playBoard');
@@ -4929,16 +4955,26 @@ window.RN_POINT_MAP_IMAGES={"central-park-point-a.jpg":"data:image/jpeg;base64,/
     localStorage.setItem('rnPlaybookCurrentMapId',currentMapId);
     localStorage.setItem('rnPlaybookCurrentMapView',currentMapView);
     const play=getPlay();
-    if(play){play.mapId=currentMapId;play.mapView=currentMapView;if(typeof persist==='function')persist();}
+    if(play){play.mapId=currentMapId;play.mapView=currentMapView;}
   }
   function selectMapView(view){
     const m=known.get(currentMapId);if(!m||!validView(m,view)){if(m&&view==='2d')toast('The Lower Manhattan 2D overview is not available yet');return;}
-    currentMapView=view;saveMapSelection();updateMapLayer();updateMapWidget();
+    // Capture the current view, change the key, then restore only that view's saved elements.
+    window.__rnBeginBoardSetTransition?.();
+    try{
+      currentMapView=view;
+      saveMapSelection();updateMapLayer();updateMapWidget();
+    }finally{window.__rnEndBoardSetTransition?.();}
   }
   function selectMap(id){
-    currentMapId=known.has(id)?id:'';
-    const m=known.get(currentMapId);currentMapView=m?.image?'2d':(m?.points?.A?'A':'2d');
-    saveMapSelection();updateMapLayer();updateMapWidget();overlay.classList.remove('open');
+    // Every newly selected map starts at Point A when that point exists, even if it also has 2D.
+    window.__rnBeginBoardSetTransition?.();
+    let m=null;
+    try{
+      currentMapId=known.has(id)?id:'';
+      m=known.get(currentMapId);currentMapView=m?.points?.A?'A':(m?.image?'2d':'2d');
+      saveMapSelection();updateMapLayer();updateMapWidget();overlay.classList.remove('open');
+    }finally{window.__rnEndBoardSetTransition?.();}
     if(currentMapId)toast(`${m.name} loaded · ${currentMapView==='2d'?'2D':`Point ${currentMapView}`}`);
     else toast('Map background removed');
   }
@@ -6492,7 +6528,7 @@ body.playbook-mode .rn-saved-play-empty{padding:12px;color:#9eb1c0;font-size:9px
 body.playbook-mode #rnToolSettings .rn-setting-row.rn-type-row[hidden],
 body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:none!important;}
 </style>
-<script id="rn-v13-12-board-sets-text-dnd-and-enemy">
+<script id="rn-v13-13-independent-views-text-placement-and-enemy">
 (()=>{
   if(typeof state==='undefined'||!document.getElementById('playBoard'))return;
   const $=id=>document.getElementById(id);
@@ -6503,16 +6539,67 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
   const activePlay=()=> (state.plays||[]).find(play=>String(play.id)===String(state.activePlayId))||null;
   const normalizeItems=list=>typeof normalizePlayItems==='function'?normalizePlayItems(list||[]):clone(list||[]);
   let changingBoardSet=false;
-  const draftKey='rnPlaybookDraftBoardsV1312';
+  const draftKey='rnPlaybookDraftBoardsV1313b';
+  const legacyDraftKeys=['rnPlaybookDraftBoardsV1313','rnPlaybookDraftBoardsV1312'];
   const readDrafts=()=>{try{const saved=JSON.parse(localStorage.getItem(draftKey)||'{}');return saved&&typeof saved==='object'?saved:{}}catch(_){return {}}};
   let drafts=readDrafts();
   const writeDrafts=()=>{try{localStorage.setItem(draftKey,JSON.stringify(drafts));}catch(error){console.warn('Could not persist Playbook draft boards',error);}};
+  // Migrate prior draft sets while removing only exact duplicate copies of the view
+  // that was active when the previous version last saved. Distinct view content survives.
+  if(!Object.keys(drafts).length&&!activePlay()){
+    try{
+      const legacy={};
+      legacyDraftKeys.slice().reverse().forEach(key=>{
+        const value=JSON.parse(localStorage.getItem(key)||'{}');
+        if(value&&typeof value==='object')Object.assign(legacy,value);
+      });
+      const savedMap=localStorage.getItem('rnPlaybookCurrentMapId')||currentMap();
+      const rawView=localStorage.getItem('rnPlaybookCurrentMapView')||currentView();
+      const savedView=String(rawView).toLowerCase()==='2d'?'2d':String(rawView).toUpperCase();
+      const previousActiveKey=boardKey(savedMap,savedView);
+      const previousActive=Array.isArray(legacy[previousActiveKey])?legacy[previousActiveKey]:null;
+      Object.entries(legacy).forEach(([key,items])=>{
+        if(!Array.isArray(items)||!/(::(?:A|B|C|2d))$/.test(key))return;
+        const isAccidentalDuplicate=key!==previousActiveKey&&previousActive&&JSON.stringify(items)===JSON.stringify(previousActive);
+        drafts[key]=isAccidentalDuplicate?[]:normalizeItems(items);
+      });
+      const activeKey=boardKey(currentMap(),currentView());
+      if(previousActive&&activeKey!==previousActiveKey){
+        // Point A may now be the default even if the last session ended on 2D.
+        // Keep the old board in its former view and start the newly selected view empty.
+        if(!Object.prototype.hasOwnProperty.call(drafts,activeKey))drafts[activeKey]=[];
+        state.playItems=[];
+      }
+      if(Object.keys(drafts).length)writeDrafts();
+    }catch(error){console.warn('Could not migrate previous Playbook draft sets',error);}
+  }
+
+  function migrateSavedPlayBoardSets(play){
+    if(!play||Number(play.rnBoardSetVersion)>=2)return;
+    play.mapBoards=play.mapBoards&&typeof play.mapBoards==='object'?play.mapBoards:{};
+    const savedView=String(play.mapView||currentView()).toLowerCase()==='2d'?'2d':String(play.mapView||currentView()).toUpperCase();
+    const canonicalKey=boardKey(play.mapId||currentMap(),savedView);
+    if(!Object.keys(play.mapBoards).length){
+      play.mapBoards[canonicalKey]=clone(play.items||state.playItems||[]);
+    }else{
+      if(!Object.prototype.hasOwnProperty.call(play.mapBoards,canonicalKey)&&Array.isArray(play.items))play.mapBoards[canonicalKey]=clone(play.items);
+      const canonical=Array.isArray(play.mapBoards[canonicalKey])?play.mapBoards[canonicalKey]:[];
+      const signature=JSON.stringify(canonical);
+      // Earlier builds copied the same board into every newly visited view. Keep the
+      // canonical saved map/view and clear only other byte-for-byte duplicate copies.
+      Object.entries(play.mapBoards).forEach(([key,items])=>{
+        if(key!==canonicalKey&&Array.isArray(items)&&JSON.stringify(items)===signature)play.mapBoards[key]=[];
+      });
+    }
+    play.rnBoardSetVersion=2;
+  }
 
   function captureCurrentBoardSet(){
     const key=boardKey(currentMap(),currentView());
     const items=clone(state.playItems||[]);
     const play=activePlay();
     if(play){
+      migrateSavedPlayBoardSets(play);
       play.mapBoards=play.mapBoards&&typeof play.mapBoards==='object'?play.mapBoards:{};
       play.mapBoards[key]=items;
       play.mapId=currentMap();play.mapView=currentView();
@@ -6539,6 +6626,7 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
     const key=boardKey(currentMap(),currentView());
     const play=activePlay();
     if(play){
+      migrateSavedPlayBoardSets(play);
       play.mapBoards=play.mapBoards&&typeof play.mapBoards==='object'?play.mapBoards:{};
       const keys=Object.keys(play.mapBoards);
       // Migrate a pre-v13.12 saved play into the map/view it already remembers.
@@ -6551,7 +6639,7 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
     }else{
       if(options.newBlank){drafts[key]=[];writeDrafts();state.playItems=[];}
       else if(Object.prototype.hasOwnProperty.call(drafts,key))state.playItems=normalizeItems(drafts[key]);
-      else{drafts[key]=clone(state.playItems||[]);writeDrafts();}
+      else{drafts[key]=[];writeDrafts();state.playItems=[];}
     }
     renderRestoredBoard();
     window.__rnResetBoardHistory?.();
@@ -6561,10 +6649,22 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
     refreshSavedPlayPicker();
   }
 
+  // Atomic transition hooks called by the map selector before/after changing the view key.
+  window.__rnBeginBoardSetTransition=()=>{
+    if(changingBoardSet)return;
+    try{captureCurrentBoardSet();}catch(error){console.warn('Could not capture outgoing board set',error);}
+    changingBoardSet=true;
+  };
+  window.__rnEndBoardSetTransition=()=>{
+    if(!changingBoardSet)return;
+    restoreCurrentBoardSet();
+  };
+
   // Initialise separate board sets when opening an older saved play or a locally saved draft.
   (function bootstrapBoardSet(){
     const play=activePlay(),key=boardKey(currentMap(),currentView());
     if(play){
+      migrateSavedPlayBoardSets(play);
       play.mapBoards=play.mapBoards&&typeof play.mapBoards==='object'?play.mapBoards:{};
       if(!Object.keys(play.mapBoards).length){
         const legacyKey=boardKey(play.mapId||currentMap(),play.mapView||currentView());
@@ -6578,31 +6678,20 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
     window.__rnRenderBoard?.();
   })();
 
-  // Snapshot the old board before a map/view/play transition; restore the new board afterwards.
+  // Saved-play transitions still use their native handlers. Map/view transitions are atomic above.
   document.addEventListener('click',event=>{
     const target=event.target;
-    const viewButton=target.closest?.('#rnMapViewSelector [data-map-view]');
-    const mapCard=target.closest?.('#rnMapLibraryOverlay [data-map-id]');
-    const clearMap=target.closest?.('#rnMapClearBtn');
     const loadPlay=target.closest?.('#loadPlayBtn');
     const newPlay=target.closest?.('#newPlayBtn');
     const deletePlay=target.closest?.('#deletePlayBtn');
-    if(!(viewButton||mapCard||clearMap||loadPlay||newPlay||deletePlay))return;
-    try{captureCurrentBoardSet();}catch(error){console.warn('Could not save outgoing board view',error);}
-    changingBoardSet=true;
+    if(!(loadPlay||newPlay||deletePlay))return;
+    window.__rnBeginBoardSetTransition?.();
     queueMicrotask(()=>{
-      if(mapCard){
-        const selectedId=currentMap();
-        const map=(window.RN_TACTICAL_MAPS||[]).find(item=>item.id===selectedId);
-        // Every newly selected map opens on Point A when that view exists.
-        if(map?.points?.A)window.__rnSetTacticalMapView?.('A');
-      }
-      if(clearMap){/* map library has already switched to the blank 2D board */}
       if(newPlay){
         drafts={};writeDrafts();
         state.activePlayId=null;state.playItems=[];state.selectedBoardItem=null;
       }
-      if(deletePlay&&!activePlay()&&!state.activePlayId){state.playItems=[];}
+      if(deletePlay&&!activePlay()&&!state.activePlayId)state.playItems=[];
       restoreCurrentBoardSet({newBlank:!!newPlay});
     });
   },true);
@@ -6621,32 +6710,62 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
     });
   },true);
 
-  // Text placement is handled in capture phase so later Select/Move handlers cannot cancel it.
-  let textPlacementArmed=false;
-  document.addEventListener('click',event=>{
-    if(event.target.closest?.('#boardTextToolBtn')){
-      textPlacementArmed=!textPlacementArmed;
-      queueMicrotask(()=>window.__rnSetBoardTool?.(textPlacementArmed?'text':'select'));
-      return;
-    }
-    // Selecting another tool or placing a roster hero cancels a pending text placement.
-    if(event.target.closest?.('#boardSelectToolBtn,#rnPenPrimaryBtn,#rnEraserPrimaryBtn,#boardImageBtn,.board-shape-tools button,.board-pen-tool-row button,.hero-dock-scroll [data-dock-hero]'))textPlacementArmed=false;
-  },true);
+  // Text placement is an explicit one-click action. Capture the toolbar click so legacy
+  // toggle listeners cannot immediately return the tool to Select before the board click.
   const board=$('playBoard');
+  const textButton=$('boardTextToolBtn');
+  let textPlacementArmed=false;
+  const baseSetBoardTool=window.__rnSetBoardTool;
+  window.__rnSetBoardTool=tool=>{
+    if(String(tool||'select')!=='text'){
+      textPlacementArmed=false;
+      textButton?.setAttribute('aria-pressed','false');
+    }
+    return baseSetBoardTool?.(tool);
+  };
+  textButton?.addEventListener('click',event=>{
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+    textPlacementArmed=true;
+    window.__rnSetBoardTool?.('text');
+    textButton.classList.add('active');
+    textButton.setAttribute('aria-pressed','true');
+  },true);
   board.addEventListener('pointerdown',event=>{
     if(!textPlacementArmed||event.button!==0)return;
-    if(event.target.closest?.('.inline-board-text-editor'))return;
-    if(event.target.closest?.('.board-item'))return;
-    const point=window.__rnBoardPoint?.(event);
+    const target=event.target;
+    if(target?.closest?.('.inline-board-text-editor,.board-surface-zoom'))return;
+    const stage=document.getElementById('playBoardStage');
+    let point=window.__rnBoardPoint?.(event);
+    if((!point||!Number.isFinite(point.x)||!Number.isFinite(point.y))&&stage){
+      const rect=stage.getBoundingClientRect();
+      point={x:(event.clientX-rect.left)/Math.max(1,rect.width)*100,y:(event.clientY-rect.top)/Math.max(1,rect.height)*100};
+    }
     if(!point||!Number.isFinite(point.x)||!Number.isFinite(point.y))return;
     event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
     textPlacementArmed=false;
-    window.__rnSetBoardTool?.('text');
-    window.__rnShowInlineTextEditor?.({x:Math.max(0,Math.min(100,point.x)),y:Math.max(0,Math.min(100,point.y))});
+    const at={x:Math.max(0,Math.min(81,point.x)),y:Math.max(0,Math.min(92,point.y))};
+    let editor=null;
+    try{editor=window.__rnShowInlineTextEditor?.(at)||null;}catch(error){console.error('Text box creation failed',error);}
+    if(!editor){
+      // Defensive fallback: create the editable item and textarea directly if the shared
+      // editor entry point is unavailable in a partially cached page.
+      const defaults=window.__rnGetTextStyleDefaults?.()||{fillColor:'#253845',borderColor:'#73c9c4',textColor:'#f2f7fa'};
+      const item=window.newBoardItem?.('text',{text:'',x:at.x,y:at.y,w:18,fillColor:defaults.fillColor,borderColor:defaults.borderColor,textColor:defaults.textColor,fillOpacity:.94,borderOpacity:1,borderWidth:1.5});
+      if(item&&stage){
+        editor=document.createElement('textarea');editor.className='inline-board-text-editor';editor.rows=1;editor.maxLength=240;editor.placeholder='Type here…';
+        editor.style.left=`${at.x}%`;editor.style.top=`${at.y}%`;editor.style.width='18%';
+        editor.style.backgroundColor=item.fillColor;editor.style.borderColor=item.borderColor;editor.style.color=item.textColor;
+        stage.appendChild(editor);
+        const finish=save=>{if(!editor.isConnected)return;item.text=save?editor.value.trim():'';editor.remove();if(!item.text)state.playItems=state.playItems.filter(x=>x.id!==item.id);window.__rnSetBoardTool?.('select');window.__rnRenderBoard?.();persist();};
+        editor.addEventListener('input',()=>{item.text=editor.value.slice(0,240);persist();});
+        editor.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();finish(false);}else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();finish(true);}});
+        editor.addEventListener('blur',()=>finish(true),{once:true});
+      }
+    }
+    if(!editor){console.error('Text box could not be created.');window.__rnSetBoardTool?.('select');return;}
+    requestAnimationFrame(()=>{if(editor.isConnected){editor.focus();if(typeof editor.setSelectionRange==='function')editor.setSelectionRange(editor.value.length,editor.value.length);}});
   },true);
-  document.addEventListener('keydown',event=>{
-    if(event.key==='Escape'&&textPlacementArmed){textPlacementArmed=false;window.__rnSetBoardTool?.('select');}
-  },true);
+  // Remaining board drop handlers use the same board element.
 
   // Enemy mode is independent of the Vanguard/Duelist/Strategist roster filters.
   const roleFilters=$('heroRoleFilters');
@@ -6694,7 +6813,7 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
     const rawSkill=transfer.getData('application/x-rivals-skill');
     const rawHero=transfer.getData('application/x-rivals-hero');
     if(!rawSkill&&!rawHero)return;
-    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();board.classList.remove('drop-ready');textPlacementArmed=false;
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();board.classList.remove('drop-ready');
     let payload;try{payload=JSON.parse(rawSkill||rawHero);}catch(_){return;}
     const point=window.__rnBoardPoint?.(event);
     if(!point||!Number.isFinite(point.x)||!Number.isFinite(point.y))return;
