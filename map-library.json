@@ -43,9 +43,9 @@
       "cover": "assets/maps/covers/shin-shibuya.jpg",
       "image": "assets/maps/shin-shibuya.jpg",
       "points": {
-        "A": "/assets/maps/shin-shibuya-point-a.jpg",
-        "B": "/assets/maps/shin-shibuya-point-b.jpg",
-        "C": "/assets/maps/shin-shibuya-point-c.jpg"
+        "A": "assets/maps/shin-shibuya-point-a.jpg",
+        "B": "assets/maps/shin-shibuya-point-b.jpg",
+        "C": "assets/maps/shin-shibuya-point-c.jpg"
       }
     },
     {
@@ -55,9 +55,9 @@
       "cover": "assets/maps/covers/hall-of-djalia.jpg",
       "image": "assets/maps/hall-of-djalia.jpg",
       "points": {
-        "A": "/assets/maps/hall-of-djalia-point-a.jpg",
-        "B": "/assets/maps/hall-of-djalia-point-b.jpg",
-        "C": "/assets/maps/hall-of-djalia-point-c.jpg"
+        "A": "assets/maps/hall-of-djalia-point-a.jpg",
+        "B": "assets/maps/hall-of-djalia-point-b.jpg",
+        "C": "assets/maps/hall-of-djalia-point-c.jpg"
       }
     },
     {
@@ -67,9 +67,9 @@
       "cover": "assets/maps/covers/central-park.jpg",
       "image": "assets/maps/central-park.jpg",
       "points": {
-        "A": "/assets/maps/central-park-point-a.jpg",
-        "B": "/assets/maps/central-park-point-b.jpg",
-        "C": "/assets/maps/central-park-point-c.jpg"
+        "A": "assets/maps/central-park-point-a.jpg",
+        "B": "assets/maps/central-park-point-b.jpg",
+        "C": "assets/maps/central-park-point-c.jpg"
       }
     },
     {
@@ -79,9 +79,9 @@
       "cover": "assets/maps/covers/symbiotic-surface.jpg",
       "image": "assets/maps/symbiotic-surface.jpg",
       "points": {
-        "A": "/assets/maps/symbiotic-surface-point-a.jpg",
-        "B": "/assets/maps/symbiotic-surface-point-b.jpg",
-        "C": "/assets/maps/symbiotic-surface-point-c.jpg"
+        "A": "assets/maps/symbiotic-surface-point-a.jpg",
+        "B": "assets/maps/symbiotic-surface-point-b.jpg",
+        "C": "assets/maps/symbiotic-surface-point-c.jpg"
       }
     },
     {
@@ -91,9 +91,9 @@
       "cover": "assets/maps/covers/heart-of-heaven.jpg",
       "image": "assets/maps/heart-of-heaven.jpg",
       "points": {
-        "A": "/assets/maps/heart-of-heaven-point-a.jpg",
-        "B": "/assets/maps/heart-of-heaven-point-b.jpg",
-        "C": "/assets/maps/heart-of-heaven-point-c.jpg"
+        "A": "assets/maps/heart-of-heaven-point-a.jpg",
+        "B": "assets/maps/heart-of-heaven-point-b.jpg",
+        "C": "assets/maps/heart-of-heaven-point-c.jpg"
       }
     },
     {
@@ -104,9 +104,9 @@
       "coverFallback": "/assets/maps/lower-manhattan-point-a.jpg",
       "image": "",
       "points": {
-        "A": "/assets/maps/lower-manhattan-point-a.jpg",
-        "B": "/assets/maps/lower-manhattan-point-b.jpg",
-        "C": "/assets/maps/lower-manhattan-point-c.jpg"
+        "A": "assets/maps/lower-manhattan-point-a.jpg",
+        "B": "assets/maps/lower-manhattan-point-b.jpg",
+        "C": "assets/maps/lower-manhattan-point-c.jpg"
       },
       "layoutNote": "Full 2D overview pending; Points A, B and C are available."
     }
@@ -114,11 +114,11 @@
   "comingSoon": [
     "Domination"
   ],
-  "runtimeAssetStrategy": "Point A/B/C JPEGs are stored flat beside the existing 2D overview JPEGs under /assets/maps/ to avoid deployment issues with a separate nested points directory.",
+  "runtimeAssetStrategy": "Point A/B/C JPEGs are embedded in index.html for deployment-safe loading, with matching JPEG files retained under assets/maps/ as static fallbacks.",
   "notes": {
     "lowerManhattan2D": "A verified full top-down 2D overview was not available for this build. The supplied Point A, Point B and Point C images are available as separate map views.",
     "lowerManhattanCoverSource": "https://rivalsheroes.com/maps/lower-manhattan",
     "mapPointAssignments": "Central Park uses the supplied Dracula A/B/C images; Hall of Djalia uses HALL OF DJALIA 1 and HALL 2/3; Symbiotic Surface uses Klyntar 1/2/3; Heart of Heaven uses Kunlun 1/2/3; Shin-Shibuya uses SHIN SHIBUYA 1/2 and SHIN 3; Lower Manhattan uses Lower Manhattan 1/2/3.",
-    "pointImageFormat": "All Convergence Point A/B/C map images are JPEG (.jpg) files stored flat under assets/maps beside the established 2D overview images."
+    "pointImageFormat": "All Convergence Point A/B/C images are optimized JPEG files and are embedded in index.html with static copies under assets/maps."
   }
 }

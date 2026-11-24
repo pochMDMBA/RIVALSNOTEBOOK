@@ -249,3 +249,8 @@ See `V13.8_RELEASE_NOTES.md` for the JPEG point-map conversion, group counter ru
 
 ## V13.9
 See `V13.9_RELEASE_NOTES.md` for the latest changes.
+
+
+## V13.11
+
+See [V13.11 Release Notes](V13.11_RELEASE_NOTES.md) for deployment-safe embedded Convergence point images and Playbook text styling/editor improvements.
