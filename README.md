@@ -240,7 +240,7 @@ No Supabase schema migration is required for these frontend changes. Preserve yo
 - The uploaded Point A, Point B and Point C screenshots are available as separate selectable views for Central Park, Hall of Djalia, Symbiotic Surface, Heart of Heaven, Shin-Shibuya and Lower Manhattan.
 - Lower Manhattan is listed under Convergence and has a hosted cover image. A verified full-map 2D overview was not available for this package, so its 2D option stays disabled while Points A, B and C remain available.
 - Map choice and selected point view are saved with the active play and in browser storage.
-- User-supplied point screenshots are stored under `assets/maps/points/` as optimized WebP files.
+- User-supplied Point A/B/C screenshots are stored as JPEG files directly under `assets/maps/` beside the established 2D overview images. Flat placement avoids deployment rules that omit nested point-image folders.
 
 
 ## V13.8

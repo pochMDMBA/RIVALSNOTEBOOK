@@ -4745,18 +4745,18 @@ body.playbook-mode #playBoardStage > .board-item{z-index:2}
 (()=>{
   const $=id=>document.getElementById(id);
   if(typeof state==='undefined')return;
-  // Lightweight map metadata only. JPGs are fetched on demand through a deployment-aware asset resolver.
+  // Lightweight map metadata only. JPGs are fetched on demand through a deployment-aware asset resolver. Point layers live beside the established 2D JPEGs in assets/maps/ to avoid nested-folder deployment omissions.
   const MAPS = [
     {"id":"yggdrasil-path","name":"Yggdrasil Path","mode":"Convoy","cover":"assets/maps/covers/yggdrasil-path.jpg","image":"assets/maps/yggdrasil-path.jpg"},
     {"id":"spider-islands","name":"Spider-Islands","mode":"Convoy","cover":"assets/maps/covers/spider-islands.jpg","image":"assets/maps/spider-islands.jpg"},
     {"id":"midtown","name":"Midtown","mode":"Convoy","cover":"assets/maps/covers/midtown.jpg","image":"assets/maps/midtown.jpg"},
     {"id":"arakko","name":"Arakko","mode":"Convoy","cover":"assets/maps/covers/arakko.jpg","image":"assets/maps/arakko.jpg"},
     {"id":"thebes","name":"Thebes","mode":"Convoy","cover":"assets/maps/covers/thebes.jpg","image":"assets/maps/thebes.jpg"},
-    {"id":"shin-shibuya","name":"Shin-Shibuya","mode":"Convergence","cover":"assets/maps/covers/shin-shibuya.jpg","image":"assets/maps/shin-shibuya.jpg","points":{"A":"assets/maps/points/shin-shibuya-a.jpg","B":"assets/maps/points/shin-shibuya-b.jpg","C":"assets/maps/points/shin-shibuya-c.jpg"}},
-    {"id":"hall-of-djalia","name":"Hall of Djalia","mode":"Convergence","cover":"assets/maps/covers/hall-of-djalia.jpg","image":"assets/maps/hall-of-djalia.jpg","points":{"A":"assets/maps/points/hall-of-djalia-a.jpg","B":"assets/maps/points/hall-of-djalia-b.jpg","C":"assets/maps/points/hall-of-djalia-c.jpg"}},
-    {"id":"central-park","name":"Central Park","mode":"Convergence","cover":"assets/maps/covers/central-park.jpg","image":"assets/maps/central-park.jpg","points":{"A":"assets/maps/points/central-park-a.jpg","B":"assets/maps/points/central-park-b.jpg","C":"assets/maps/points/central-park-c.jpg"}},
-    {"id":"symbiotic-surface","name":"Symbiotic Surface","mode":"Convergence","cover":"assets/maps/covers/symbiotic-surface.jpg","image":"assets/maps/symbiotic-surface.jpg","points":{"A":"assets/maps/points/symbiotic-surface-a.jpg","B":"assets/maps/points/symbiotic-surface-b.jpg","C":"assets/maps/points/symbiotic-surface-c.jpg"}},
-    {"id":"heart-of-heaven","name":"Heart of Heaven","mode":"Convergence","cover":"assets/maps/covers/heart-of-heaven.jpg","image":"assets/maps/heart-of-heaven.jpg","points":{"A":"assets/maps/points/heart-of-heaven-a.jpg","B":"assets/maps/points/heart-of-heaven-b.jpg","C":"assets/maps/points/heart-of-heaven-c.jpg"}},{"id":"lower-manhattan","name":"Lower Manhattan","mode":"Convergence","cover":"https://api.rivalsheroes.com/public/maps-rivalsapi/map_lower-manhattan_1778889484.webp","coverFallback":"assets/maps/points/lower-manhattan-a.jpg","image":"","points":{"A":"assets/maps/points/lower-manhattan-a.jpg","B":"assets/maps/points/lower-manhattan-b.jpg","C":"assets/maps/points/lower-manhattan-c.jpg"},"layoutNote":"Full 2D overview pending; Points A, B and C are available."}
+    {"id":"shin-shibuya","name":"Shin-Shibuya","mode":"Convergence","cover":"assets/maps/covers/shin-shibuya.jpg","image":"assets/maps/shin-shibuya.jpg","points":{"A":"/assets/maps/shin-shibuya-point-a.jpg","B":"/assets/maps/shin-shibuya-point-b.jpg","C":"/assets/maps/shin-shibuya-point-c.jpg"}},
+    {"id":"hall-of-djalia","name":"Hall of Djalia","mode":"Convergence","cover":"assets/maps/covers/hall-of-djalia.jpg","image":"assets/maps/hall-of-djalia.jpg","points":{"A":"/assets/maps/hall-of-djalia-point-a.jpg","B":"/assets/maps/hall-of-djalia-point-b.jpg","C":"/assets/maps/hall-of-djalia-point-c.jpg"}},
+    {"id":"central-park","name":"Central Park","mode":"Convergence","cover":"assets/maps/covers/central-park.jpg","image":"assets/maps/central-park.jpg","points":{"A":"/assets/maps/central-park-point-a.jpg","B":"/assets/maps/central-park-point-b.jpg","C":"/assets/maps/central-park-point-c.jpg"}},
+    {"id":"symbiotic-surface","name":"Symbiotic Surface","mode":"Convergence","cover":"assets/maps/covers/symbiotic-surface.jpg","image":"assets/maps/symbiotic-surface.jpg","points":{"A":"/assets/maps/symbiotic-surface-point-a.jpg","B":"/assets/maps/symbiotic-surface-point-b.jpg","C":"/assets/maps/symbiotic-surface-point-c.jpg"}},
+    {"id":"heart-of-heaven","name":"Heart of Heaven","mode":"Convergence","cover":"assets/maps/covers/heart-of-heaven.jpg","image":"assets/maps/heart-of-heaven.jpg","points":{"A":"/assets/maps/heart-of-heaven-point-a.jpg","B":"/assets/maps/heart-of-heaven-point-b.jpg","C":"/assets/maps/heart-of-heaven-point-c.jpg"}},{"id":"lower-manhattan","name":"Lower Manhattan","mode":"Convergence","cover":"https://api.rivalsheroes.com/public/maps-rivalsapi/map_lower-manhattan_1778889484.webp","coverFallback":"/assets/maps/lower-manhattan-point-a.jpg","image":"","points":{"A":"/assets/maps/lower-manhattan-point-a.jpg","B":"/assets/maps/lower-manhattan-point-b.jpg","C":"/assets/maps/lower-manhattan-point-c.jpg"},"layoutNote":"Full 2D overview pending; Points A, B and C are available."}
   ];
   // Resolve map assets against the deployed app base first, then try root and common nested Vercel paths.
   const mapAssetCandidates=source=>{
@@ -4764,7 +4764,7 @@ body.playbook-mode #playBoardStage > .board-item{z-index:2}
     if(/^(?:https?:|data:|blob:)/i.test(raw))return [raw];
     const clean=raw.replace(/^\/+/, '').replace(/^\.\//,'');
     const candidates=[];
-    const add=value=>{try{const url=new URL(value,window.location.href);url.searchParams.set('rnmap','139');if(!candidates.includes(url.href))candidates.push(url.href)}catch(e){}};
+    const add=value=>{try{const url=new URL(value,window.location.href);url.searchParams.set('rnmap','1310');if(!candidates.includes(url.href))candidates.push(url.href)}catch(e){}};
     // First try the path relative to the current app URL, then each parent directory.
     add(clean);add('./'+clean);
     let segments=String(window.location.pathname||'/').split('/').filter(Boolean);
@@ -4810,9 +4810,9 @@ body.playbook-mode #playBoardStage > .board-item{z-index:2}
     <div class="rn-map-view-label">MAP VIEW</div>
     <div class="rn-map-view-selector" id="rnMapViewSelector" role="group" aria-label="Map view">
       <button type="button" data-map-view="2d" aria-pressed="true">2D</button>
-      <button type="button" data-map-view="A" aria-pressed="false">Point A</button>
-      <button type="button" data-map-view="B" aria-pressed="false">Point B</button>
-      <button type="button" data-map-view="C" aria-pressed="false">Point C</button>
+      <button type="button" data-map-view="A" aria-pressed="false">A</button>
+      <button type="button" data-map-view="B" aria-pressed="false">B</button>
+      <button type="button" data-map-view="C" aria-pressed="false">C</button>
     </div>
     <button type="button" class="rn-map-clear" id="rnMapClearBtn">REMOVE MAP</button>`;
   const insertBefore=sidebar.querySelector('.sidebar-play-panel')||sidebar.querySelector('.rn-toolkit')||null;
@@ -4858,7 +4858,7 @@ body.playbook-mode #playBoardStage > .board-item{z-index:2}
         board.classList.add('has-rn-map');
         let failed=stage.querySelector(':scope > .rn-map-view-unavailable');
         if(!failed){failed=document.createElement('div');failed.className='rn-map-view-unavailable';stage.appendChild(failed);}
-        failed.textContent=`${m.name} Point ${currentMapView} could not load. Check that the JPG exists in the deployed assets/maps/points folder.`;
+        failed.textContent=`${m.name} Point ${currentMapView} could not load. Check that the JPG is included beside the other map images in assets/maps/.`;
       });
     }
     layer.alt=`${m.name} ${currentMapView==='2d'?'2D tactical layout':`Point ${currentMapView}`} view`;
@@ -5035,10 +5035,10 @@ body.groups-mode .rn-v10-group-actions [data-rn-publish-group]{background:#22563
   // Root-relative URLs work with Vercel clean URLs and prevent multi-megabyte JS parsing on startup.
   const maps=window.RN_TACTICAL_MAPS||[];
   const mapImageSources=maps.map(m=>({id:m.id,cover:m.cover,image:m.image,points:m.points||{}}));
-  const isLocalMapAsset=v=>typeof v==='string'&&/^\/assets\/maps\/.+\.(?:jpg|webp)(?:[?#].*)?$/i.test(v);
+  const isLocalMapAsset=v=>typeof v==='string'&&/^\/?assets\/maps\/.+\.(?:jpg|jpeg)(?:[?#].*)?$/i.test(v);
   const coverAvailable=v=>typeof v==='string'&&(/^(?:https?:)?\/\//i.test(v)||isLocalMapAsset(v));
   const mapAssetsValid=mapImageSources.every(m=>coverAvailable(m.cover)&&(!m.image||isLocalMapAsset(m.image))&&Object.values(m.points).every(isLocalMapAsset));
-  window.RN_MAP_ASSET_DIAGNOSTICS={count:mapImageSources.length,pointLayerCount:mapImageSources.reduce((n,m)=>n+Object.keys(m.points).length,0),allDeclaredAssetsValid:mapAssetsValid,assetMode:'root-jpeg-and-webp-points',maps:mapImageSources.map(m=>m.id)};
+  window.RN_MAP_ASSET_DIAGNOSTICS={count:mapImageSources.length,pointLayerCount:mapImageSources.reduce((n,m)=>n+Object.keys(m.points).length,0),allDeclaredAssetsValid:mapAssetsValid,assetMode:'flat-root-jpeg-points',maps:mapImageSources.map(m=>m.id)};
 
   const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const roleNames=['Vanguard','Duelist','Support'];
@@ -6094,11 +6094,14 @@ body.groups-mode .rn-v13-group-submit{height:22px!important;min-height:22px!impo
     <button type="button" class="rn-v13-group-delete" data-delete-group="${esc(g.id)}" aria-label="Delete ${esc(g.name)}" title="Delete group">×</button>
     <div class="rn-v13-group-top"><span class="group-icon-view">${groupIcon(g)}</span><div class="rn-v13-group-heading">
       <div class="rn-v13-group-name">${esc(g.name)}<span class="rn-v13-group-count">${(g.members||[]).length} HERO${g.members?.length===1?'':'ES'}</span></div>
-      <div class="rn-v13-group-inline-actions"><button type="button" class="edit-btn rn-v13-group-edit" data-edit-group="${esc(g.id)}">EDIT</button><button type="button" class="edit-btn rn-v13-group-view" data-view-group="${esc(g.id)}">VIEW GROUP</button></div>
       ${g.description&& !/^custom hero group$/i.test(String(g.description).trim())?`<div class="rn-v13-group-description">${esc(g.description)}</div>`:''}
     </div></div>
     <div class="group-card-members">${members}</div>
-    <div class="rn-v13-group-footer"><button type="button" class="edit-btn rn-publish-group rn-v13-group-submit" data-rn-publish-group="${esc(g.id)}">SUBMIT TO COMMUNITY</button></div>`;
+    <div class="rn-v13-group-footer">
+      <button type="button" class="edit-btn rn-v13-group-edit" data-edit-group="${esc(g.id)}">EDIT</button>
+      <button type="button" class="edit-btn rn-v13-group-view" data-view-group="${esc(g.id)}">VIEW GROUP</button>
+      <button type="button" class="edit-btn rn-publish-group rn-v13-group-submit" data-rn-publish-group="${esc(g.id)}">SUBMIT TO COMMUNITY</button>
+    </div>`;
   });
  }
  const originalRender=window.renderGroupManager;
@@ -6204,6 +6207,111 @@ body.groups-mode .group-rule-expandable .group-rule-title .rule-icon{display:inl
 body.groups-mode .group-rule-expandable .group-rule-title .tiny-tag,body.groups-mode .group-rule-expandable .group-rule-title .combo-official{margin-left:auto!important;flex:none!important;font-size:7px!important;line-height:1!important;padding:3px 5px!important;white-space:nowrap!important;}
 /* Give the Edit and View Group controls a small, consistent inset. */
 body.groups-mode .rn-v13-group-inline-actions{margin-left:9px!important;padding-left:3px!important;gap:7px!important;}
+</style>
+
+
+<style id="rn-v1310-map-path-and-group-footer-fixes">
+/* Point A/B/C JPEGs are kept beside the established 2D assets in /assets/maps/. */
+body.playbook-mode .rn-map-view-selector{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-template-rows:auto auto!important;
+  gap:5px!important;
+  width:100%!important;
+}
+body.playbook-mode .rn-map-view-selector button{
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:0!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-height:30px!important;
+  padding:5px 3px!important;
+  font-size:8px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:clip!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  text-align:center!important;
+}
+body.playbook-mode .rn-map-view-selector button[data-map-view="2d"]{
+  grid-column:1 / -1!important;
+  min-height:29px!important;
+}
+body.playbook-mode .rn-map-view-selector button[data-map-view="A"],
+body.playbook-mode .rn-map-view-selector button[data-map-view="B"],
+body.playbook-mode .rn-map-view-selector button[data-map-view="C"]{
+  grid-column:auto!important;
+}
+
+/* Group cards stretch to the height of their grid row; the action bar stays at the bottom. */
+body.groups-mode .group-manager-list{align-items:stretch!important;}
+body.groups-mode .group-manage-card.rn-v13-group-layout{
+  box-sizing:border-box!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-self:stretch!important;
+  height:100%!important;
+  min-height:260px!important;
+  padding:10px 39px 10px 10px!important;
+}
+body.groups-mode .rn-v13-group-top{flex:0 0 auto!important;}
+body.groups-mode .rn-v13-group-heading{min-width:0!important;}
+body.groups-mode .rn-v13-group-description{overflow-wrap:anywhere!important;}
+body.groups-mode .rn-v13-group-layout .group-card-members{
+  flex:1 1 auto!important;
+  min-height:24px!important;
+  align-content:start!important;
+}
+body.groups-mode .rn-v13-group-footer{
+  display:grid!important;
+  grid-template-columns:minmax(34px,.7fr) minmax(52px,1fr) minmax(70px,1.4fr)!important;
+  align-items:stretch!important;
+  justify-content:stretch!important;
+  gap:5px!important;
+  width:100%!important;
+  margin-top:auto!important;
+  padding-top:8px!important;
+  border-top:1px solid #485967!important;
+  flex:0 0 auto!important;
+}
+body.groups-mode .rn-v13-group-footer button{
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:30px!important;
+  height:auto!important;
+  padding:4px 3px!important;
+  border-radius:5px!important;
+  font-size:7px!important;
+  line-height:1.1!important;
+  font-weight:950!important;
+  text-align:center!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+body.groups-mode .rn-v13-group-footer .rn-v13-group-edit{
+  background:#315a70!important;border:1px solid #69b9cf!important;color:#effaff!important;
+}
+body.groups-mode .rn-v13-group-footer .rn-v13-group-view{
+  background:#354b59!important;border:1px solid #7897a8!important;color:#eff6fb!important;
+}
+body.groups-mode .rn-v13-group-footer .rn-v13-group-submit{
+  background:#22563f!important;border:1px solid #64b58d!important;color:#e9fff4!important;
+  font-size:6.5px!important;
+}
+@media(max-width:540px){
+  body.groups-mode .group-manage-card.rn-v13-group-layout{min-height:240px!important;}
+  body.groups-mode .rn-v13-group-footer{grid-template-columns:minmax(30px,.65fr) minmax(48px,1fr) minmax(62px,1.35fr)!important;gap:4px!important;}
+  body.groups-mode .rn-v13-group-footer button{font-size:6.5px!important;}
+}
 </style>
 
 </body>
