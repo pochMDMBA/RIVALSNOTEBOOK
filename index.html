@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v13.5</title>
+<title>RIVALSNOTEBOOK · v13.6</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -442,16 +442,16 @@ function normalizePlayItems(list){
         imageName:String(x.imageName||'Image').slice(0,120),
         shapeKind,
         path,
-        w:Math.max(.35,Math.min(100,Number(x.w)||fallbackW)),
-        h:Math.max(.35,Math.min(100,Number(x.h)||fallbackH)),
+        w:Math.max(.05,Math.min(500,Number(x.w)||fallbackW)),
+        h:Math.max(.05,Math.min(500,Number(x.h)||fallbackH)),
         scale:Math.max(.25,Math.min(4,Number(x.scale)||1)),
-        x:Number.isFinite(Number(x.x))?Math.max(0,Math.min(100,Number(x.x))):10,
-        y:Number.isFinite(Number(x.y))?Math.max(0,Math.min(100,Number(x.y))):10,
+        x:Number.isFinite(Number(x.x))?Math.max(-600,Math.min(600,Number(x.x))):10,
+        y:Number.isFinite(Number(x.y))?Math.max(-600,Math.min(600,Number(x.y))):10,
         rotate:Number.isFinite(Number(x.rotate))?Number(x.rotate):0,
         penStyle:['solid','dashed','arrow','dashed-arrow'].includes(x.penStyle)?x.penStyle:'solid',
-        penWidth:Math.max(.5,Math.min(5,Number(x.penWidth)||.5)),
+        penWidth:Math.max(.05,Math.min(12,Number(x.penWidth)||.05)),
         color:/^#[0-9a-f]{6}$/i.test(String(x.color||''))?String(x.color):(['white','black','red','yellow','green','blue'].includes(x.color)?x.color:'yellow'),
-        opacity:Math.max(.1,Math.min(1,Number(x.opacity)||1))
+        opacity:Number.isFinite(Number(x.opacity))?Math.max(0,Math.min(1,Number(x.opacity))):1
       };
       return item;
     })
@@ -554,7 +554,7 @@ function openComboRuleEditor(rule=null){state.editingCombo=null;state.editingCom
 $('counterForm').addEventListener('submit',e=>{e.preventDefault();const sourceType=$('counterSourceType').value,targetType=$('counterTargetType').value,sourceValue=sourceType==='hero'?$('counterHero').value:$('counterSourceGroup').value,targetValue=targetType==='hero'?$('counterAgainst').value:$('counterTargetGroup').value,reason=$('counterReason').value.trim(),tier=$('counterTier').value,pocketPlayId=$('counterPocketPlay')?.value||'';if(!sourceValue||!targetValue||!reason){toast('Choose a hero or group on each side and add a reason');return}if(sourceType==='hero'&&targetType==='hero'&&sourceValue===targetValue){toast('Choose different heroes');return}
  const existingRule=state.groupRules.find(r=>r.id===state.editingCounterRule);if(existingRule){Object.assign(existingRule,{sourceType,sourceValue,targetType,targetValue,tier,reason,pocketPlayId});}
  else if(state.editingDerived){const {ruleId,pairKey:key,hero:heroName,against}=state.editingDerived;const parent=state.groupRules.find(r=>r.id===ruleId);if(parent&&!parent.excludedPairs.includes(key))parent.excludedPairs.push(key);const existing=state.counterTips.find(t=>t.id===state.editingCounter)||state.counterTips.find(t=>t.hero===heroName&&t.against===against);if(existing)Object.assign(existing,{hero:heroName,against,tier,reason,source:'Individual override',pocketPlayId});else state.counterTips.push({id:`override-${Date.now()}`,against,hero:heroName,tier,reason,votes:state.editingDerived?.votes||0,myVote:state.editingDerived?.myVote||false,source:'Individual override',pocketPlayId});}
- else if(sourceType==='group'||targetType==='group'){state.groupRules.push({id:`grule-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,sourceType,sourceValue,targetType,targetValue,tier,reason,votesByPair:{},myVotesByPair:{},excludedPairs:[],source:'User group rule',pocketPlayId});}
+ else if(state.rnGroupRuleMode==='counter'||sourceType==='group'||targetType==='group'){state.groupRules.push({id:`grule-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,sourceType,sourceValue,targetType,targetValue,tier,reason,votesByPair:{},myVotesByPair:{},excludedPairs:[],source:'User group rule',pocketPlayId});}
  else {const existing=state.counterTips.find(t=>t.id===state.editingCounter);if(existing)Object.assign(existing,{against:targetValue,hero:sourceValue,tier,reason,source:'Community edited',sourceUrl:'',pocketPlayId});else state.counterTips.push({id:`tip-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,against:targetValue,hero:sourceValue,tier,reason,votes:0,myVote:false,source:'Community tip',pocketPlayId});}
  persist();closeModal('counterModal');render();if(state.returnToGroupManager){state.returnToGroupManager=false;switchPage('groupsPage');renderGroupManager()}toast(existingRule?'Group rule updated':state.editingDerived?'Individual matchup saved':sourceType==='group'||targetType==='group'?'Group rule added':'Counter tip added');state.editingCounter=null;state.editingCounterRule=null;state.editingDerived=null;});
 $('deleteCounterBtn').addEventListener('click',()=>{if(state.editingCounterRule){const id=state.editingCounterRule;if(confirm('Delete this group counter rule and all generated matchups?')){state.groupRules=state.groupRules.filter(r=>r.id!==id);persist();closeModal('counterModal');render();if(state.returnToGroupManager){state.returnToGroupManager=false;openGroupManager()}toast('Group rule deleted')}return}if(state.editingCounter){if(confirm('Delete this counter tip?')){state.counterTips=state.counterTips.filter(t=>t.id!==state.editingCounter);if(state.editingDerived){const parent=state.groupRules.find(r=>r.id===state.editingDerived.ruleId);if(parent)parent.excludedPairs=parent.excludedPairs.filter(k=>k!==state.editingDerived.pairKey)}persist();closeModal('counterModal');render();toast('Counter tip deleted')}}});
@@ -572,9 +572,10 @@ $('groupRulesManagerList').addEventListener('click',e=>{const edit=e.target.clos
 $('comboSourceType').addEventListener('change',syncComboForm);$('comboTargetType').addEventListener('change',syncComboForm);
 $('comboForm').addEventListener('submit',e=>{e.preventDefault();const sourceType=$('comboSourceType').value,targetType=$('comboTargetType').value,sourceValue=sourceType==='hero'?$('comboHeroA').value:$('comboGroupA').value,targetValue=targetType==='hero'?$('comboHeroB').value:$('comboGroupB').value,reason=$('comboReason').value.trim(),official=$('comboOfficial').checked,icon=normalizeIcon($('comboIcon')?.value||'sparkles'),pocketPlayId=$('comboPocketPlay')?.value||'';if(!sourceValue||!targetValue||!reason){toast('Choose a hero or group on both sides and add a reason');return}if(sourceType==='hero'&&targetType==='hero'&&sourceValue===targetValue){toast('Choose two different heroes');return}
  if(state.editingComboRule){const rule=state.comboRules.find(x=>x.id===state.editingComboRule);if(rule)Object.assign(rule,{sourceType,sourceValue,targetType,targetValue,reason,official,icon,pocketPlayId});}
- else if(sourceType==='hero'&&targetType==='hero'){const existing=state.combos.find(c=>c.id===state.editingCombo);if(existing)Object.assign(existing,{a:sourceValue,b:targetValue,reason,official,icon,pocketPlayId,source:official?'Official Team-Up · user entry':'Community edited',sourceUrl:existing.sourceUrl||''});else state.combos.push({id:`combo-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,a:sourceValue,b:targetValue,reason,official,votes:0,myVote:false,source:official?'Official Team-Up · user entry':'Community synergy',sourceUrl:'',icon,pocketPlayId});}
- else state.comboRules.push({id:`crule-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,sourceType,sourceValue,targetType,targetValue,reason,official,votesByPair:{},myVotesByPair:{},source:official?'Official Team-Up · group rule':'Community group synergy',sourceUrl:'',icon,pocketPlayId});
- persist();closeModal('comboModal');const wasRule=!!state.editingComboRule;state.editingCombo=null;state.editingComboRule=null;render();toast(wasRule?'Synergy rule updated':sourceType==='group'||targetType==='group'?'Group synergy rule added':official?'Official Team-Up added':'Synergy added')});
+ else if(sourceType==='hero'&&targetType==='hero'&&state.rnGroupRuleMode!=='synergy'){const existing=state.combos.find(c=>c.id===state.editingCombo);if(existing)Object.assign(existing,{a:sourceValue,b:targetValue,reason,official,icon,pocketPlayId,source:official?'Official Team-Up · user entry':'Community edited',sourceUrl:existing.sourceUrl||''});else state.combos.push({id:`combo-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,a:sourceValue,b:targetValue,reason,official,votes:0,myVote:false,source:official?'Official Team-Up · user entry':'Community synergy',sourceUrl:'',icon,pocketPlayId});}
+ else if(state.rnGroupRuleMode==='synergy'||sourceType==='group'||targetType==='group')state.comboRules.push({id:`crule-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,sourceType,sourceValue,targetType,targetValue,reason,official,votesByPair:{},myVotesByPair:{},source:official?'Official Team-Up · group rule':'Community group synergy',sourceUrl:'',icon,pocketPlayId});
+ else {const existing=state.combos.find(c=>c.id===state.editingCombo);if(existing)Object.assign(existing,{a:sourceValue,b:targetValue,reason,official,icon,pocketPlayId});else state.combos.push({id:`combo-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,a:sourceValue,b:targetValue,reason,official,votes:0,myVote:false,source:official?'Official Team-Up · user entry':'Community synergy',sourceUrl:'',icon,pocketPlayId});}
+ persist();closeModal('comboModal');const wasRule=!!state.editingComboRule;state.editingCombo=null;state.editingComboRule=null;render();toast(wasRule?'Synergy rule updated':state.rnGroupRuleMode==='synergy'||sourceType==='group'||targetType==='group'?'Group synergy rule added':official?'Official Team-Up added':'Synergy added')});
 $('deleteComboBtn').addEventListener('click',()=>{if(state.editingComboRule){if(confirm('Delete this synergy rule and its generated pairs?')){state.comboRules=state.comboRules.filter(c=>c.id!==state.editingComboRule);persist();closeModal('comboModal');state.editingComboRule=null;render();toast('Synergy rule deleted')}return}if(!state.editingCombo)return;if(confirm('Delete this teammate synergy?')){state.combos=state.combos.filter(c=>c.id!==state.editingCombo);persist();closeModal('comboModal');render();toast('Synergy deleted')}});
 function newBoardItem(type,extra={}){const item={id:`board-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,type,x:12+(state.playItems.length%5)*14,y:15+(state.playItems.length%4)*14,rotate:0,color:'yellow',...extra};state.playItems.push(item);state.selectedBoardItem=item.id;renderBoard();persist();}
 function renderPlaySelect(){const el=$('savedPlaySelect');const selected=state.activePlayId||'';el.innerHTML='<option value="">Select a saved play…</option>'+state.plays.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)}</option>`).join('');el.value=selected}
@@ -718,16 +719,16 @@ function normalizePlayItems(list){
         imageName:String(x.imageName||'Image').slice(0,120),
         shapeKind,
         path,
-        w:Math.max(.35,Math.min(100,Number(x.w)||fallbackW)),
-        h:Math.max(.35,Math.min(100,Number(x.h)||fallbackH)),
+        w:Math.max(.05,Math.min(500,Number(x.w)||fallbackW)),
+        h:Math.max(.05,Math.min(500,Number(x.h)||fallbackH)),
         scale:Math.max(.25,Math.min(4,Number(x.scale)||1)),
-        x:Number.isFinite(Number(x.x))?Math.max(0,Math.min(100,Number(x.x))):10,
-        y:Number.isFinite(Number(x.y))?Math.max(0,Math.min(100,Number(x.y))):10,
+        x:Number.isFinite(Number(x.x))?Math.max(-600,Math.min(600,Number(x.x))):10,
+        y:Number.isFinite(Number(x.y))?Math.max(-600,Math.min(600,Number(x.y))):10,
         rotate:Number.isFinite(Number(x.rotate))?Number(x.rotate):0,
         penStyle:['solid','dashed','arrow','dashed-arrow'].includes(x.penStyle)?x.penStyle:'solid',
-        penWidth:Math.max(.5,Math.min(5,Number(x.penWidth)||.5)),
+        penWidth:Math.max(.05,Math.min(12,Number(x.penWidth)||.05)),
         color:/^#[0-9a-f]{6}$/i.test(String(x.color||''))?String(x.color):(['white','black','red','yellow','green','blue'].includes(x.color)?x.color:'yellow'),
-        opacity:Math.max(.1,Math.min(1,Number(x.opacity)||1))
+        opacity:Number.isFinite(Number(x.opacity))?Math.max(0,Math.min(1,Number(x.opacity))):1
       };
       return item;
     })
@@ -2158,15 +2159,18 @@ initData();bindPlaybook();render();renderPlaybook();
         imageName: String(x.imageName||'Image').slice(0,120),
         shapeKind: ['circle','rectangle','triangle','triangle-down','diamond','cone','star','line','pin','warning','flag','anchor','target','area'].includes(x.shapeKind) ? x.shapeKind : 'rectangle',
         path,
-        w: Math.max(.35, Math.min(100, Number(x.w) || (x.type === 'shape' ? ({line:14,circle:9,area:14,rectangle:11,triangle:11,'triangle-down':11,diamond:9,cone:10,star:9,pin:9,warning:10,flag:9,anchor:9,target:10}[x.shapeKind] || 11) : x.type === 'arrow' ? 15 : x.type === 'wall' ? 15 : 2))),
-        h: Math.max(.35, Math.min(100, Number(x.h) || (x.type === 'shape' ? ({line:4,circle:14,area:12,rectangle:13,triangle:14,'triangle-down':14,diamond:14,cone:14,star:14,pin:14,warning:14,flag:14,anchor:14,target:14}[x.shapeKind] || 13) : x.type === 'arrow' ? 6 : x.type === 'wall' ? 5 : 2))),
+        w: Math.max(.05, Math.min(500, Number(x.w) || (x.type === 'shape' ? ({line:14,circle:9,area:14,rectangle:11,triangle:11,'triangle-down':11,diamond:9,cone:10,star:9,pin:9,warning:10,flag:9,anchor:9,target:10}[x.shapeKind] || 11) : x.type === 'arrow' ? 15 : x.type === 'wall' ? 15 : 2))),
+        h: Math.max(.05, Math.min(500, Number(x.h) || (x.type === 'shape' ? ({line:4,circle:14,area:12,rectangle:13,triangle:14,'triangle-down':14,diamond:14,cone:14,star:14,pin:14,warning:14,flag:14,anchor:14,target:14}[x.shapeKind] || 13) : x.type === 'arrow' ? 6 : x.type === 'wall' ? 5 : 2))),
         scale: Math.max(.25, Math.min(4, Number(x.scale) || 1)),
-        x: Number.isFinite(Number(x.x)) ? Math.max(0, Math.min(100, Number(x.x))) : 10,
-        y: Number.isFinite(Number(x.y)) ? Math.max(0, Math.min(100, Number(x.y))) : 10,
+        x: Number.isFinite(Number(x.x)) ? Math.max(-600, Math.min(600, Number(x.x))) : 10,
+        y: Number.isFinite(Number(x.y)) ? Math.max(-600, Math.min(600, Number(x.y))) : 10,
         rotate: Number.isFinite(Number(x.rotate)) ? Number(x.rotate) : 0,
-        penWidth: Math.max(.5, Math.min(5, Number(x.penWidth) || 2.2)),
+        penWidth: Math.max(.05, Math.min(12, Number(x.penWidth) || .5)),
+        borderWidth: Math.max(.05, Math.min(12, Number(x.borderWidth) || 3)),
         color: /^#[0-9a-f]{6}$/i.test(String(x.color||'')) ? String(x.color) : (['white','black','red','yellow','green','blue'].includes(x.color) ? x.color : 'yellow'),
-        opacity: Math.max(.1,Math.min(1,Number(x.opacity)||1))
+        opacity: Number.isFinite(Number(x.opacity)) ? Math.max(0,Math.min(1,Number(x.opacity))) : 1,
+        fillOpacity: Number.isFinite(Number(x.fillOpacity)) ? Math.max(0,Math.min(1,Number(x.fillOpacity))) : (Number.isFinite(Number(x.opacity)) ? Math.max(0,Math.min(1,Number(x.opacity)))*.17 : .17),
+        borderOpacity: Number.isFinite(Number(x.borderOpacity)) ? Math.max(0,Math.min(1,Number(x.borderOpacity))) : (Number.isFinite(Number(x.opacity)) ? Math.max(0,Math.min(1,Number(x.opacity))) : 1)
       };
     }).filter(x => x.type !== 'hero' || x.heroName)
       .filter(x => x.type !== 'text' || x.text.trim())
@@ -2498,8 +2502,8 @@ initData();bindPlaybook();render();renderPlaybook();
       if (resizing.stretchable) {
         const dx=(e.clientX-resizing.startX)/Math.max(1,resizing.boardW)*100;
         const dy=(e.clientY-resizing.startY)/Math.max(1,resizing.boardH)*100;
-        item.w=Math.max(.35,Math.min(100,resizing.startW+dx));
-        item.h=Math.max(.35,Math.min(100,resizing.startH+dy));
+        item.w=Math.max(.05,Math.min(500,resizing.startW+dx));
+        item.h=Math.max(.05,Math.min(500,resizing.startH+dy));
         resizing.changed=Math.abs(item.w-resizing.startW)>.001||Math.abs(item.h-resizing.startH)>.001;
         if(el){el.style.width=`${item.w}%`;el.style.height=`${item.h}%`;}
       } else {
@@ -2812,7 +2816,7 @@ body.groups-mode .groups-page.group-editing .modal-actions .btn{min-height:30px!
     const rules = state.groupRules.slice().sort((a,b)=>selectorLabel(a.sourceType,a.sourceValue).localeCompare(selectorLabel(b.sourceType,b.sourceValue))||selectorLabel(a.targetType,a.targetValue).localeCompare(selectorLabel(b.targetType,b.targetValue)));
     $('groupRulesManagerList').innerHTML = rules.length ? `<div class="group-rules-grid">${rules.map(r => {
       const a=groupMembers(r.sourceType,r.sourceValue).length, b=groupMembers(r.targetType,r.targetValue).length, tier=TIER[r.tier]||TIER.moderate;
-      return `<div class="group-rule-card"><div class="group-rule-title">${selectorVisual(r.sourceType,r.sourceValue)} → ${selectorVisual(r.targetType,r.targetValue)} <span class="tier-badge ${tier.cls}">${tier.label} · ${tier.weight.toFixed(1)}x</span></div>
+      return `<div class="group-rule-card"><div class="group-rule-title rn-group-counter-title"><span class="rn-group-counter-sides"><span class="rn-group-counter-side">${selectorVisual(r.sourceType,r.sourceValue)}</span><span class="rn-group-counter-divider" aria-hidden="true"></span><span class="rn-group-counter-side">${selectorVisual(r.targetType,r.targetValue)}</span></span><span class="tier-badge ${tier.cls}">${tier.label} · ${tier.weight.toFixed(1)}x</span></div>
         <div class="group-rule-detail">${a} counterpick × ${b} target = ${a*b} matchup${a*b===1?'':'s'}<br>${escapeHtml(r.reason)}${pocketAction(r.pocketPlayId)}</div>
         <div class="group-actions"><button class="edit-btn" data-edit-group-rule="${escapeHtml(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-rule="${escapeHtml(r.id)}" title="Delete rule">DELETE</button></div>
       </div>`;
@@ -3043,7 +3047,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   if (emptyHint) board.appendChild(emptyHint);
   oldBoard.replaceWith(board);
 
-  const MIN_ZOOM = 0.65, MAX_ZOOM = 2.0, ZOOM_STEP = 0.1;
+  const MIN_ZOOM = 0.5, MAX_ZOOM = 5.0, ZOOM_STEP = 0.1;
   // Every fresh page load starts at the fully zoomed-out board view.
   let zoom = 1;
   let panX = 0, panY = 0;
@@ -3052,9 +3056,11 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   let copiedItems = [];
   let hideAbilityLabels = localStorage.getItem('mrPlaybookHideAbilityLabels') === '1';
   let penModeActive = false, penStyle = 'solid', activeTool = 'select', pendingTextPlacement = false, penStroke = null;
-  let penThickness = Math.max(.5,Math.min(5,Number(localStorage.getItem('mrPlaybookPenThicknessV2'))||.5));
+  const storedNumber=(key,fallback)=>{const raw=localStorage.getItem(key);if(raw===null)return fallback;const value=Number(raw);return Number.isFinite(value)?value:fallback;};
+  let penThickness = Math.max(.05,Math.min(12,storedNumber('mrPlaybookPenThicknessV2',.5)));
   let penColor = localStorage.getItem('rnPlaybookPenColor') || 'yellow';
-  let penOpacity = Math.max(.1,Math.min(1,Number(localStorage.getItem('rnPlaybookOpacity'))||1));
+  let penOpacity = Math.max(0,Math.min(1,storedNumber('rnPlaybookOpacity',1)));
+  const shapeStyleDefaults={fillOpacity:Math.max(0,Math.min(1,storedNumber('rnPlaybookFillOpacity',.17))),borderOpacity:Math.max(0,Math.min(1,storedNumber('rnPlaybookBorderOpacity',1))),borderWidth:Math.max(.05,Math.min(12,storedNumber('rnPlaybookShapeBorderWidth',3)))};
   const boardPaint = c => {const v=String(c||'yellow');return /^#[0-9a-f]{6}$/i.test(v)?v:({white:'#f4f7fb',black:'#101820',red:'#ef665c',yellow:'#f1d76b',green:'#79d89e',blue:'#68bdf2'}[v]||'#f1d76b');};
   let hideHeroLabels = localStorage.getItem('mrPlaybookHideHeroLabels') === '1';
   let imageInsertCenter = null;
@@ -3110,6 +3116,14 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     if (item.type === 'shape') {
       const svg = el.querySelector('svg');
       if (svg) svg.outerHTML = fittedShapeSvg(item.shapeKind);
+      const shapeSvg=el.querySelector('svg');
+      const legacyOpacity=Number.isFinite(Number(item.opacity))?Math.max(0,Math.min(1,Number(item.opacity))):1;
+      const fillOpacity=Number.isFinite(Number(item.fillOpacity))?Math.max(0,Math.min(1,Number(item.fillOpacity))):legacyOpacity*.17;
+      const borderOpacity=Number.isFinite(Number(item.borderOpacity))?Math.max(0,Math.min(1,Number(item.borderOpacity))):legacyOpacity;
+      const borderWidth=Math.max(.05,Math.min(12,Number(item.borderWidth)||shapeStyleDefaults.borderWidth));
+      el.style.opacity='1';
+      shapeSvg?.querySelectorAll('.shape-fill').forEach(node=>{node.style.fill='currentColor';node.style.fillOpacity=String(fillOpacity);node.style.stroke='currentColor';node.style.strokeOpacity=String(borderOpacity);node.style.strokeWidth=`${borderWidth}px`;});
+      shapeSvg?.querySelectorAll('.shape-line').forEach(node=>{node.style.stroke='currentColor';node.style.strokeOpacity=String(borderOpacity);node.style.strokeWidth=`${borderWidth}px`;});
     }
     if (item.type === 'image') {
       el.classList.add('board-image');
@@ -3127,7 +3141,9 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       if (icon && !item.abilityIconUrl) { icon.classList.add('hulk-custom-icon'); icon.innerHTML = hulkVector(item.abilityName); }
     }
     if (item.type === 'hero' && hideHeroLabels) el.classList.add('hero-icon-only');
-    if (['shape','pen','arrow','wall','broken','number','pit'].includes(item.type)) { el.style.color=boardPaint(item.color); el.style.opacity=String(Math.max(.1,Math.min(1,Number(item.opacity)||1))); }
+    if (['shape','pen','arrow','wall','broken','number','pit'].includes(item.type)) { el.style.color=boardPaint(item.color); if(item.type!=='shape'){const alpha=Number.isFinite(Number(item.opacity))?Math.max(0,Math.min(1,Number(item.opacity))):1;el.style.opacity=String(alpha);} }
+    if(item.type==='arrow'){const sw=Math.max(.05,Math.min(12,Number(item.borderWidth)||4));const line=el.querySelector('line'),head=el.querySelector('.arrow-head');if(line){line.style.stroke='currentColor';line.style.strokeWidth=`${sw}px`;}if(head)head.style.fill='currentColor';}
+    if(item.type==='wall'){const sw=Math.max(.05,Math.min(12,Number(item.borderWidth)||2));const paths=el.querySelectorAll('path');if(paths[0]){paths[0].style.fill='currentColor';paths[0].style.fillOpacity='.32';paths[0].style.stroke='currentColor';paths[0].style.strokeWidth=`${sw}px`;}if(paths[1]){paths[1].style.stroke='#263640';paths[1].style.strokeWidth=`${Math.max(.05,sw*.7)}px`;}}
     if (item.type === 'pen') {
       const svg=el.querySelector('svg');
       const path=svg?.querySelector('path:not(.pen-arrow-head)')||svg?.querySelector('path');
@@ -3136,7 +3152,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       const pts=(Array.isArray(item.path)?item.path:[]).map(p=>({x:Math.max(0,Math.min(1000,Number(p[0])||0))/1000*boxW,y:Math.max(0,Math.min(1000,Number(p[1])||0))/1000*boxH}));
       if(svg&&path){
         svg.setAttribute('viewBox',`0 0 ${boxW} ${boxH}`);svg.setAttribute('preserveAspectRatio','none');
-        const strokeWidth=boardW*(Math.max(.5,Math.min(5,Number(item.penWidth)||.5))/100);
+        const strokeWidth=boardW*(Math.max(.05,Math.min(12,Number(item.penWidth)||.05))/100);
         const isArrowPen=String(item.penStyle||'').includes('arrow');
         const totalLen=pts.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pts[i].x,p.y-pts[i].y),0);
         const arrowSize=Math.min(Math.max(boardW*.04,strokeWidth*2.8),Math.max(strokeWidth*2,totalLen*.32));
@@ -3193,18 +3209,61 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     else if (!selectedIds.has(state.selectedBoardItem)) selectedIds = new Set([state.selectedBoardItem]);
     state.selectedBoardItems = [...selectedIds];
   }
+  function syncToolSettingsVisibility(){
+    const panel=$('rnToolSettings');if(!panel)return;
+    const chosen=state.playItems.filter(item=>selectedIds.has(item.id));
+    const selectedShape=chosen.find(item=>item.type==='shape');
+    const selectedStroke=chosen.find(item=>['pen','arrow','wall','broken'].includes(item.type));
+    const shapeMode=activeTool==='shape'||!!selectedShape;
+    const strokeMode=activeTool.startsWith('pen-')||!!selectedStroke;
+    const adjustable=shapeMode||strokeMode;
+    panel.hidden=!adjustable;
+    const general=$('rnToolOpacityRow'),fill=$('rnToolFillOpacityRow'),border=$('rnToolBorderOpacityRow'),thickness=$('rnToolThicknessRow');
+    if(general)general.hidden=!strokeMode;
+    const generalInput=$('rnToolOpacity'),generalOut=$('rnToolOpacityValue');
+    const selectedStrokeOpacity=selectedStroke&&Number.isFinite(Number(selectedStroke.opacity))?Number(selectedStroke.opacity):penOpacity;
+    if(generalInput){generalInput.value=String(Math.round(Math.max(0,Math.min(1,selectedStrokeOpacity))*100));if(generalOut)generalOut.textContent=`${generalInput.value}%`;}
+    if(fill)fill.hidden=!shapeMode;
+    if(border)border.hidden=!shapeMode;
+    if(thickness)thickness.hidden=!adjustable;
+    const shape=selectedShape;
+    const fillInput=$('rnToolFillOpacity'),fillOut=$('rnToolFillOpacityValue');
+    const borderInput=$('rnToolBorderOpacity'),borderOut=$('rnToolBorderOpacityValue');
+    const widthInput=$('boardPenThickness'),widthOut=$('boardPenThicknessValue');
+    if(fillInput){const v=shape?Number(shape.fillOpacity??shapeStyleDefaults.fillOpacity):shapeStyleDefaults.fillOpacity;fillInput.value=String(Math.round(Math.max(0,Math.min(1,v))*100));if(fillOut)fillOut.textContent=`${fillInput.value}%`;}
+    if(borderInput){const v=shape?Number(shape.borderOpacity??shapeStyleDefaults.borderOpacity):shapeStyleDefaults.borderOpacity;borderInput.value=String(Math.round(Math.max(0,Math.min(1,v))*100));if(borderOut)borderOut.textContent=`${borderInput.value}%`;}
+    const stroke=chosen.find(item=>['shape','pen','arrow','wall','broken'].includes(item.type));
+    const w=stroke?(stroke.type==='pen'?Number(stroke.penWidth)||penThickness:Number(stroke.borderWidth)||shapeStyleDefaults.borderWidth):penThickness;
+    if(widthInput){widthInput.value=String(Math.max(.05,Math.min(12,w)));if(widthOut)widthOut.textContent=`${Number(widthInput.value).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}`}
+  }
+  window.__rnSyncToolSettingsVisibility=syncToolSettingsVisibility;
+  window.__rnSetBoardShapeDefaults=values=>{if(!values||typeof values!=='object')return;if(Number.isFinite(Number(values.fillOpacity)))shapeStyleDefaults.fillOpacity=Math.max(0,Math.min(1,Number(values.fillOpacity)));if(Number.isFinite(Number(values.borderOpacity)))shapeStyleDefaults.borderOpacity=Math.max(0,Math.min(1,Number(values.borderOpacity)));if(Number.isFinite(Number(values.borderWidth)))shapeStyleDefaults.borderWidth=Math.max(.05,Math.min(12,Number(values.borderWidth)));};
   function clampRenderedItem(item, el) {
-    const bw = Math.max(1,stage.clientWidth), bh = Math.max(1,stage.clientHeight);
-    const layoutW = Math.max(1,el.offsetWidth), layoutH = Math.max(1,el.offsetHeight);
-    const rect = el.getBoundingClientRect();
-    const actualW = Math.max(layoutW,rect.width/zoom), actualH = Math.max(layoutH,rect.height/zoom);
-    const cx = Number(item.x||0)/100*bw + layoutW/2;
-    const cy = Number(item.y||0)/100*bh + layoutH/2;
-    const clampedX = Math.max(actualW/2,Math.min(bw-actualW/2,cx));
-    const clampedY = Math.max(actualH/2,Math.min(bh-actualH/2,cy));
-    item.x = Math.max(0,Math.min(100,(clampedX-layoutW/2)/bw*100));
-    item.y = Math.max(0,Math.min(100,(clampedY-layoutH/2)/bh*100));
-    el.style.left = `${item.x}%`; el.style.top = `${item.y}%`;
+    // Objects can extend off-canvas. Keep a narrow visible strip, not an inner snap boundary.
+    const bw=Math.max(1,stage.clientWidth),bh=Math.max(1,stage.clientHeight),visible=8;
+    const layoutW=Math.max(1,el.offsetWidth),layoutH=Math.max(1,el.offsetHeight);
+    const zoomFactor=Math.max(.01,zoom||1);
+    const rect=el.getBoundingClientRect();
+    const actualW=Math.max(layoutW,rect.width/zoomFactor),actualH=Math.max(layoutH,rect.height/zoomFactor);
+    const left=Number(item.x||0)/100*bw,top=Number(item.y||0)/100*bh;
+    const visualLeft=left+(layoutW-actualW)/2,visualTop=top+(layoutH-actualH)/2;
+    const clampedVisualLeft=Math.max(visible-actualW,Math.min(bw-visible,visualLeft));
+    const clampedVisualTop=Math.max(visible-actualH,Math.min(bh-visible,visualTop));
+    const clampedLeft=clampedVisualLeft-(layoutW-actualW)/2;
+    const clampedTop=clampedVisualTop-(layoutH-actualH)/2;
+    item.x=(clampedLeft/bw)*100;item.y=(clampedTop/bh)*100;
+    el.style.left=`${item.x}%`;el.style.top=`${item.y}%`;
+
+    // Place resize/rotate handles at a visible point on the transformed item.
+    // Inverse-transform the board point so handles remain usable for rotated/scaled heroes too.
+    const angle=(Number(item.rotate)||0)*Math.PI/180,scale=Math.max(.01,Number(item.scale)||1),cos=Math.cos(angle),sin=Math.sin(angle);
+    const centerX=clampedLeft+layoutW/2,centerY=clampedTop+layoutH/2;
+    const localFromBoard=(x,y)=>{const dx=x-centerX,dy=y-centerY;return {x:layoutW/2+(cos*dx+sin*dy)/scale,y:layoutH/2+(-sin*dx+cos*dy)/scale};};
+    const resizePoint={x:Math.max(visible,Math.min(bw-visible,clampedVisualLeft+actualW-visible)),y:Math.max(visible,Math.min(bh-visible,clampedVisualTop+actualH-visible))};
+    const handle=el.querySelector('.resize-handle');
+    if(handle){const local=localFromBoard(resizePoint.x,resizePoint.y);handle.style.left=`${local.x}px`;handle.style.top=`${local.y}px`;handle.style.right='auto';handle.style.bottom='auto';handle.style.transform='translate(-50%,-50%)';}
+    const pivot=el.querySelector('.rotate-pivot');
+    if(pivot){const point={x:Math.max(visible,Math.min(bw-visible,centerX)),y:Math.max(visible,Math.min(bh-visible,clampedVisualTop-visible))};const local=localFromBoard(point.x,point.y);pivot.style.left=`${local.x}px`;pivot.style.top=`${local.y}px`;pivot.style.transform='translate(-50%,-50%)';}
   }
   function renderBoard() {
     if (!board.isConnected) return;
@@ -3232,6 +3291,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     const del = $('deleteBoardItemBtn'); if (del) del.disabled = selectedIds.size===0;
     const sideControls = $('arrowControls'); if (sideControls) sideControls.classList.add('hidden');
     syncMultiActionButtons();
+    syncToolSettingsVisibility();
   }
 
   function measureItem(item) {
@@ -3244,20 +3304,16 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     return {layoutW,layoutH,actualW:Math.max(layoutW,rect.width/zoom),actualH:Math.max(layoutH,rect.height/zoom)};
   }
   function setItemCenter(item,cxPct,cyPct) {
-    const m=measureItem(item),bw=Math.max(1,stage.clientWidth),bh=Math.max(1,stage.clientHeight);
-    const cx=Math.max(m.actualW/2,Math.min(bw-m.actualW/2,cxPct/100*bw));
-    const cy=Math.max(m.actualH/2,Math.min(bh-m.actualH/2,cyPct/100*bh));
-    item.x=Math.max(0,Math.min(100,(cx-m.layoutW/2)/bw*100));
-    item.y=Math.max(0,Math.min(100,(cy-m.layoutH/2)/bh*100));
+    const m=measureItem(item),bw=Math.max(1,stage.clientWidth),bh=Math.max(1,stage.clientHeight),visible=8;
+    const left=cxPct/100*bw-m.layoutW/2,top=cyPct/100*bh-m.layoutH/2;
+    item.x=(Math.max(visible-m.actualW,Math.min(bw-visible,left))/bw)*100;
+    item.y=(Math.max(visible-m.actualH,Math.min(bh-visible,top))/bh)*100;
   }
   function clampItem(item) {
-    const m=measureItem(item),bw=Math.max(1,stage.clientWidth),bh=Math.max(1,stage.clientHeight);
-    const cx=(Number(item.x)||0)/100*bw+m.layoutW/2;
-    const cy=(Number(item.y)||0)/100*bh+m.layoutH/2;
-    const nx=Math.max(m.actualW/2,Math.min(bw-m.actualW/2,cx));
-    const ny=Math.max(m.actualH/2,Math.min(bh-m.actualH/2,cy));
-    item.x=Math.max(0,Math.min(100,(nx-m.layoutW/2)/bw*100));
-    item.y=Math.max(0,Math.min(100,(ny-m.layoutH/2)/bh*100));
+    const m=measureItem(item),bw=Math.max(1,stage.clientWidth),bh=Math.max(1,stage.clientHeight),visible=8;
+    const left=(Number(item.x)||0)/100*bw,top=(Number(item.y)||0)/100*bh;
+    item.x=(Math.max(visible-m.actualW,Math.min(bw-visible,left))/bw)*100;
+    item.y=(Math.max(visible-m.actualH,Math.min(bh-visible,top))/bh)*100;
   }
 
   // Add items at their centre point so the board never places half an object beyond an edge.
@@ -3267,7 +3323,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     if (type==='number' && !opts.number) opts.number=Math.max(0,...state.playItems.filter(x=>x.type==='number').map(x=>x.number||0))+1;
     const hasPosition=Number.isFinite(Number(opts.x)) && Number.isFinite(Number(opts.y));
     const item={id:`board-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,type,x:0,y:0,rotate:0,scale:1,color:'yellow',side:type==='hero'?'neutral':'ally',...opts};
-    if (type==='shape') { item.w=Number(item.w)||({circle:9,area:14,rectangle:11,triangle:11,'triangle-down':11,diamond:9,cone:10,star:9,line:14,pin:9,warning:10,flag:9,anchor:9,target:10}[item.shapeKind]||11); item.h=Number(item.h)||({line:4,circle:14,area:12,rectangle:13,triangle:14,'triangle-down':14,diamond:14,cone:14,star:14,pin:14,warning:14,flag:14,anchor:14,target:14}[item.shapeKind]||13); }
+    if (type==='shape') { item.w=Number(item.w)||({circle:9,area:14,rectangle:11,triangle:11,'triangle-down':11,diamond:9,cone:10,star:9,line:14,pin:9,warning:10,flag:9,anchor:9,target:10}[item.shapeKind]||11); item.h=Number(item.h)||({line:4,circle:14,area:12,rectangle:11,triangle:14,'triangle-down':14,diamond:14,cone:14,star:14,pin:9,warning:10,flag:9,anchor:9,target:14}[item.shapeKind]||13);if(!Object.prototype.hasOwnProperty.call(opts,'fillOpacity'))item.fillOpacity=shapeStyleDefaults.fillOpacity;if(!Object.prototype.hasOwnProperty.call(opts,'borderOpacity'))item.borderOpacity=shapeStyleDefaults.borderOpacity;if(!Object.prototype.hasOwnProperty.call(opts,'borderWidth'))item.borderWidth=shapeStyleDefaults.borderWidth; }
     if (['arrow','wall','pen'].includes(type)) { item.w=Number(item.w)||15; item.h=Number(item.h)||(type==='arrow'?6:type==='wall'?5:2); }
     if (type==='image') { item.w=Math.max(2,Number(item.w)||18); item.h=Math.max(2,Number(item.h)||20); }
     state.playItems.push(item);
@@ -3325,7 +3381,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     zoomControls.className='board-surface-zoom';
     zoomControls.setAttribute('role','group');
     zoomControls.setAttribute('aria-label','Whiteboard zoom');
-    zoomControls.innerHTML='<button type="button" id="boardZoomOutBtn" title="Zoom out" aria-label="Zoom out">−</button><label class="zoom-input-wrap"><input class="zoom-value" id="boardZoomValue" type="number" min="65" max="200" step="5" value="100" aria-label="Zoom percentage"><span>%</span></label><button type="button" id="boardZoomInBtn" title="Zoom in" aria-label="Zoom in">+</button>';
+    zoomControls.innerHTML='<button type="button" id="boardZoomOutBtn" title="Zoom out" aria-label="Zoom out">−</button><label class="zoom-input-wrap"><input class="zoom-value" id="boardZoomValue" type="number" min="50" max="500" step="5" value="100" aria-label="Zoom percentage"><span>%</span></label><button type="button" id="boardZoomInBtn" title="Zoom in" aria-label="Zoom in">+</button>';
     board.appendChild(zoomControls);
     ['boardZoomOutBtn','boardZoomInBtn'].forEach(id=>{const button=$(id);button.addEventListener('pointerdown',e=>{e.stopPropagation();});button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setZoom(zoom+(id==='boardZoomInBtn'?ZOOM_STEP:-ZOOM_STEP));});});
     const zoomInput=$('boardZoomValue');if(zoomInput){zoomInput.addEventListener('pointerdown',e=>e.stopPropagation());zoomInput.addEventListener('click',e=>e.stopPropagation());zoomInput.addEventListener('change',()=>setZoom((Number(zoomInput.value)||100)/100));zoomInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();setZoom((Number(zoomInput.value)||100)/100);zoomInput.blur();}});}
@@ -3376,12 +3432,16 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     </div>`);
     const thicknessControl=document.createElement('div');
     thicknessControl.className='board-pen-thickness';
-    thicknessControl.innerHTML=`<div class="board-pen-thickness-head"><label for="boardPenThickness">PEN THICKNESS</label><output id="boardPenThicknessValue">${penThickness.toFixed(1)}%</output></div><input id="boardPenThickness" type="range" min="0.5" max="5" step="0.1" value="${penThickness}" aria-label="Pen thickness"><div class="board-pen-thickness-scale"><span>FINE</span><span>BOLD</span></div>`;
+    thicknessControl.innerHTML=`<div class="board-pen-thickness-head"><label for="boardPenThickness">STROKE THICKNESS</label><output id="boardPenThicknessValue">${penThickness.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}</output></div><input id="boardPenThickness" type="range" min="0.05" max="12" step="0.05" value="${penThickness}" aria-label="Stroke thickness"><div class="board-pen-thickness-scale"><span>FINE</span><span>BOLD</span></div>`;
     document.querySelector('.board-pen-tool-row')?.insertAdjacentElement('afterend',thicknessControl);
     $('boardPenThickness')?.addEventListener('input',e=>{
-      penThickness=Math.max(.5,Math.min(5,Number(e.target.value)||.5));
+      penThickness=Math.max(.05,Math.min(12,Number(e.target.value)||.05));
       localStorage.setItem('mrPlaybookPenThicknessV2',String(penThickness));
-      $('boardPenThicknessValue').textContent=`${penThickness.toFixed(1)}%`;
+      $('boardPenThicknessValue').textContent=`${penThickness.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}`;
+      window.__rnSetBoardShapeDefaults?.({borderWidth:penThickness});localStorage.setItem('rnPlaybookShapeBorderWidth',String(penThickness));
+      const selected=state.playItems.filter(item=>selectedIds.has(item.id));
+      selected.forEach(item=>{if(item.type==='pen')item.penWidth=penThickness;else if(['shape','arrow','wall','broken'].includes(item.type))item.borderWidth=penThickness;});
+      if(selected.length){renderBoard();persist();}
     });
     const setTool=(tool)=>{
       activeTool=tool;pendingTextPlacement=tool==='text';penModeActive=tool.startsWith('pen-');
@@ -3389,14 +3449,14 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       board.classList.toggle('pen-active',penModeActive);
       document.querySelectorAll('#rnPrimaryToolBar button,.board-shape-tools button').forEach(b=>{const primary=b.dataset.rnPrimaryTool||'';b.classList.toggle('active',(b.id==='boardSelectToolBtn'&&tool==='select')||(b.id==='boardTextToolBtn'&&tool==='text')||(primary==='pen'&&tool.startsWith('pen-'))||(primary==='eraser'&&tool==='eraser'));});
       document.querySelectorAll('.board-pen-tool-row button').forEach(b=>b.classList.toggle('active',b.dataset.penTool===tool));
-      const settings=document.getElementById('rnToolSettings');if(settings)settings.hidden=!(tool.startsWith('pen-')||tool==='shape');
+      syncToolSettingsVisibility();
       const mainPen=document.querySelector('[data-rn-primary-tool="pen"]');if(mainPen)mainPen.classList.toggle('active',tool.startsWith('pen-'));
       const eraser=document.querySelector('[data-rn-primary-tool="eraser"]');if(eraser)eraser.classList.toggle('active',tool==='eraser');
       board.style.cursor=tool==='select'?'default':penModeActive?'crosshair':tool==='text'?'text':'default';
     };
     window.__rnSetBoardTool = tool => setTool(String(tool||'select'));
     window.__rnGetBoardTool = () => activeTool;
-    window.__rnSetBoardStyle = (color,opacity) => { if(color)penColor=String(color); if(Number.isFinite(Number(opacity)))penOpacity=Math.max(.1,Math.min(1,Number(opacity))); };
+    window.__rnSetBoardStyle = (color,opacity) => { if(color)penColor=String(color); if(Number.isFinite(Number(opacity)))penOpacity=Math.max(0,Math.min(1,Number(opacity))); };
     $('boardSelectToolBtn').addEventListener('click',()=>setTool('select'));
     [['solid','penSolidBtn'],['dashed','penDashedBtn'],['arrow','penArrowBtn'],['dashed-arrow','penDashedArrowBtn']].forEach(([kind,id])=>$(id).addEventListener('click',()=>setTool(`pen-${kind}`)));
     $('boardTextToolBtn').addEventListener('click',()=>setTool(pendingTextPlacement?'select':'text'));
@@ -3461,12 +3521,12 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
         const data=String(raw.imageData||'');
         item.imageData=/^data:image\/(?:png|jpeg|webp|gif);base64,/i.test(data)&&data.length<2000000?data:'';
         item.imageName=String(raw.imageName||'Image').slice(0,120);
-        item.w=Math.max(2,Math.min(60,Number(raw.w)||18));item.h=Math.max(2,Math.min(60,Number(raw.h)||20));
+        item.w=Math.max(.05,Math.min(500,Number(raw.w)||18));item.h=Math.max(.05,Math.min(500,Number(raw.h)||20));
       }
       if(item.type==='ability' && raw.abilityIconUrl && (/^https:\/\/www\.marvelrivals\.com\/pc\/gw\//.test(raw.abilityIconUrl) || /^https:\/\/cdn\.source\.gs\/marvel-rivals\/img\//.test(raw.abilityIconUrl))) item.abilityIconUrl=String(raw.abilityIconUrl);
       if(item.type==='pen'){
         item.penStyle=['solid','dashed','arrow','dashed-arrow'].includes(raw.penStyle)?raw.penStyle:'solid';
-        item.penWidth=Math.max(.5,Math.min(5,Number(raw.penWidth)||Number(item.penWidth)||.5));
+        item.penWidth=Math.max(.05,Math.min(12,Number(raw.penWidth)||Number(item.penWidth)||.05));
       }
       return item;
     }).filter(item=>item.type!=='image'||!!item.imageData);
@@ -3485,16 +3545,15 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     return `M ${b.x} ${b.y} L ${bx+px*half} ${by+py*half} L ${bx-px*half} ${by-py*half} Z`;
   }
   function beginPen(e){
-    const pt=worldPoint(e);penStroke={pointerId:e.pointerId,points:[pt],style:penStyle};
+    const pt=worldPoint(e);penStroke={pointerId:e.pointerId,points:[pt],style:penStyle,width:penThickness,color:penColor,opacity:penOpacity};
     const preview=document.createElementNS('http://www.w3.org/2000/svg','svg');
     const boardW=Math.max(1,stage.clientWidth),boardH=Math.max(1,stage.clientHeight);
     preview.setAttribute('viewBox',`0 0 ${boardW} ${boardH}`);preview.setAttribute('preserveAspectRatio','none');preview.classList.add('pen-preview');preview.id='penPreview';
     preview.innerHTML='<path id="penPreviewPath" d=""/><path id="penPreviewHead" d=""/>';
     const path=preview.querySelector('#penPreviewPath');
-    const strokeWidth=boardW*(penThickness/100);
-    penStroke.width=penThickness;
-    if(path){path.style.stroke=boardPaint(penColor);path.style.opacity=String(penOpacity);path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap=String(penStroke.style).includes('arrow')?'butt':'round';path.style.strokeLinejoin='round';if(String(penStroke.style).includes('dashed'))path.style.strokeDasharray=`${strokeWidth*1.6}px ${strokeWidth*1.05}px`;}
-    const head=preview.querySelector('#penPreviewHead');if(head){head.style.fill=boardPaint(penColor);head.style.opacity=String(penOpacity);head.style.stroke='none';}
+    const strokeWidth=boardW*(penStroke.width/100);
+    if(path){path.style.stroke=boardPaint(penStroke.color);path.style.opacity=String(penStroke.opacity);path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap=String(penStroke.style).includes('arrow')?'butt':'round';path.style.strokeLinejoin='round';if(String(penStroke.style).includes('dashed'))path.style.strokeDasharray=`${strokeWidth*1.6}px ${strokeWidth*1.05}px`;}
+    const head=preview.querySelector('#penPreviewHead');if(head){head.style.fill=boardPaint(penStroke.color);head.style.opacity=String(penStroke.opacity);head.style.stroke='none';}
     stage.appendChild(preview);board.setPointerCapture(e.pointerId);e.preventDefault();
   }
   function updatePen(e){
@@ -3510,11 +3569,11 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     const head=$('penPreviewHead');if(head){head.setAttribute('d',isArrow?penArrowHead(pixels,arrowSize,Math.min(arrowSize*.72,Math.max(boardW*.018,strokeWidth*1.35))):'');}
   }
   function finishPen(){
-    if(!penStroke)return;const points=penStroke.points,style=penStroke.style,width=penStroke.width||penThickness;penStroke=null;$('penPreview')?.remove();if(points.length<2)return;
+    if(!penStroke)return;const points=penStroke.points,style=penStroke.style,width=penStroke.width||penThickness,color=penStroke.color||penColor,opacity=Number.isFinite(Number(penStroke.opacity))?penStroke.opacity:penOpacity;penStroke=null;$('penPreview')?.remove();if(points.length<2)return;
     const minX=Math.min(...points.map(p=>p.x)),maxX=Math.max(...points.map(p=>p.x)),minY=Math.min(...points.map(p=>p.y)),maxY=Math.max(...points.map(p=>p.y));
     const w=Math.max(.5,maxX-minX),h=Math.max(.5,maxY-minY);
     const path=points.map(p=>[Math.max(0,Math.min(1000,(p.x-minX)/w*1000)),Math.max(0,Math.min(1000,(p.y-minY)/h*1000))]);
-    newBoardItem('pen',{x:minX,y:minY,w,h,path,penStyle:style,penWidth:width,color:penColor,opacity:penOpacity});
+    newBoardItem('pen',{x:minX,y:minY,w,h,path,penStyle:style,penWidth:width,color,opacity});
   }
   function finishPointer(){
     if(penStroke){finishPen();return;}
@@ -3601,7 +3660,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       const item=state.playItems.find(x=>x.id===resizing.id);if(!item)return;const el=stage.querySelector(`[data-board-item="${CSS.escape(item.id)}"]`);
       if(resizing.stretchable){
         const dx=(e.clientX-resizing.startX)/resizing.startWBoard*100,dy=(e.clientY-resizing.startY)/resizing.startHBoard*100;
-        item.w=Math.max(.35,Math.min(100,resizing.startW+dx));item.h=Math.max(.35,Math.min(100,resizing.startH+dy));
+        item.w=Math.max(.05,Math.min(500,resizing.startW+dx));item.h=Math.max(.05,Math.min(500,resizing.startH+dy));
         resizing.changed=Math.abs(item.w-resizing.startW)>.001||Math.abs(item.h-resizing.startH)>.001;
         if(el){el.style.width=`${item.w}%`;el.style.height=`${item.h}%`;}
       }else{
@@ -3848,7 +3907,7 @@ body.groups-mode .group-rule-expandable .group-actions [data-delete-group-rule]:
     const rules=(state.groupRules||[]).slice().sort((a,b)=>selectorLabel(a.sourceType,a.sourceValue).localeCompare(selectorLabel(b.sourceType,b.sourceValue))||selectorLabel(a.targetType,a.targetValue).localeCompare(selectorLabel(b.targetType,b.targetValue)));
     $('groupRulesManagerList').innerHTML=rules.length?`<div class="group-rules-grid">${rules.map(r=>{
       const left=memberList(r.sourceType,r.sourceValue),right=memberList(r.targetType,r.targetValue),tier=TIER[r.tier]||TIER.moderate,title=`${selectorLabel(r.sourceType,r.sourceValue)} → ${selectorLabel(r.targetType,r.targetValue)}`;
-      return `<details class="group-rule-card group-rule-expandable"><summary class="group-rule-summary"><span class="group-rule-title">${selectorVisual(r.sourceType,r.sourceValue)} → ${selectorVisual(r.targetType,r.targetValue)} <span class="tier-badge ${tier.cls}">${tier.label} · ${tier.weight.toFixed(1)}x</span></span><span class="rule-stats">${left.length} × ${right.length} matchups</span></summary><div class="group-rule-detail"><div class="rule-member-columns">${sideMembers('COUNTERPICK SIDE',r.sourceType,r.sourceValue)}${sideMembers('TARGET SIDE',r.targetType,r.targetValue)}</div><div class="rule-description">${esc(r.reason)}</div>${pocket(r.pocketPlayId)}<div class="group-actions"><button class="edit-btn" data-edit-group-rule="${esc(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-rule="${esc(r.id)}" title="Delete rule">DELETE</button></div></div></details>`;
+      return `<details class="group-rule-card group-rule-expandable"><summary class="group-rule-summary"><span class="group-rule-title rn-group-counter-title"><span class="rn-group-counter-sides"><span class="rn-group-counter-side">${selectorVisual(r.sourceType,r.sourceValue)}</span><span class="rn-group-counter-divider" aria-hidden="true"></span><span class="rn-group-counter-side">${selectorVisual(r.targetType,r.targetValue)}</span></span><span class="tier-badge ${tier.cls}">${tier.label} · ${tier.weight.toFixed(1)}x</span></span><span class="rule-stats">${left.length} × ${right.length} matchups</span></summary><div class="group-rule-detail"><div class="rule-member-columns">${sideMembers('COUNTERPICK SIDE',r.sourceType,r.sourceValue)}${sideMembers('TARGET SIDE',r.targetType,r.targetValue)}</div><div class="rule-description">${esc(r.reason)}</div>${pocket(r.pocketPlayId)}<div class="group-actions"><button class="edit-btn" data-edit-group-rule="${esc(r.id)}">EDIT RULE</button><button class="edit-btn" data-delete-group-rule="${esc(r.id)}" title="Delete rule">DELETE</button></div></div></details>`;
     }).join('')}</div>`:'<div class="empty-state">No group counter rules yet. Add a group-to-hero or group-to-group matchup rule.</div>';
     if(typeof renderGroupSynergyRules==='function')renderGroupSynergyRules();
     if($('groupTabCount'))$('groupTabCount').textContent=groups.length;
@@ -4208,8 +4267,10 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
    <div class="rn-tool-settings" id="rnToolSettings" hidden>
      <div class="rn-setting-row rn-type-row"><span class="rn-setting-label">TYPE</span><div class="rn-type-slot"></div></div>
      <div class="rn-setting-row rn-color-row"><span class="rn-setting-label">COLOR</span><div class="rn-color-swatches" id="rnColorSwatches"></div></div>
-     <div class="rn-setting-row"><span class="rn-setting-label">OPACITY</span><input id="rnToolOpacity" type="range" min="10" max="100" step="5" value="100"><output id="rnToolOpacityValue">100%</output></div>
-     <div class="rn-setting-row rn-thickness-row"><span class="rn-setting-label">THICKNESS</span><div class="rn-thickness-slot"></div></div>
+     <div class="rn-setting-row rn-opacity-row" id="rnToolOpacityRow"><span class="rn-setting-label">OPACITY</span><output id="rnToolOpacityValue">100%</output><input id="rnToolOpacity" type="range" min="0" max="100" step="1" value="100"></div>
+     <div class="rn-setting-row rn-opacity-row" id="rnToolFillOpacityRow" hidden><span class="rn-setting-label">FILL OPACITY</span><output id="rnToolFillOpacityValue">17%</output><input id="rnToolFillOpacity" type="range" min="0" max="100" step="1" value="17"></div>
+     <div class="rn-setting-row rn-opacity-row" id="rnToolBorderOpacityRow" hidden><span class="rn-setting-label">BORDER OPACITY</span><output id="rnToolBorderOpacityValue">100%</output><input id="rnToolBorderOpacity" type="range" min="0" max="100" step="1" value="100"></div>
+     <div class="rn-setting-row rn-thickness-row" id="rnToolThicknessRow"><span class="rn-setting-label">THICKNESS</span><div class="rn-thickness-slot"></div></div>
    </div>`;
  const primary=kit.querySelector('#rnPrimaryToolBar');
  const addPrimary=(id,title,svg,kind)=>{const b=document.createElement('button');b.type='button';b.className='rn-primary-tool';b.id=id;b.title=title;b.setAttribute('aria-label',title);b.dataset.rnPrimaryTool=kind;b.innerHTML=svg;primary.appendChild(b);return b;};
@@ -4229,19 +4290,29 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
  const swatches=kit.querySelector('#rnColorSwatches');
  const colors=[['white','#f4f7fb'],['black','#101820'],['red','#ef665c'],['yellow','#f1d76b'],['green','#79d89e'],['blue','#68bdf2']];
  let currentColor=localStorage.getItem('rnPlaybookPenColor')||'yellow';
- let currentOpacity=Math.max(.1,Math.min(1,Number(localStorage.getItem('rnPlaybookOpacity'))||1));
+ const storedOpacity=localStorage.getItem('rnPlaybookOpacity');
+ let currentOpacity=storedOpacity===null?1:Math.max(0,Math.min(1,Number(storedOpacity)||0));
+ const storedFill=localStorage.getItem('rnPlaybookFillOpacity'),storedBorder=localStorage.getItem('rnPlaybookBorderOpacity');
+ let currentFillOpacity=storedFill===null?.17:Math.max(0,Math.min(1,Number(storedFill)||0));
+ let currentBorderOpacity=storedBorder===null?1:Math.max(0,Math.min(1,Number(storedBorder)||0));
  const paint={white:'#f4f7fb',black:'#101820',red:'#ef665c',yellow:'#f1d76b',green:'#79d89e',blue:'#68bdf2'};
- function applySettingsToSelected(){const ids=Array.isArray(state.selectedBoardItems)?state.selectedBoardItems:(state.selectedBoardItem?[state.selectedBoardItem]:[]);let changed=false;for(const item of state.playItems||[]){if(ids.includes(item.id)&&['shape','pen','arrow','wall','broken','pit','number'].includes(item.type)){item.color=currentColor;item.opacity=currentOpacity;changed=true;}}if(changed){window.__rnRenderBoard?.();persist();}}
+ function applySettingsToSelected(){const ids=Array.isArray(state.selectedBoardItems)?state.selectedBoardItems:(state.selectedBoardItem?[state.selectedBoardItem]:[]);let changed=false;for(const item of state.playItems||[]){if(!ids.includes(item.id)||!['shape','pen','arrow','wall','broken','pit','number'].includes(item.type))continue;item.color=currentColor;if(item.type!=='shape')item.opacity=currentOpacity;changed=true;}if(changed){window.__rnRenderBoard?.();persist();}}
  function setColor(color){currentColor=color;localStorage.setItem('rnPlaybookPenColor',color);window.__rnSetBoardStyle?.(currentColor,currentOpacity);swatches.querySelectorAll('[data-color]').forEach(b=>b.classList.toggle('active',b.dataset.color===color));custom.classList.toggle('active',/^#[0-9a-f]{6}$/i.test(String(color)));if(custom.classList.contains('active'))custom.querySelector('input').value=color;applySettingsToSelected();}
  colors.forEach(([name,hex])=>{const b=document.createElement('button');b.type='button';b.className='rn-color-chip';b.dataset.color=name;b.title=name;b.setAttribute('aria-label',name);b.style.background=hex;b.addEventListener('click',()=>setColor(name));swatches.appendChild(b);});
  const custom=document.createElement('label');custom.className='rn-custom-color';custom.title='Custom color';custom.innerHTML='<span>＋</span><input type="color" aria-label="Choose custom color" value="#f1d76b">';swatches.appendChild(custom);
  if(/^#[0-9a-f]{6}$/i.test(currentColor))custom.querySelector('input').value=currentColor;custom.querySelector('input').addEventListener('input',e=>{const hex=e.target.value;const key=hex.toLowerCase();paint[key]=hex;currentColor=hex;localStorage.setItem('rnPlaybookPenColor',hex);swatches.querySelectorAll('[data-color]').forEach(b=>b.classList.remove('active'));custom.classList.add('active');window.__rnSetBoardStyle?.(hex,currentOpacity);applySettingsToSelected();});
  const opacity=kit.querySelector('#rnToolOpacity'),opacityValue=kit.querySelector('#rnToolOpacityValue');opacity.value=String(Math.round(currentOpacity*100));opacityValue.textContent=`${opacity.value}%`;
  opacity.addEventListener('input',()=>{currentOpacity=Number(opacity.value)/100;opacityValue.textContent=`${opacity.value}%`;localStorage.setItem('rnPlaybookOpacity',String(currentOpacity));window.__rnSetBoardStyle?.(currentColor,currentOpacity);applySettingsToSelected();});
+ const fillOpacity=kit.querySelector('#rnToolFillOpacity'),fillOpacityValue=kit.querySelector('#rnToolFillOpacityValue');fillOpacity.value=String(Math.round(currentFillOpacity*100));fillOpacityValue.textContent=`${fillOpacity.value}%`;
+ fillOpacity.addEventListener('input',()=>{currentFillOpacity=Number(fillOpacity.value)/100;fillOpacityValue.textContent=`${fillOpacity.value}%`;localStorage.setItem('rnPlaybookFillOpacity',String(currentFillOpacity));window.__rnSetBoardShapeDefaults?.({fillOpacity:currentFillOpacity});const selected=(state.playItems||[]).filter(item=>state.selectedBoardItems?.includes(item.id)&&item.type==='shape');selected.forEach(item=>item.fillOpacity=currentFillOpacity);if(selected.length){window.__rnRenderBoard?.();persist();}});
+ const borderOpacity=kit.querySelector('#rnToolBorderOpacity'),borderOpacityValue=kit.querySelector('#rnToolBorderOpacityValue');borderOpacity.value=String(Math.round(currentBorderOpacity*100));borderOpacityValue.textContent=`${borderOpacity.value}%`;
+ borderOpacity.addEventListener('input',()=>{currentBorderOpacity=Number(borderOpacity.value)/100;borderOpacityValue.textContent=`${borderOpacity.value}%`;localStorage.setItem('rnPlaybookBorderOpacity',String(currentBorderOpacity));window.__rnSetBoardShapeDefaults?.({borderOpacity:currentBorderOpacity});const selected=(state.playItems||[]).filter(item=>state.selectedBoardItems?.includes(item.id)&&item.type==='shape');selected.forEach(item=>item.borderOpacity=currentBorderOpacity);if(selected.length){window.__rnRenderBoard?.();persist();}});
  if(window.__rnSetBoardStyle)window.__rnSetBoardStyle(currentColor,currentOpacity);
+ window.__rnSetBoardShapeDefaults?.({fillOpacity:currentFillOpacity,borderOpacity:currentBorderOpacity,borderWidth:Number(localStorage.getItem('rnPlaybookShapeBorderWidth'))||3});
  setColor(currentColor);
  // The primary row sits first, followed by the contextual settings.
  sidebar.insertBefore(kit,shapePalette);
+ window.__rnRenderBoard?.();window.__rnSyncToolSettingsVisibility?.();
  // Relabel and move the existing shape palette to the bottom of the sidebar.
  const shapeHeading=document.createElement('div');shapeHeading.className='rn-shape-heading';shapeHeading.textContent='TACTICAL SHAPES & MARKERS';
  shapePalette.innerHTML='';shapePalette.classList.add('rn-shape-palette');
@@ -5651,6 +5722,222 @@ body.playbook-mode .board-item.board-pen,
 body.playbook-mode .board-item.board-arrow,
 body.playbook-mode .board-item.board-wall{max-width:none!important;max-height:none!important}
 </style>
+
+
+
+<style id="rn-v13-6-requested-adjustments">
+/* Counterpicker switches to red; Synergies keeps the existing green treatment. */
+.page-tab[data-page="counterPage"]{border-color:#8f4d56!important;background:linear-gradient(145deg,#48242b,#321b22)!important;color:#ffd4d5!important;}
+.page-tab[data-page="counterPage"]:hover{border-color:#d77a7f!important;background:linear-gradient(145deg,#65333a,#47232c)!important;color:#fff!important;}
+.page-tab[data-page="counterPage"].active{border-color:#f09a98!important;background:linear-gradient(145deg,#a3424a,#73313b)!important;color:#fff!important;box-shadow:0 3px 14px #b83d4b35,inset 0 1px #ffffff22!important;}
+/* Long sliders occupy the full settings width and always allow a return to 100%. */
+#rnToolSettings .rn-setting-row.rn-opacity-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto 24px!important;gap:4px 8px!important;min-height:45px!important;align-items:center!important;}
+#rnToolSettings .rn-opacity-row .rn-setting-label{grid-column:1;grid-row:1}
+#rnToolSettings .rn-opacity-row output{grid-column:2;grid-row:1}
+#rnToolSettings .rn-opacity-row input[type=range]{grid-column:1/-1;grid-row:2;width:100%!important;min-width:0!important;max-width:none!important;margin:0!important;display:block!important;}
+#rnToolSettings .rn-thickness-row{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto!important;gap:4px!important;}
+#rnToolSettings .rn-thickness-row>.rn-setting-label{grid-column:1;grid-row:1}
+#rnToolSettings .rn-thickness-slot{grid-column:1;grid-row:2;width:100%;min-width:0}
+#rnToolSettings .rn-thickness-slot #boardPenThickness{width:100%!important;min-width:0!important;max-width:none!important}
+#rnToolSettings .rn-setting-row[hidden]{display:none!important}
+/* Preserve the selected pen color in both the live stroke and the saved SVG. */
+body.playbook-mode .board-pen.pen-final-preview-match path:not(.pen-arrow-head){stroke:currentColor!important;fill:none!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+body.playbook-mode .board-pen.pen-final-preview-match .pen-arrow-head{fill:currentColor!important;stroke:none!important}
+/* Distinct fill and outline opacity are applied on each SVG primitive. */
+body.playbook-mode .board-shape{opacity:1!important}
+body.playbook-mode .board-shape .shape-fill{fill:currentColor;stroke:currentColor}
+body.playbook-mode .board-shape .shape-line{fill:none;stroke:currentColor}
+body.playbook-mode .rn-v10-group-actions .rn-v13-group-delete{font-size:0!important}
+body.playbook-mode .rn-v10-group-actions .rn-v13-group-delete::before{content:'×'!important;font-size:24px!important;line-height:1!important;font-weight:400!important}
+body.playbook-mode .rn-v10-group-actions .rn-v13-group-delete::after{content:none!important;display:none!important}
+/* The old suggestions badge is retained in the DOM for render functions, but not shown. */
+#synergyAddMount #synergyCount,#synergyAddMount .collapse-count{display:none!important}
+/* Group-to-group matchup title: two distinct sides with a central dividing rule. */
+body.groups-mode .group-rule-expandable .rn-group-counter-title{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important;min-width:0}
+.rn-group-counter-sides{display:grid!important;grid-template-columns:minmax(0,1fr) 2px minmax(0,1fr);align-items:center;gap:8px;min-width:0;width:100%}
+.rn-group-counter-side{display:flex;align-items:center;gap:4px;min-width:0;overflow-wrap:anywhere;line-height:1.3}
+.rn-group-counter-side .group-svg-icon{width:15px!important;height:15px!important;flex:none}
+.rn-group-counter-divider{width:2px;height:26px;display:block;border-radius:2px;background:linear-gradient(180deg,#6f8798,#b4c4d0,#6f8798);box-shadow:0 0 0 1px #ffffff12;justify-self:center}
+/* Smaller visual hero pickers are only used in the group-rule editor modes. */
+.rn-group-rule-mode .rn-group-hero-native{display:none!important}
+.rn-group-rule-mode .rn-group-hero-picker{display:block!important}
+.rn-group-hero-picker{display:none;position:relative;min-width:0}
+.rn-group-hero-trigger{width:100%;min-height:42px;display:flex;align-items:center;gap:8px;text-align:left;background:#273543;border:1px solid #526879;border-radius:6px;color:#eff6fb;padding:5px 8px;cursor:pointer}
+.rn-group-hero-trigger:hover,.rn-group-hero-picker.open .rn-group-hero-trigger{border-color:#8fbdc8;background:#304556}
+.rn-group-hero-trigger img{width:31px;height:31px;object-fit:contain;flex:none;border-radius:4px;background:#18232e}
+.rn-group-hero-trigger span{min-width:0;font-size:11px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rn-group-hero-popover{display:none;position:absolute;z-index:120;left:0;right:0;top:calc(100% + 4px);padding:7px;background:#17232e;border:1px solid #617789;border-radius:7px;box-shadow:0 12px 28px #000b;}
+.rn-group-hero-picker.open .rn-group-hero-popover{display:block}
+.rn-group-hero-search{width:100%;height:30px;margin:0 0 6px!important;background:#253442!important;border:1px solid #51697a!important;color:#fff!important;font-size:10px!important}
+.rn-group-hero-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;max-height:210px;overflow:auto;scrollbar-width:thin;scrollbar-color:#607d8d transparent}
+.rn-group-hero-option{min-width:0;min-height:45px;display:flex;align-items:center;gap:4px;padding:3px 4px;border:1px solid #3d5262;border-radius:4px;background:#263542;color:#eaf1f5;text-align:left;font-size:8px;cursor:pointer}
+.rn-group-hero-option:hover,.rn-group-hero-option.active{border-color:#e2c568;background:#3d4140;color:#fff}
+.rn-group-hero-option img{width:26px;height:31px;object-fit:contain;flex:none}
+.rn-group-hero-option span{min-width:0;overflow-wrap:anywhere;line-height:1.15}
+#counterModal .rn-group-rule-switch,#comboModal .rn-group-rule-switch{margin-left:auto;margin-right:8px;white-space:nowrap;flex:none;padding:6px 9px;font-size:8px;font-weight:900;letter-spacing:.03em;border:1px solid #6b8c9b;border-radius:5px;background:#2c4352;color:#e8f5fb;cursor:pointer}
+#counterModal .rn-group-rule-switch:hover,#comboModal .rn-group-rule-switch:hover{background:#3b5968;border-color:#a6d5dc}
+@media(max-width:600px){.rn-group-hero-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rn-group-rule-switch{font-size:7px!important;padding:5px 6px!important}}
+</style>
+
+<script id="rn-v13-6-group-rule-mode-and-hero-picker">
+(()=>{
+ const $=id=>document.getElementById(id);
+ if(typeof state==='undefined'||!$('counterModal')||!$('comboModal'))return;
+ const cloneRule=rule=>rule?JSON.parse(JSON.stringify(rule)):null;
+ const groupOpen=window.openGroupRuleEditor;
+ const synergyOpen=window.openComboRuleEditor;
+ const counterOpen=window.openCounterEditor;
+ const comboOpen=window.openComboEditor;
+ if(typeof groupOpen==='function'&&!groupOpen.__rnV136Wrapped){
+  const wrapped=function(rule=null){state.rnGroupRuleMode='counter';return groupOpen.call(this,rule)};wrapped.__rnV136Wrapped=true;window.openGroupRuleEditor=wrapped;
+ }
+ if(typeof synergyOpen==='function'&&!synergyOpen.__rnV136Wrapped){
+  const wrapped=function(rule=null){state.rnGroupRuleMode='synergy';return synergyOpen.call(this,rule)};wrapped.__rnV136Wrapped=true;window.openComboRuleEditor=wrapped;
+ }
+ if(typeof counterOpen==='function'&&!counterOpen.__rnV136Wrapped){
+  const wrapped=function(...args){state.rnGroupRuleMode='';return counterOpen.apply(this,args)};wrapped.__rnV136Wrapped=true;window.openCounterEditor=wrapped;
+ }
+ if(typeof comboOpen==='function'&&!comboOpen.__rnV136Wrapped){
+  const wrapped=function(...args){state.rnGroupRuleMode='';return comboOpen.apply(this,args)};wrapped.__rnV136Wrapped=true;window.openComboEditor=wrapped;
+ }
+ const switchButton=(modalId,id,label)=>{
+  const modal=$(modalId),head=modal?.querySelector('.modal-head');if(!head||$(id))return;
+  const b=document.createElement('button');b.type='button';b.id=id;b.className='rn-group-rule-switch';b.textContent=label;head.insertBefore(b,head.querySelector('.modal-close')||null);
+ };
+ switchButton('counterModal','rnSwitchToSynergy','SWITCH TO GROUP SYNERGY');
+ switchButton('comboModal','rnSwitchToCounter','SWITCH TO GROUP COUNTER');
+ function activeMode(){return state.rnGroupRuleMode==='counter'?'counter':state.rnGroupRuleMode==='synergy'?'synergy':''}
+ function setModalMode(){
+  const mode=activeMode();
+  $('counterModal').classList.toggle('rn-group-rule-mode',mode==='counter'&&$('counterModal').classList.contains('open'));
+  $('comboModal').classList.toggle('rn-group-rule-mode',mode==='synergy'&&$('comboModal').classList.contains('open'));
+  const a=$('rnSwitchToSynergy'),b=$('rnSwitchToCounter');if(a)a.hidden=!(mode==='counter'&&$('counterModal').classList.contains('open'));if(b)b.hidden=!(mode==='synergy'&&$('comboModal').classList.contains('open'));
+  syncAllPickers();
+ }
+ const modalObserver=new MutationObserver(setModalMode);
+ ['counterModal','comboModal'].forEach(id=>modalObserver.observe($(id),{attributes:true,attributeFilter:['class']}));
+ function heroData(name){return (HEROES||[]).find(h=>h.name===name)||null}
+ function buildPicker(selectId){
+  const select=$(selectId);if(!select||select.dataset.rnV136Picker)return;
+  select.dataset.rnV136Picker='1';select.classList.add('rn-group-hero-native');
+  const wrapper=document.createElement('div');wrapper.className='rn-group-hero-picker';wrapper.dataset.forSelect=selectId;
+  const trigger=document.createElement('button');trigger.type='button';trigger.className='rn-group-hero-trigger';
+  const thumb=document.createElement('img');thumb.alt='';thumb.hidden=true;
+  const label=document.createElement('span');label.textContent='Choose a hero';
+  trigger.append(thumb,label);
+  const pop=document.createElement('div');pop.className='rn-group-hero-popover';
+  const search=document.createElement('input');search.type='search';search.className='rn-group-hero-search';search.placeholder='Search heroes…';search.autocomplete='off';
+  const grid=document.createElement('div');grid.className='rn-group-hero-grid';pop.append(search,grid);wrapper.append(trigger,pop);select.insertAdjacentElement('afterend',wrapper);
+  const renderOptions=()=>{
+   const q=search.value.trim().toLowerCase();
+   grid.innerHTML=(HEROES||[]).filter(h=>!q||`${h.name} ${h.role}`.toLowerCase().includes(q)).map(h=>`<button type="button" class="rn-group-hero-option${select.value===h.name?' active':''}" data-hero="${String(h.name).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}" title="${h.name} · ${h.role}"><img loading="lazy" src="${h.img}" alt=""><span>${h.name}</span></button>`).join('');
+  };
+  const sync=()=>{const h=heroData(select.value);thumb.hidden=!h;thumb.src=h?.img||'';label.textContent=h?.name||'Choose a hero';renderOptions();};
+  trigger.addEventListener('click',()=>{wrapper.classList.toggle('open');if(wrapper.classList.contains('open')){search.value='';renderOptions();search.focus();}});
+  search.addEventListener('input',renderOptions);
+  grid.addEventListener('click',e=>{const b=e.target.closest('[data-hero]');if(!b)return;select.value=b.dataset.hero;select.dispatchEvent(new Event('change',{bubbles:true}));wrapper.classList.remove('open');sync();});
+  select.addEventListener('change',sync);
+  document.addEventListener('click',e=>{if(!wrapper.contains(e.target))wrapper.classList.remove('open')});
+  wrapper.__rnSync=()=>{const field=select.closest('.field');wrapper.style.display=field?.classList.contains('hidden')?'none':'';sync();};
+  wrapper.__rnRender=renderOptions;
+  wrapper.__rnSync();
+ }
+ ['counterHero','counterAgainst','comboHeroA','comboHeroB'].forEach(buildPicker);
+ function syncAllPickers(){document.querySelectorAll('.rn-group-hero-picker').forEach(w=>w.__rnSync?.())}
+ // Keep custom image pickers in step with the native field visibility and selected value.
+ ['counterHeroWrap','counterAgainstWrap','comboHeroAWrap','comboHeroBWrap'].forEach(id=>{const n=$(id);if(n)new MutationObserver(syncAllPickers).observe(n,{attributes:true,attributeFilter:['class']})});
+
+ function selection(modal){
+  const counter=modal==='counter',sourceType=$(counter?'counterSourceType':'comboSourceType').value,targetType=$(counter?'counterTargetType':'comboTargetType').value;
+  const sourceValue=sourceType==='hero'?$(counter?'counterHero':'comboHeroA').value:$(counter?'counterSourceGroup':'comboGroupA').value;
+  const targetValue=targetType==='hero'?$(counter?'counterAgainst':'comboHeroB').value:$(counter?'counterTargetGroup':'comboGroupB').value;
+  return {sourceType,sourceValue,targetType,targetValue,reason:$(counter?'counterReason':'comboReason').value,pocketPlayId:$(counter?'counterPocketPlay':'comboPocketPlay')?.value||'',tier:counter?$('counterTier').value:'moderate'};
+ }
+ function fillCounter(v,existing=null){
+  window.openGroupRuleEditor?.(existing);
+  $('counterSourceType').value=v.sourceType;$('counterTargetType').value=v.targetType;
+  populateHeroSelect('counterHero',v.sourceType==='hero'?v.sourceValue:'');populateHeroSelect('counterAgainst',v.targetType==='hero'?v.targetValue:'');
+  populateGroupSelect('counterSourceGroup',v.sourceType==='group'?v.sourceValue:'');populateGroupSelect('counterTargetGroup',v.targetType==='group'?v.targetValue:'');
+  $('counterTier').value=v.tier||'moderate';$('counterReason').value=v.reason||'';populatePocketPlaySelect('counterPocketPlay',v.pocketPlayId||'');syncCounterForm();syncAllPickers();
+ }
+ function fillSynergy(v,existing=null){
+  window.openComboRuleEditor?.(existing);
+  $('comboSourceType').value=v.sourceType;$('comboTargetType').value=v.targetType;
+  populateHeroSelect('comboHeroA',v.sourceType==='hero'?v.sourceValue:'');populateHeroSelect('comboHeroB',v.targetType==='hero'?v.targetValue:'');
+  populateComboGroupSelect('comboGroupA',v.sourceType==='group'?v.sourceValue:'');populateComboGroupSelect('comboGroupB',v.targetType==='group'?v.targetValue:'');
+  $('comboReason').value=v.reason||'';$('comboOfficial').checked=false;$('comboIcon').value='sparkles';updateIconPreview('comboIcon');populatePocketPlaySelect('comboPocketPlay',v.pocketPlayId||'');syncComboForm();syncAllPickers();
+ }
+ function switchRule(to){
+  const from=activeMode();if(!from||from===to)return;
+  const values=selection(from),editingId=from==='counter'?state.editingCounterRule:state.editingComboRule;
+  let pending=state.rnPendingRuleConversion||null;
+  if(!pending&&editingId){
+   const source=from==='counter'?(state.groupRules||[]).find(r=>r.id===editingId):(state.comboRules||[]).find(r=>r.id===editingId);
+   if(source)pending={from,id:editingId,record:cloneRule(source),to};
+  }
+  if(pending)pending.to=to;
+  state.rnPendingRuleConversion=pending;
+  closeModal(from==='counter'?'counterModal':'comboModal');
+  state.returnToGroupManager=true;
+  if(pending&&to===pending.from){
+   state.rnPendingRuleConversion=null;
+   if(to==='counter')fillCounter(values,pending.record);else fillSynergy(values,pending.record);
+  }else{
+   if(to==='counter')fillCounter(values,null);else fillSynergy(values,null);
+  }
+  setModalMode();
+ }
+ $('rnSwitchToSynergy')?.addEventListener('click',()=>switchRule('synergy'));
+ $('rnSwitchToCounter')?.addEventListener('click',()=>switchRule('counter'));
+
+ // When a conversion is saved, remove the previous rule only after the destination modal closes.
+ const conversionSubmit=(formId,modalId,targetKind)=>$(formId).addEventListener('submit',()=>{
+  const pending=state.rnPendingRuleConversion;if(!pending||pending.to!==targetKind)return;
+  const before=targetKind==='counter'?(state.groupRules||[]).length:(state.comboRules||[]).length;
+  setTimeout(()=>{
+   if($(modalId).classList.contains('open'))return;
+   const after=targetKind==='counter'?(state.groupRules||[]).length:(state.comboRules||[]).length;
+   if(after<=before)return;
+   if(pending.from==='counter')state.groupRules=(state.groupRules||[]).filter(r=>r.id!==pending.id);
+   else state.comboRules=(state.comboRules||[]).filter(r=>r.id!==pending.id);
+   state.rnPendingRuleConversion=null;state.rnGroupRuleMode='';persist();renderGroupManager();render();
+  },0);
+ },true);
+ conversionSubmit('counterForm','counterModal','counter');conversionSubmit('comboForm','comboModal','synergy');
+ // If the user cancels, retain the original rule and discard only the in-memory conversion intent.
+ document.addEventListener('click',e=>{
+  if(e.target.closest('[data-close="counterModal"],[data-close="comboModal"],#counterModal .modal-close,#comboModal .modal-close')){
+   setTimeout(()=>{if(!$('counterModal').classList.contains('open')&&!$('comboModal').classList.contains('open')){state.rnPendingRuleConversion=null;state.rnGroupRuleMode='';setModalMode();}},0);
+  }
+ });
+ setModalMode();
+})();
+</script>
+
+
+<style id="rn-v13-6-final-polish">
+/* One plain, legible delete glyph in each Hero Group card. */
+body.groups-mode .rn-v10-group-actions .rn-v13-group-delete{font-size:22px!important;font-family:Arial,sans-serif!important;font-weight:400!important;line-height:1!important;color:#e5edf4!important;text-indent:0!important;background-image:none!important}
+body.groups-mode .rn-v10-group-actions .rn-v13-group-delete::before,
+body.groups-mode .rn-v10-group-actions .rn-v13-group-delete::after{content:none!important;display:none!important}
+body.groups-mode .rn-v10-group-actions .rn-v13-group-delete{display:grid!important;place-items:center!important}
+/* Wider, taller opacity controls with an easy target at either end of the range. */
+#rnToolSettings .rn-opacity-row input[type=range]{width:100%!important;min-width:100%!important;height:26px!important;min-height:26px!important;max-width:none!important;cursor:pointer!important;pointer-events:auto!important;touch-action:pan-y!important;accent-color:#73d6b0!important}
+#rnToolSettings .rn-opacity-row output{cursor:pointer!important;user-select:none!important}
+/* Keep edge drag/resize handles visible while an element is partly outside the board. */
+body.playbook-mode #playBoardStage>.board-item{overflow:visible!important}
+body.playbook-mode #playBoardStage>.board-item .resize-handle{z-index:90!important;pointer-events:auto!important}
+body.playbook-mode #playBoardStage>.board-item .rotate-pivot{z-index:90!important;pointer-events:auto!important}
+body.playbook-mode #playBoardStage>.pen-preview{pointer-events:none!important}
+</style>
+<script id="rn-v13-6-opacity-reset-and-final-events">
+(()=>{
+ const opacity=document.getElementById('rnToolOpacity'),out=document.getElementById('rnToolOpacityValue');
+ if(opacity&&out&&!out.dataset.rnResetBound){out.dataset.rnResetBound='1';out.title='Click to restore 100% opacity';out.setAttribute('role','button');out.tabIndex=0;const reset=()=>{opacity.value='100';opacity.dispatchEvent(new Event('input',{bubbles:true}));};out.addEventListener('click',reset);out.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});}
+ // The stroke uses the captured color from pointer-down for both preview and final output.
+ const style=document.createElement('style');style.textContent='body.playbook-mode .board-pen.pen-final-preview-match path:not(.pen-arrow-head){stroke:currentColor!important;fill:none!important;stroke-linecap:round!important;stroke-linejoin:round!important} body.playbook-mode .board-pen.pen-final-preview-match .pen-arrow-head{fill:currentColor!important;stroke:none!important}';document.head.appendChild(style);
+})();
+</script>
 
 </body>
 </html>
