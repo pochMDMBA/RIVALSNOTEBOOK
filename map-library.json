@@ -43,9 +43,9 @@
       "cover": "/assets/maps/covers/shin-shibuya.jpg",
       "image": "/assets/maps/shin-shibuya.jpg",
       "points": {
-        "A": "/assets/maps/points/shin-shibuya-a.webp",
-        "B": "/assets/maps/points/shin-shibuya-b.webp",
-        "C": "/assets/maps/points/shin-shibuya-c.webp"
+        "A": "/assets/maps/points/shin-shibuya-a.jpg",
+        "B": "/assets/maps/points/shin-shibuya-b.jpg",
+        "C": "/assets/maps/points/shin-shibuya-c.jpg"
       }
     },
     {
@@ -55,9 +55,9 @@
       "cover": "/assets/maps/covers/hall-of-djalia.jpg",
       "image": "/assets/maps/hall-of-djalia.jpg",
       "points": {
-        "A": "/assets/maps/points/hall-of-djalia-a.webp",
-        "B": "/assets/maps/points/hall-of-djalia-b.webp",
-        "C": "/assets/maps/points/hall-of-djalia-c.webp"
+        "A": "/assets/maps/points/hall-of-djalia-a.jpg",
+        "B": "/assets/maps/points/hall-of-djalia-b.jpg",
+        "C": "/assets/maps/points/hall-of-djalia-c.jpg"
       }
     },
     {
@@ -67,9 +67,9 @@
       "cover": "/assets/maps/covers/central-park.jpg",
       "image": "/assets/maps/central-park.jpg",
       "points": {
-        "A": "/assets/maps/points/central-park-a.webp",
-        "B": "/assets/maps/points/central-park-b.webp",
-        "C": "/assets/maps/points/central-park-c.webp"
+        "A": "/assets/maps/points/central-park-a.jpg",
+        "B": "/assets/maps/points/central-park-b.jpg",
+        "C": "/assets/maps/points/central-park-c.jpg"
       }
     },
     {
@@ -79,9 +79,9 @@
       "cover": "/assets/maps/covers/symbiotic-surface.jpg",
       "image": "/assets/maps/symbiotic-surface.jpg",
       "points": {
-        "A": "/assets/maps/points/symbiotic-surface-a.webp",
-        "B": "/assets/maps/points/symbiotic-surface-b.webp",
-        "C": "/assets/maps/points/symbiotic-surface-c.webp"
+        "A": "/assets/maps/points/symbiotic-surface-a.jpg",
+        "B": "/assets/maps/points/symbiotic-surface-b.jpg",
+        "C": "/assets/maps/points/symbiotic-surface-c.jpg"
       }
     },
     {
@@ -91,9 +91,9 @@
       "cover": "/assets/maps/covers/heart-of-heaven.jpg",
       "image": "/assets/maps/heart-of-heaven.jpg",
       "points": {
-        "A": "/assets/maps/points/heart-of-heaven-a.webp",
-        "B": "/assets/maps/points/heart-of-heaven-b.webp",
-        "C": "/assets/maps/points/heart-of-heaven-c.webp"
+        "A": "/assets/maps/points/heart-of-heaven-a.jpg",
+        "B": "/assets/maps/points/heart-of-heaven-b.jpg",
+        "C": "/assets/maps/points/heart-of-heaven-c.jpg"
       }
     },
     {
@@ -101,12 +101,12 @@
       "name": "Lower Manhattan",
       "mode": "Convergence",
       "cover": "https://api.rivalsheroes.com/public/maps-rivalsapi/map_lower-manhattan_1778889484.webp",
-      "coverFallback": "/assets/maps/points/lower-manhattan-a.webp",
+      "coverFallback": "/assets/maps/points/lower-manhattan-a.jpg",
       "image": "",
       "points": {
-        "A": "/assets/maps/points/lower-manhattan-a.webp",
-        "B": "/assets/maps/points/lower-manhattan-b.webp",
-        "C": "/assets/maps/points/lower-manhattan-c.webp"
+        "A": "/assets/maps/points/lower-manhattan-a.jpg",
+        "B": "/assets/maps/points/lower-manhattan-b.jpg",
+        "C": "/assets/maps/points/lower-manhattan-c.jpg"
       },
       "layoutNote": "Full 2D overview pending; Points A, B and C are available."
     }
@@ -114,10 +114,11 @@
   "comingSoon": [
     "Domination"
   ],
-  "runtimeAssetStrategy": "Map metadata is lightweight in index.html and map-library.json; full 2D overview JPEGs and point-specific WebP layers are separate root-absolute assets under /assets/maps.",
+  "runtimeAssetStrategy": "Map metadata is lightweight in index.html and map-library.json; full 2D overview JPEGs and point-specific JPEG layers are separate root-absolute assets under /assets/maps.",
   "notes": {
     "lowerManhattan2D": "A verified full top-down 2D overview was not available for this build. The supplied Point A, Point B and Point C images are available as separate map views.",
     "lowerManhattanCoverSource": "https://rivalsheroes.com/maps/lower-manhattan",
-    "mapPointAssignments": "Central Park uses the supplied Dracula A/B/C images; Hall of Djalia uses HALL OF DJALIA 1 and HALL 2/3; Symbiotic Surface uses Klyntar 1/2/3; Heart of Heaven uses Kunlun 1/2/3; Shin-Shibuya uses SHIN SHIBUYA 1/2 and SHIN 3; Lower Manhattan uses Lower Manhattan 1/2/3."
+    "mapPointAssignments": "Central Park uses the supplied Dracula A/B/C images; Hall of Djalia uses HALL OF DJALIA 1 and HALL 2/3; Symbiotic Surface uses Klyntar 1/2/3; Heart of Heaven uses Kunlun 1/2/3; Shin-Shibuya uses SHIN SHIBUYA 1/2 and SHIN 3; Lower Manhattan uses Lower Manhattan 1/2/3.",
+    "pointImageFormat": "All Convergence Point A/B/C map images are served as JPEG (.jpg), converted from the supplied PNG originals for reliable deployment loading."
   }
 }

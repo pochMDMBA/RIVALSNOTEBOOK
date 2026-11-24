@@ -241,3 +241,7 @@ No Supabase schema migration is required for these frontend changes. Preserve yo
 - Lower Manhattan is listed under Convergence and has a hosted cover image. A verified full-map 2D overview was not available for this package, so its 2D option stays disabled while Points A, B and C remain available.
 - Map choice and selected point view are saved with the active play and in browser storage.
 - User-supplied point screenshots are stored under `assets/maps/points/` as optimized WebP files.
+
+
+## V13.8
+See `V13.8_RELEASE_NOTES.md` for the JPEG point-map conversion, group counter rule navigation, consistent Counterpicker hero picker, and Playbook placement/drawing improvements.

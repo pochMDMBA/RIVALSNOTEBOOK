@@ -3159,7 +3159,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
         const shaftPts=pts.map(p=>({...p}));
         if(isArrowPen&&shaftPts.length>1){const tip=shaftPts[shaftPts.length-1],prev=shaftPts[shaftPts.length-2],dx=tip.x-prev.x,dy=tip.y-prev.y,len=Math.hypot(dx,dy)||1;shaftPts[shaftPts.length-1]={x:tip.x-dx/len*arrowSize,y:tip.y-dy/len*arrowSize};}
         path.setAttribute('d',shaftPts.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' '));
-        path.style.stroke=boardPaint(item.color);path.style.opacity='1';path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap=isArrowPen?'butt':'round';path.style.strokeLinejoin='round';path.style.fill='none';
+        path.style.stroke=boardPaint(item.color);path.style.opacity='1';path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap='butt';path.style.strokeLinejoin='round';path.style.fill='none';
         path.style.strokeDasharray=String(item.penStyle||'').includes('dashed')?`${strokeWidth*1.6}px ${strokeWidth*1.05}px`:'none';
         svg.querySelectorAll('.pen-arrow-head').forEach(n=>n.remove());
         if(String(item.penStyle||'').includes('arrow')&&pts.length>1){
@@ -3189,7 +3189,9 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   const stageRect = () => stage.getBoundingClientRect();
   function worldPoint(e) {
     const r = stageRect();
-    return {x:Math.max(0,Math.min(100,(e.clientX-r.left)/Math.max(1,r.width)*100)),y:Math.max(0,Math.min(100,(e.clientY-r.top)/Math.max(1,r.height)*100))};
+    // Percentages are relative to the transformed stage, not the outer board or a map-specific image box.
+    // Do not clamp: map backgrounds have different aspect ratios and elements may be positioned past any edge.
+    return {x:(e.clientX-r.left)/Math.max(1,r.width)*100,y:(e.clientY-r.top)/Math.max(1,r.height)*100};
   }
   function setSelection(ids) {
     const valid = [...new Set(ids)].filter(id => state.playItems.some(item => item.id === id));
@@ -3239,31 +3241,10 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   window.__rnSyncToolSettingsVisibility=syncToolSettingsVisibility;
   window.__rnSetBoardShapeDefaults=values=>{if(!values||typeof values!=='object')return;if(Number.isFinite(Number(values.fillOpacity)))shapeStyleDefaults.fillOpacity=Math.max(0,Math.min(1,Number(values.fillOpacity)));if(Number.isFinite(Number(values.borderOpacity)))shapeStyleDefaults.borderOpacity=Math.max(0,Math.min(1,Number(values.borderOpacity)));if(Number.isFinite(Number(values.borderWidth)))shapeStyleDefaults.borderWidth=Math.max(.05,Math.min(12,Number(values.borderWidth)));};
   function clampRenderedItem(item, el) {
-    // Objects can extend off-canvas. Keep a narrow visible strip, not an inner snap boundary.
-    const bw=Math.max(1,stage.clientWidth),bh=Math.max(1,stage.clientHeight),visible=8;
-    const layoutW=Math.max(1,el.offsetWidth),layoutH=Math.max(1,el.offsetHeight);
-    const zoomFactor=Math.max(.01,zoom||1);
-    const rect=el.getBoundingClientRect();
-    const actualW=Math.max(layoutW,rect.width/zoomFactor),actualH=Math.max(layoutH,rect.height/zoomFactor);
-    const left=Number(item.x||0)/100*bw,top=Number(item.y||0)/100*bh;
-    const visualLeft=left+(layoutW-actualW)/2,visualTop=top+(layoutH-actualH)/2;
-    const clampedVisualLeft=Math.max(visible-actualW,Math.min(bw-visible,visualLeft));
-    const clampedVisualTop=Math.max(visible-actualH,Math.min(bh-visible,visualTop));
-    const clampedLeft=clampedVisualLeft-(layoutW-actualW)/2;
-    const clampedTop=clampedVisualTop-(layoutH-actualH)/2;
-    item.x=(clampedLeft/bw)*100;item.y=(clampedTop/bh)*100;
-    el.style.left=`${item.x}%`;el.style.top=`${item.y}%`;
-
-    // Place resize/rotate handles at a visible point on the transformed item.
-    // Inverse-transform the board point so handles remain usable for rotated/scaled heroes too.
-    const angle=(Number(item.rotate)||0)*Math.PI/180,scale=Math.max(.01,Number(item.scale)||1),cos=Math.cos(angle),sin=Math.sin(angle);
-    const centerX=clampedLeft+layoutW/2,centerY=clampedTop+layoutH/2;
-    const localFromBoard=(x,y)=>{const dx=x-centerX,dy=y-centerY;return {x:layoutW/2+(cos*dx+sin*dy)/scale,y:layoutH/2+(-sin*dx+cos*dy)/scale};};
-    const resizePoint={x:Math.max(visible,Math.min(bw-visible,clampedVisualLeft+actualW-visible)),y:Math.max(visible,Math.min(bh-visible,clampedVisualTop+actualH-visible))};
-    const handle=el.querySelector('.resize-handle');
-    if(handle){const local=localFromBoard(resizePoint.x,resizePoint.y);handle.style.left=`${local.x}px`;handle.style.top=`${local.y}px`;handle.style.right='auto';handle.style.bottom='auto';handle.style.transform='translate(-50%,-50%)';}
-    const pivot=el.querySelector('.rotate-pivot');
-    if(pivot){const point={x:Math.max(visible,Math.min(bw-visible,centerX)),y:Math.max(visible,Math.min(bh-visible,clampedVisualTop-visible))};const local=localFromBoard(point.x,point.y);pivot.style.left=`${local.x}px`;pivot.style.top=`${local.y}px`;pivot.style.transform='translate(-50%,-50%)';}
+    // Preserve the exact stored position on every map. No hidden safe-area or edge clamp is applied.
+    if(!item||!el)return;
+    el.style.left=`${Number(item.x)||0}%`;
+    el.style.top=`${Number(item.y)||0}%`;
   }
   function renderBoard() {
     if (!board.isConnected) return;
@@ -3304,19 +3285,16 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     return {layoutW,layoutH,actualW:Math.max(layoutW,rect.width/zoom),actualH:Math.max(layoutH,rect.height/zoom)};
   }
   function setItemCenter(item,cxPct,cyPct) {
-    const m=measureItem(item),bw=Math.max(1,stage.clientWidth),bh=Math.max(1,stage.clientHeight),visible=8;
-    const left=cxPct/100*bw-m.layoutW/2,top=cyPct/100*bh-m.layoutH/2;
-    item.x=(Math.max(visible-m.actualW,Math.min(bw-visible,left))/bw)*100;
-    item.y=(Math.max(visible-m.actualH,Math.min(bh-visible,top))/bh)*100;
+    const m=measureItem(item),bw=Math.max(1,stage.clientWidth),bh=Math.max(1,stage.clientHeight);
+    item.x=(Number(cxPct)/100*bw-m.layoutW/2)/bw*100;
+    item.y=(Number(cyPct)/100*bh-m.layoutH/2)/bh*100;
   }
   function clampItem(item) {
-    const m=measureItem(item),bw=Math.max(1,stage.clientWidth),bh=Math.max(1,stage.clientHeight),visible=8;
-    const left=(Number(item.x)||0)/100*bw,top=(Number(item.y)||0)/100*bh;
-    item.x=(Math.max(visible-m.actualW,Math.min(bw-visible,left))/bw)*100;
-    item.y=(Math.max(visible-m.actualH,Math.min(bh-visible,top))/bh)*100;
+    // Kept as a compatibility hook for paste/resize callers; positions remain exactly where saved.
+    return item;
   }
 
-  // Add items at their centre point so the board never places half an object beyond an edge.
+  // Add items with their visual centre aligned to the exact pointer position.
   newBoardItem = function(type, extra = {}) {
     const opts={...extra};
     const center=opts.__center; delete opts.__center;
@@ -3552,7 +3530,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     preview.innerHTML='<path id="penPreviewPath" d=""/><path id="penPreviewHead" d=""/>';
     const path=preview.querySelector('#penPreviewPath');
     const strokeWidth=boardW*(penStroke.width/100);
-    if(path){path.style.stroke=boardPaint(penStroke.color);path.style.opacity=String(penStroke.opacity);path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap=String(penStroke.style).includes('arrow')?'butt':'round';path.style.strokeLinejoin='round';if(String(penStroke.style).includes('dashed'))path.style.strokeDasharray=`${strokeWidth*1.6}px ${strokeWidth*1.05}px`;}
+    if(path){path.style.stroke=boardPaint(penStroke.color);path.style.opacity=String(penStroke.opacity);path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap='butt';path.style.strokeLinejoin='round';if(String(penStroke.style).includes('dashed'))path.style.strokeDasharray=`${strokeWidth*1.6}px ${strokeWidth*1.05}px`;}
     const head=preview.querySelector('#penPreviewHead');if(head){head.style.fill=boardPaint(penStroke.color);head.style.opacity=String(penStroke.opacity);head.style.stroke='none';}
     stage.appendChild(preview);board.setPointerCapture(e.pointerId);e.preventDefault();
   }
@@ -3570,9 +3548,12 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   }
   function finishPen(){
     if(!penStroke)return;const points=penStroke.points,style=penStroke.style,width=penStroke.width||penThickness,color=penStroke.color||penColor,opacity=Number.isFinite(Number(penStroke.opacity))?penStroke.opacity:penOpacity;penStroke=null;$('penPreview')?.remove();if(points.length<2)return;
-    const minX=Math.min(...points.map(p=>p.x)),maxX=Math.max(...points.map(p=>p.x)),minY=Math.min(...points.map(p=>p.y)),maxY=Math.max(...points.map(p=>p.y));
-    const w=Math.max(.5,maxX-minX),h=Math.max(.5,maxY-minY);
-    const path=points.map(p=>[Math.max(0,Math.min(1000,(p.x-minX)/w*1000)),Math.max(0,Math.min(1000,(p.y-minY)/h*1000))]);
+    let minX=Math.min(...points.map(p=>p.x)),maxX=Math.max(...points.map(p=>p.x)),minY=Math.min(...points.map(p=>p.y)),maxY=Math.max(...points.map(p=>p.y));
+    const pixelX=100/Math.max(1,stage.clientWidth),pixelY=100/Math.max(1,stage.clientHeight);
+    if(maxX-minX<pixelX){const mid=(minX+maxX)/2;minX=mid-pixelX/2;maxX=mid+pixelX/2;}
+    if(maxY-minY<pixelY){const mid=(minY+maxY)/2;minY=mid-pixelY/2;maxY=mid+pixelY/2;}
+    const w=maxX-minX,h=maxY-minY;
+    const path=points.map(p=>[((p.x-minX)/w)*1000,((p.y-minY)/h)*1000]);
     newBoardItem('pen',{x:minX,y:minY,w,h,path,penStyle:style,penWidth:width,color,opacity});
   }
   function finishPointer(){
@@ -3672,7 +3653,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     }
     if(moving){
       const r=stageRect(),dx=(e.clientX-moving.startX)/Math.max(1,r.width)*100,dy=(e.clientY-moving.startY)/Math.max(1,r.height)*100;
-      for(const start of moving.starts){const item=state.playItems.find(x=>x.id===start.id);if(!item)continue;item.x=start.x+dx;item.y=start.y+dy;const el=stage.querySelector(`[data-board-item="${CSS.escape(item.id)}"]`);if(el)clampRenderedItem(item,el);}
+      for(const start of moving.starts){const item=state.playItems.find(x=>x.id===start.id);if(!item)continue;item.x=start.x+dx;item.y=start.y+dy;const el=stage.querySelector(`[data-board-item="${CSS.escape(item.id)}"]`);if(el){el.style.left=`${item.x}%`;el.style.top=`${item.y}%`;}}
       moving.changed=Math.abs(dx)>.001||Math.abs(dy)>.001;
     }
   });
@@ -3965,8 +3946,8 @@ body.playbook-mode .board-shape-tools{margin-top:4px!important}
 /* Pen render uses the same yellow and board-relative stroke thickness as its live preview. */
 body.playbook-mode .board-pen.pen-final-preview-match{filter:none!important}
 body.playbook-mode .board-pen.pen-final-preview-match svg{overflow:visible!important}
-body.playbook-mode .board-pen.pen-final-preview-match path{stroke:#f1d76b!important;fill:none!important;stroke-linecap:round!important;stroke-linejoin:round!important}
-body.playbook-mode .board-pen.pen-final-preview-match .pen-arrow-head{fill:#f1d76b!important;stroke:none!important}
+body.playbook-mode .board-pen.pen-final-preview-match path{stroke:currentColor!important;fill:none!important;stroke-linecap:butt!important;stroke-linejoin:round!important}
+body.playbook-mode .board-pen.pen-final-preview-match .pen-arrow-head{fill:currentColor!important;stroke:none!important}
 body.playbook-mode .playbook-topbar-controls{min-width:0!important}
 body.playbook-mode .playbook-topbar-controls #savedPlaySelect{width:165px!important}
 body.playbook-mode .playbook-topbar-controls #savedPlaySelect.closest('.field'){margin-left:auto!important}
@@ -4343,7 +4324,7 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
  addSpecial('shape','Pit / hazard',icon('<ellipse cx="12" cy="13" rx="10" ry="7"/><path d="m7 10 5 7 5-7"/>'),'area');
  // The canvas accepts shape drags at the exact pointer position; click actions still auto-place at centre.
  const stage=$('playBoardStage');
- if(stage&&!stage.dataset.rnPaletteDrop){stage.dataset.rnPaletteDrop='1';const canvas=stage.closest('#playBoard');canvas.addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('application/x-rn-board-tool')){e.preventDefault();e.dataTransfer.dropEffect='copy';canvas.classList.add('drop-ready');}},true);canvas.addEventListener('drop',e=>{const raw=e.dataTransfer.getData('application/x-rn-board-tool');if(!raw)return;try{const data=JSON.parse(raw),rect=stage.getBoundingClientRect(),point={x:Math.max(0,Math.min(100,(e.clientX-rect.left)/rect.width*100)),y:Math.max(0,Math.min(100,(e.clientY-rect.top)/rect.height*100))};e.preventDefault();e.stopImmediatePropagation();canvas.classList.remove('drop-ready');if(data.kind==='shape')window.newBoardItem?.('shape',{shapeKind:data.shapeKind,color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});else window.newBoardItem?.(data.kind,{color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});}catch(err){console.warn(err);}},true);}
+ if(stage&&!stage.dataset.rnPaletteDrop){stage.dataset.rnPaletteDrop='1';const canvas=stage.closest('#playBoard');canvas.addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('application/x-rn-board-tool')){e.preventDefault();e.dataTransfer.dropEffect='copy';canvas.classList.add('drop-ready');}},true);canvas.addEventListener('drop',e=>{const raw=e.dataTransfer.getData('application/x-rn-board-tool');if(!raw)return;try{const data=JSON.parse(raw),point=window.__rnBoardPoint?.(e)||{x:50,y:50};e.preventDefault();e.stopImmediatePropagation();canvas.classList.remove('drop-ready');if(data.kind==='shape')window.newBoardItem?.('shape',{shapeKind:data.shapeKind,color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});else window.newBoardItem?.(data.kind,{color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});}catch(err){console.warn(err);}},true);}
  // Primary tool actions; Select is the default active tool and uses a cursor glyph.
  penBtn.addEventListener('click',()=>window.__rnSetBoardTool?.('pen-solid'));
  eraserBtn.addEventListener('click',()=>window.__rnSetBoardTool?.('eraser'));
@@ -4766,11 +4747,11 @@ body.playbook-mode #playBoardStage > .board-item{z-index:2}
     {"id":"midtown","name":"Midtown","mode":"Convoy","cover":"/assets/maps/covers/midtown.jpg","image":"/assets/maps/midtown.jpg"},
     {"id":"arakko","name":"Arakko","mode":"Convoy","cover":"/assets/maps/covers/arakko.jpg","image":"/assets/maps/arakko.jpg"},
     {"id":"thebes","name":"Thebes","mode":"Convoy","cover":"/assets/maps/covers/thebes.jpg","image":"/assets/maps/thebes.jpg"},
-    {"id":"shin-shibuya","name":"Shin-Shibuya","mode":"Convergence","cover":"/assets/maps/covers/shin-shibuya.jpg","image":"/assets/maps/shin-shibuya.jpg","points":{"A":"/assets/maps/points/shin-shibuya-a.webp","B":"/assets/maps/points/shin-shibuya-b.webp","C":"/assets/maps/points/shin-shibuya-c.webp"}},
-    {"id":"hall-of-djalia","name":"Hall of Djalia","mode":"Convergence","cover":"/assets/maps/covers/hall-of-djalia.jpg","image":"/assets/maps/hall-of-djalia.jpg","points":{"A":"/assets/maps/points/hall-of-djalia-a.webp","B":"/assets/maps/points/hall-of-djalia-b.webp","C":"/assets/maps/points/hall-of-djalia-c.webp"}},
-    {"id":"central-park","name":"Central Park","mode":"Convergence","cover":"/assets/maps/covers/central-park.jpg","image":"/assets/maps/central-park.jpg","points":{"A":"/assets/maps/points/central-park-a.webp","B":"/assets/maps/points/central-park-b.webp","C":"/assets/maps/points/central-park-c.webp"}},
-    {"id":"symbiotic-surface","name":"Symbiotic Surface","mode":"Convergence","cover":"/assets/maps/covers/symbiotic-surface.jpg","image":"/assets/maps/symbiotic-surface.jpg","points":{"A":"/assets/maps/points/symbiotic-surface-a.webp","B":"/assets/maps/points/symbiotic-surface-b.webp","C":"/assets/maps/points/symbiotic-surface-c.webp"}},
-    {"id":"heart-of-heaven","name":"Heart of Heaven","mode":"Convergence","cover":"/assets/maps/covers/heart-of-heaven.jpg","image":"/assets/maps/heart-of-heaven.jpg","points":{"A":"/assets/maps/points/heart-of-heaven-a.webp","B":"/assets/maps/points/heart-of-heaven-b.webp","C":"/assets/maps/points/heart-of-heaven-c.webp"}},{"id":"lower-manhattan","name":"Lower Manhattan","mode":"Convergence","cover":"https://api.rivalsheroes.com/public/maps-rivalsapi/map_lower-manhattan_1778889484.webp","coverFallback":"/assets/maps/points/lower-manhattan-a.webp","image":"","points":{"A":"/assets/maps/points/lower-manhattan-a.webp","B":"/assets/maps/points/lower-manhattan-b.webp","C":"/assets/maps/points/lower-manhattan-c.webp"},"layoutNote":"Full 2D overview pending; Points A, B and C are available."}
+    {"id":"shin-shibuya","name":"Shin-Shibuya","mode":"Convergence","cover":"/assets/maps/covers/shin-shibuya.jpg","image":"/assets/maps/shin-shibuya.jpg","points":{"A":"/assets/maps/points/shin-shibuya-a.jpg","B":"/assets/maps/points/shin-shibuya-b.jpg","C":"/assets/maps/points/shin-shibuya-c.jpg"}},
+    {"id":"hall-of-djalia","name":"Hall of Djalia","mode":"Convergence","cover":"/assets/maps/covers/hall-of-djalia.jpg","image":"/assets/maps/hall-of-djalia.jpg","points":{"A":"/assets/maps/points/hall-of-djalia-a.jpg","B":"/assets/maps/points/hall-of-djalia-b.jpg","C":"/assets/maps/points/hall-of-djalia-c.jpg"}},
+    {"id":"central-park","name":"Central Park","mode":"Convergence","cover":"/assets/maps/covers/central-park.jpg","image":"/assets/maps/central-park.jpg","points":{"A":"/assets/maps/points/central-park-a.jpg","B":"/assets/maps/points/central-park-b.jpg","C":"/assets/maps/points/central-park-c.jpg"}},
+    {"id":"symbiotic-surface","name":"Symbiotic Surface","mode":"Convergence","cover":"/assets/maps/covers/symbiotic-surface.jpg","image":"/assets/maps/symbiotic-surface.jpg","points":{"A":"/assets/maps/points/symbiotic-surface-a.jpg","B":"/assets/maps/points/symbiotic-surface-b.jpg","C":"/assets/maps/points/symbiotic-surface-c.jpg"}},
+    {"id":"heart-of-heaven","name":"Heart of Heaven","mode":"Convergence","cover":"/assets/maps/covers/heart-of-heaven.jpg","image":"/assets/maps/heart-of-heaven.jpg","points":{"A":"/assets/maps/points/heart-of-heaven-a.jpg","B":"/assets/maps/points/heart-of-heaven-b.jpg","C":"/assets/maps/points/heart-of-heaven-c.jpg"}},{"id":"lower-manhattan","name":"Lower Manhattan","mode":"Convergence","cover":"https://api.rivalsheroes.com/public/maps-rivalsapi/map_lower-manhattan_1778889484.webp","coverFallback":"/assets/maps/points/lower-manhattan-a.jpg","image":"","points":{"A":"/assets/maps/points/lower-manhattan-a.jpg","B":"/assets/maps/points/lower-manhattan-b.jpg","C":"/assets/maps/points/lower-manhattan-c.jpg"},"layoutNote":"Full 2D overview pending; Points A, B and C are available."}
   ];
   const known=new Map(MAPS.map(m=>[m.id,m]));
   const activeAtStart=(state.plays||[]).find(p=>String(p.id)===String(state.activePlayId));
@@ -5259,22 +5240,8 @@ body.playbook-mode .rn-map-grid-preview:after{content:'';position:absolute;top:5
     sync();
   }
 
-  // Render every rule involving the selected group, including every hero-pair expansion.
-  const membersFor=(type,value)=>typeof groupMembers==='function'?groupMembers(type,value):(type==='hero'&&value?[value]:[]);
+  // Group-level rules stay grouped. Individual member matchups are shown only in individual-hero views.
   const selector=(type,value)=>typeof selectorLabel==='function'?selectorLabel(type,value):(type==='group'?(state.groups||[]).find(g=>String(g.id)===String(value))?.name||'Group':String(value||'Hero'));
-  const combinations=(left,right,separator)=>{
-    const pairs=[],seen=new Set();
-    for(const a of left)for(const b of right){
-      if(a===b)continue;
-      if(separator==='+'){
-        const key=[a,b].sort((x,y)=>x.localeCompare(y)).join('|||');
-        if(seen.has(key))continue;
-        seen.add(key);
-      }
-      pairs.push([a,b]);
-    }
-    return pairs.length?`<div class="rn-v11-rule-pairs">${pairs.map(([a,b])=>`<div class="rn-v11-rule-pair"><strong>${esc(a)}</strong> ${separator} ${esc(b)}</div>`).join('')}</div>`:'<div class="rn-v11-rule-empty">No distinct hero combinations in this rule.</div>';
-  };
   function renderApplicableRules(groupId){
     const modal=$('rnV10GroupViewModal');const body=modal?.querySelector('.rn-v10-view-body');if(!body)return;
     let root=$('rnV11ApplicableRules');
@@ -5283,7 +5250,6 @@ body.playbook-mode .rn-map-grid-preview:after{content:'';position:absolute;top:5
     const counter=(state.groupRules||[]).filter(r=>isThisGroup(r.sourceType,r.sourceValue)||isThisGroup(r.targetType,r.targetValue));
     const synergy=(state.comboRules||[]).filter(r=>isThisGroup(r.sourceType,r.sourceValue)||isThisGroup(r.targetType,r.targetValue));
     const ruleHtml=(r,kind)=>{
-      const left=membersFor(r.sourceType,r.sourceValue),right=membersFor(r.targetType,r.targetValue);
       const sourceLabel=selector(r.sourceType,r.sourceValue),targetLabel=selector(r.targetType,r.targetValue);
       if(kind==='synergy'){
         const counterpart=isThisGroup(r.sourceType,r.sourceValue)?targetLabel:sourceLabel;
@@ -5293,17 +5259,18 @@ body.playbook-mode .rn-map-grid-preview:after{content:'';position:absolute;top:5
       }
       const title=`${sourceLabel} → ${targetLabel}`;
       const meta=`GROUP COUNTER · ${String(r.tier||'moderate').toUpperCase()}`;
-      return `<article class="rn-v11-rule-card"><div class="rn-v11-rule-head"><div class="rn-v11-rule-title">${esc(title)}</div><div class="rn-v11-rule-meta">${esc(meta)}</div></div><div class="rn-v11-rule-description">${esc(r.reason||'No description provided.')}</div>${combinations(left,right,'vs.')}</article>`;
+      return `<article class="rn-v11-rule-card rn-v13-group-counter-rule"><div class="rn-v11-rule-head"><div class="rn-v11-rule-title">${esc(title)}</div><div class="rn-v11-rule-meta">${esc(meta)}</div></div><div class="rn-v11-rule-description">${esc(r.reason||'No description provided.')}</div><div class="rn-v13-group-counter-actions"><button type="button" class="rn-v13-group-counter-view" data-open-group-counter="${esc(r.id)}">VIEW</button></div></article>`;
     };
     root.innerHTML=`<section class="rn-v11-rule-section"><h4>Applicable Group Synergy Rules · ${synergy.length}</h4>${synergy.length?synergy.map(r=>ruleHtml(r,'synergy')).join(''):'<div class="rn-v11-rule-empty">No group synergy rules reference this group.</div>'}</section><section class="rn-v11-rule-section"><h4>Applicable Group Counter Rules · ${counter.length}</h4>${counter.length?counter.map(r=>ruleHtml(r,'counter')).join(''):'<div class="rn-v11-rule-empty">No group counter rules reference this group.</div>'}</section>`;
     if(!root.dataset.rnV13SynergyJumpBound){
       root.dataset.rnV13SynergyJumpBound='1';
-      const jumpToRule=ruleId=>{
-        const list=$('groupSynergyRulesManagerList');
-        const editButton=[...(list?.querySelectorAll('[data-edit-group-synergy]')||[])].find(button=>button.dataset.editGroupSynergy===String(ruleId));
+      const jumpToRule=(ruleId,kind='synergy')=>{
+        const isCounter=kind==='counter';
+        const list=$(isCounter?'groupRulesManagerList':'groupSynergyRulesManagerList');
+        const attribute=isCounter?'data-edit-group-rule':'data-edit-group-synergy';
+        const editButton=[...(list?.querySelectorAll(`[${attribute}]`)||[])].find(button=>button.getAttribute(attribute)===String(ruleId));
         const target=editButton?.closest('details.group-rule-expandable, .group-rule-card');
         if(!target)return;
-        // Close the group detail overlay so the destination rule is visible after scrolling.
         $('rnV10GroupViewModal')?.classList.remove('open');
         requestAnimationFrame(()=>{
           if(target.tagName==='DETAILS')target.open=true;
@@ -5314,13 +5281,17 @@ body.playbook-mode .rn-map-grid-preview:after{content:'';position:absolute;top:5
         });
       };
       root.addEventListener('click',event=>{
-        const card=event.target.closest('[data-open-group-synergy]');
-        if(card)jumpToRule(card.dataset.openGroupSynergy);
+        const counterButton=event.target.closest('[data-open-group-counter]');
+        if(counterButton){event.preventDefault();event.stopPropagation();jumpToRule(counterButton.dataset.openGroupCounter,'counter');return;}
+        const synergyCard=event.target.closest('[data-open-group-synergy]');
+        if(synergyCard)jumpToRule(synergyCard.dataset.openGroupSynergy,'synergy');
       });
       root.addEventListener('keydown',event=>{
         if(event.key!=='Enter'&&event.key!==' ')return;
-        const card=event.target.closest('[data-open-group-synergy]');
-        if(card){event.preventDefault();jumpToRule(card.dataset.openGroupSynergy);}
+        const counterButton=event.target.closest('[data-open-group-counter]');
+        if(counterButton){event.preventDefault();jumpToRule(counterButton.dataset.openGroupCounter,'counter');return;}
+        const synergyCard=event.target.closest('[data-open-group-synergy]');
+        if(synergyCard){event.preventDefault();jumpToRule(synergyCard.dataset.openGroupSynergy,'synergy');}
       });
     }
   }
@@ -5796,7 +5767,7 @@ body.groups-mode .group-rule-expandable .rn-group-counter-title{display:flex!imp
 /* Smaller visual hero pickers are only used in the group-rule editor modes. */
 .rn-group-rule-mode .rn-group-hero-native{display:none!important}
 .rn-group-rule-mode .rn-group-hero-picker{display:block!important}
-.rn-group-hero-picker{display:none;position:relative;min-width:0}
+.rn-group-hero-picker{display:block;position:relative;min-width:0}
 .rn-group-hero-trigger{width:100%;min-height:42px;display:flex;align-items:center;gap:8px;text-align:left;background:#273543;border:1px solid #526879;border-radius:6px;color:#eff6fb;padding:5px 8px;cursor:pointer}
 .rn-group-hero-trigger:hover,.rn-group-hero-picker.open .rn-group-hero-trigger{border-color:#8fbdc8;background:#304556}
 .rn-group-hero-trigger img{width:31px;height:31px;object-fit:contain;flex:none;border-radius:4px;background:#18232e}
@@ -5879,7 +5850,7 @@ body.groups-mode .group-rule-expandable .rn-group-counter-title{display:flex!imp
   grid.addEventListener('click',e=>{const b=e.target.closest('[data-hero]');if(!b)return;select.value=b.dataset.hero;select.dispatchEvent(new Event('change',{bubbles:true}));wrapper.classList.remove('open');sync();});
   select.addEventListener('change',sync);
   document.addEventListener('click',e=>{if(!wrapper.contains(e.target))wrapper.classList.remove('open')});
-  wrapper.__rnSync=()=>{const field=select.closest('.field');wrapper.style.display=field?.classList.contains('hidden')?'none':'';sync();};
+  wrapper.__rnSync=()=>{const field=select.closest('.field');if(field?.classList.contains('hidden'))wrapper.style.setProperty('display','none','important');else wrapper.style.removeProperty('display');sync();};
   wrapper.__rnRender=renderOptions;
   wrapper.__rnSync();
  }
@@ -5976,7 +5947,7 @@ body.playbook-mode #playBoardStage>.pen-preview{pointer-events:none!important}
  const opacity=document.getElementById('rnToolOpacity'),out=document.getElementById('rnToolOpacityValue');
  if(opacity&&out&&!out.dataset.rnResetBound){out.dataset.rnResetBound='1';out.title='Click to restore 100% opacity';out.setAttribute('role','button');out.tabIndex=0;const reset=()=>{opacity.value='100';opacity.dispatchEvent(new Event('input',{bubbles:true}));};out.addEventListener('click',reset);out.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();reset();}});}
  // The stroke uses the captured color from pointer-down for both preview and final output.
- const style=document.createElement('style');style.textContent='body.playbook-mode .board-pen.pen-final-preview-match path:not(.pen-arrow-head){stroke:currentColor!important;fill:none!important;stroke-linecap:round!important;stroke-linejoin:round!important} body.playbook-mode .board-pen.pen-final-preview-match .pen-arrow-head{fill:currentColor!important;stroke:none!important}';document.head.appendChild(style);
+ const style=document.createElement('style');style.textContent='body.playbook-mode .board-pen.pen-final-preview-match path:not(.pen-arrow-head){stroke:currentColor!important;fill:none!important;stroke-linecap:butt!important;stroke-linejoin:round!important} body.playbook-mode .board-pen.pen-final-preview-match .pen-arrow-head{fill:currentColor!important;stroke:none!important}';document.head.appendChild(style);
 })();
 </script>
 
@@ -6109,6 +6080,32 @@ body.groups-mode .rn-v13-group-submit{height:22px!important;min-height:22px!impo
   text-transform:none!important;
   letter-spacing:.02em!important;
 }
+</style>
+
+
+<style id="rn-v138-usability-fixes">
+/* Group rules in a group detail view stay at group level, with one action to locate the rule. */
+.rn-v13-group-counter-actions{display:flex;justify-content:flex-end;margin-top:9px}
+.rn-v13-group-counter-view{min-width:88px;min-height:30px;padding:6px 12px;border:1px solid #8bafbd;border-radius:5px;background:#294454;color:#eaf7fb;font-size:10px;font-weight:950;letter-spacing:.07em;cursor:pointer}
+.rn-v13-group-counter-view:hover{background:#365b6d;border-color:#d2e6eb}
+.rn-v13-group-counter-rule .rn-v11-rule-title{font-size:13px!important;font-weight:950!important;line-height:1.35!important}
+.rn-v13-group-counter-rule .rn-v11-rule-description{font-size:11px!important;line-height:1.5!important}
+body.groups-mode .group-rule-expandable .rn-group-counter-side{font-size:13px!important;font-weight:900!important;line-height:1.35!important}
+body.groups-mode .group-rule-expandable .rn-group-counter-side span{font-size:inherit!important;line-height:inherit!important}
+body.groups-mode .group-rule-expandable .rn-group-counter-side .group-svg-icon{width:18px!important;height:18px!important}
+/* Counterpicker and Synergy use one consistent image-based Select Hero picker, with hidden fields still respected. */
+.rn-group-hero-native{display:none!important}
+.rn-group-hero-picker{display:block;position:relative;min-width:0}
+body.groups-mode #groupRulesManagerList .group-rule-title{font-size:13px!important;font-weight:900!important;line-height:1.35!important}
+/* Larger Type buttons and color chips in the Playbook toolbar. */
+body.playbook-mode .rn-type-buttons{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important}
+body.playbook-mode .rn-type-buttons button{min-width:0!important;min-height:35px!important;height:35px!important;padding:5px 6px!important;font-size:16px!important;font-weight:850!important}
+body.playbook-mode .rn-color-swatches{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;justify-items:center!important;align-items:center!important;gap:6px!important}
+body.playbook-mode .rn-color-chip,body.playbook-mode .rn-custom-color{width:25px!important;min-width:25px!important;max-width:25px!important;height:25px!important;min-height:25px!important;border-width:2px!important}
+body.playbook-mode .rn-custom-color span{font-size:17px!important;line-height:1!important}
+/* Keep preview and saved freehand paths geometrically identical, without a brush-like round cap. */
+body.playbook-mode #playBoardStage>.pen-preview path{stroke-linecap:butt!important;stroke-linejoin:round!important}
+body.playbook-mode .board-pen.pen-final-preview-match path:not(.pen-arrow-head){stroke:currentColor!important;stroke-linecap:butt!important;stroke-linejoin:round!important}
 </style>
 
 </body>
