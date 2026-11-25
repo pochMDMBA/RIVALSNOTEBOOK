@@ -3244,6 +3244,20 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     localStorage.setItem('mrPlaybookCanvasZoom',String(zoom));
   }
   function setZoom(next) { zoom = Math.max(MIN_ZOOM,Math.min(MAX_ZOOM,Math.round(next*100)/100)); applyZoom(); }
+  function setZoomAt(next, clientX, clientY) {
+    const target = Math.max(MIN_ZOOM,Math.min(MAX_ZOOM,Math.round(next*100)/100));
+    if (Math.abs(target-zoom) < .001) return;
+    const rect = board.getBoundingClientRect();
+    const centerX = rect.left + board.clientLeft + board.clientWidth/2;
+    const centerY = rect.top + board.clientTop + board.clientHeight/2;
+    const dx = Number(clientX)-centerX, dy = Number(clientY)-centerY;
+    const ratio = target/zoom;
+    // Keep the exact world point below the pointer stationary while the stage scales.
+    panX = panX*ratio + dx*(1-ratio);
+    panY = panY*ratio + dy*(1-ratio);
+    zoom = target;
+    applyZoom();
+  }
   window.__rnSetBoardZoom = value => setZoom(value);
   window.__rnGetBoardZoom = () => zoom;
   const stageRect = () => stage.getBoundingClientRect();
@@ -3517,7 +3531,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       document.querySelectorAll('.board-pen-tool-row button').forEach(b=>b.classList.toggle('active',b.dataset.penTool===tool));
       syncToolSettingsVisibility();
       const mainPen=document.querySelector('[data-rn-primary-tool="pen"]');if(mainPen)mainPen.classList.toggle('active',tool.startsWith('pen-'));
-      board.style.cursor=tool==='select'?'default':penModeActive?'crosshair':tool==='text'?'text':'default';
+      board.style.cursor=tool==='select'?'grab':penModeActive?'crosshair':tool==='text'?'text':'default';
     };
     window.__rnSetBoardTool = tool => setTool(String(tool||'select'));
     window.__rnGetBoardTool = () => activeTool;
@@ -3568,7 +3582,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   const imageInput=document.createElement('input');
   imageInput.type='file';imageInput.id='boardImageFile';imageInput.accept='image/png,image/jpeg,image/webp,image/gif';imageInput.hidden=true;
   $('playbookPage').appendChild(imageInput);
-  const zoomTip=document.createElement('div');zoomTip.className='playboard-zoom-tip';zoomTip.textContent='Default view shows the whole board. Use − / + or Ctrl + mouse wheel to zoom; Alt-drag to pan when zoomed in.';
+  const zoomTip=document.createElement('div');zoomTip.className='playboard-zoom-tip';zoomTip.textContent='Scroll over the map or board to zoom. Drag an empty area to pan; Shift-drag selects multiple objects.';
   (document.querySelector('.board-pen-thickness')||document.querySelector('.board-pen-tool-row')||shapeTools)?.insertAdjacentElement('afterend',zoomTip);
 
   // Ensure side rotation buttons stay removed; rotation remains available from the on-object handle.
@@ -3714,7 +3728,11 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       return;
     }
     const changed=!!(moving?.changed||resizing?.changed||rotating);
-    if(panning){panning=null;board.style.cursor='';}
+    if(panning){
+      const wasClick=!panning.moved;
+      panning=null;board.classList.remove('is-panning');board.style.cursor=activeTool==='select'?'grab':penModeActive?'crosshair':activeTool==='text'?'text':'default';
+      if(wasClick)setSelection([]);
+    }
     moving=null;resizing=null;rotating=null;
     renderBoard();if(changed)persist();
   }
@@ -3723,7 +3741,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     if(e.target.closest('.board-surface-zoom')){e.stopPropagation();return;}
     if(e.target.closest('.inline-board-text-editor'))return;
     if(e.button===1 || (e.altKey && e.button===0)){
-      panning={x:e.clientX,y:e.clientY,panX,panY};board.style.cursor='grabbing';board.setPointerCapture(e.pointerId);e.preventDefault();return;
+      panning={x:e.clientX,y:e.clientY,panX,panY,moved:false};board.classList.add('is-panning');board.style.cursor='grabbing';board.setPointerCapture(e.pointerId);e.preventDefault();return;
     }
     if(e.button!==0)return;
     const pivot=e.target.closest('.rotate-pivot'),resize=e.target.closest('.resize-handle'),el=e.target.closest('.board-item');
@@ -3740,6 +3758,11 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     }
     if(!el && pendingTextPlacement){showInlineTextEditor(worldPoint(e));return;}
     if(!el && penModeActive){beginPen(e);return;}
+    if(!el && !e.shiftKey && !e.ctrlKey && !e.metaKey){
+      panning={x:e.clientX,y:e.clientY,panX,panY,moved:false};
+      board.classList.add('is-panning');board.style.cursor='grabbing';
+      board.setPointerCapture(e.pointerId);e.preventDefault();return;
+    }
     if(!el){
       const br=board.getBoundingClientRect(),x=e.clientX-br.left,y=e.clientY-br.top;
       marquee={x0:e.clientX,y0:e.clientY,x1:e.clientX,y1:e.clientY,additive:!!(e.shiftKey||e.ctrlKey||e.metaKey)};
@@ -3757,7 +3780,11 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     e.preventDefault();board.setPointerCapture(e.pointerId);
   });
   board.addEventListener('pointermove',e=>{
-    if(panning){panX=panning.panX+(e.clientX-panning.x);panY=panning.panY+(e.clientY-panning.y);applyZoom();return;}
+    if(panning){
+      const dx=e.clientX-panning.x,dy=e.clientY-panning.y;
+      if(Math.abs(dx)+Math.abs(dy)>2)panning.moved=true;
+      panX=panning.panX+dx;panY=panning.panY+dy;stage.style.transform=`translate(${panX}px,${panY}px) scale(${zoom})`;return;
+    }
     if(penStroke){updatePen(e);return;}
     if(marquee){marquee.x1=e.clientX;marquee.y1=e.clientY;const br=board.getBoundingClientRect(),box=$('boardMarquee');if(box){box.style.left=`${Math.min(marquee.x0,marquee.x1)-br.left}px`;box.style.top=`${Math.min(marquee.y0,marquee.y1)-br.top}px`;box.style.width=`${Math.abs(marquee.x1-marquee.x0)}px`;box.style.height=`${Math.abs(marquee.y1-marquee.y0)}px`;}return;}
     if(rotating){
@@ -3856,8 +3883,14 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     if(e.key==='Escape'&&penModeActive){penModeActive=false;board.classList.remove('pen-active');shapeTools?.querySelector('#penModeBtn')?.classList.remove('active');}
   },true);
 
-  // Ctrl + wheel zooms without changing the page. Alt-drag / middle-drag pans the zoomed board.
-  board.addEventListener('wheel',e=>{if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();setZoom(zoom+(e.deltaY<0?ZOOM_STEP:-ZOOM_STEP));},{passive:false});
+  // Scroll over the map/board itself to zoom. The page keeps its normal scroll everywhere else.
+  board.addEventListener('wheel',e=>{
+    if(e.target?.closest?.('.board-surface-zoom,.inline-board-text-editor,[data-no-board-zoom]'))return;
+    e.preventDefault();
+    const unit=e.deltaMode===1?16:e.deltaMode===2?Math.max(1,board.clientHeight):1;
+    const amount=Math.max(.01,Math.min(.3,Math.abs(e.deltaY*unit)*.001));
+    setZoomAt(zoom+(e.deltaY<0?amount:-amount),e.clientX,e.clientY);
+  },{passive:false});
 
   // Hulk receives individual, recognisable icons instead of the generic placeholder glyphs.
   const skillPanel=$('heroSkillPanel');
@@ -6505,7 +6538,7 @@ body.playbook-mode .rn-color-chip,body.playbook-mode .rn-custom-color{width:29px
 .rn-text-style-control{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;padding:7px 4px;border:1px solid #3d5869;border-radius:6px;background:#1c2a36;color:#cfe0e9;font-size:8px;font-weight:900;letter-spacing:.04em;text-align:center}
 .rn-text-style-control input[type=color]{display:block;width:34px;height:30px;min-width:34px;min-height:30px;padding:2px;border:1px solid #708493;border-radius:5px;background:#1a2631;cursor:pointer}
 body.playbook-mode .board-text{box-sizing:border-box;width:18%;min-width:130px;max-width:36%;min-height:44px;padding:8px 10px;border-radius:5px;font-size:12px;font-weight:700;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 3px 10px #0006}
-body.playbook-mode .inline-board-text-editor{position:absolute!important;z-index:45!important;display:block!important;box-sizing:border-box!important;min-width:130px!important;max-width:36%!important;min-height:44px!important;max-height:220px!important;margin:0!important;padding:8px 10px!important;border:1px solid #73c9c4!important;border-radius:5px!important;outline:none!important;resize:none!important;overflow:auto!important;font-family:inherit!important;font-size:12px!important;font-weight:700!important;line-height:1.4!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;box-shadow:0 3px 10px #0007!important;}
+body.playbook-mode .inline-board-text-editor{position:absolute!important;z-index:45!important;display:block!important;box-sizing:border-box!important;min-width:130px!important;max-width:36%!important;min-height:44px!important;max-height:220px!important;margin:0!important;padding:8px 10px!important;border-radius:5px!important;outline:none!important;resize:none!important;overflow:auto!important;font-family:inherit!important;font-weight:700!important;line-height:1.4!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;box-shadow:0 3px 10px #0007!important;}
 body.playbook-mode .inline-board-text-editor:focus{outline:2px solid #f3d36a!important;outline-offset:2px!important}
 @media(max-width:650px){.rn-text-style-controls{gap:5px}.rn-text-style-control{font-size:7px;padding:5px 2px}.rn-text-style-control input[type=color]{width:30px;height:28px;min-width:30px;min-height:28px}}
 </style>
@@ -6516,7 +6549,7 @@ body.playbook-mode .inline-board-text-editor:focus{outline:2px solid #f3d36a!imp
  board.addEventListener('pointerdown',event=>{const editor=document.querySelector('.inline-board-text-editor');if(editor&&!event.target.closest('.inline-board-text-editor'))editor.blur();},true);
  // Open an existing text box in the same inline editor, without the old prompt dialog.
  board.addEventListener('dblclick',event=>{
-   const itemEl=event.target.closest('.board-text');if(!itemEl)return;
+   if(event.target.closest('.inline-board-text-editor'))return;const itemEl=event.target.closest('.board-text');if(!itemEl)return;
    const id=itemEl.dataset.boardItem;if(!id)return;
    event.preventDefault();event.stopImmediatePropagation();
    window.__rnEditBoardTextItem?.(id);
@@ -7300,22 +7333,59 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
       item.borderWidth=Number(item.borderWidth)||1;item.fontSize=Number(item.fontSize)||Number(defaults.fontSize)||12;
       if(typeof item.noFill!=='boolean')item.noFill=!!defaults.noFill;if(typeof item.noBorder!=='boolean')item.noBorder=!!defaults.noBorder;if(typeof item.bold!=='boolean')item.bold=!!defaults.bold;
     }
-    const editor=document.createElement('textarea');
-    editor.className='inline-board-text-editor';editor.classList.toggle('rn-number-marker-editor',isNumberMarker);editor.classList.toggle('rn-text-bold',!!item.bold);editor.classList.toggle('rn-text-no-fill',!!item.noFill);editor.classList.toggle('rn-text-no-border',!!item.noBorder);editor.rows=1;editor.maxLength=240;editor.placeholder=isNumberMarker?'Edit marker text…':'Type here…';editor.setAttribute('aria-label',isNumberMarker?'Editable number marker text':'Editable text box');
-    editor.value=String(item.text||'');
-    editor.style.left=`${Number(item.x??point.x)}%`;editor.style.top=`${Number(item.y??point.y)}%`;editor.style.width=`${isNumberMarker?Math.max(2,Math.min(60,Number(item.w)||5.5)):Math.max(8,Math.min(60,Number(item.w)||18))}%`;editor.style.height=`${isNumberMarker?Math.max(2,Math.min(80,Number(item.h)||9)):Math.max(4,Math.min(80,Number(item.h)||9))}%`;
-    if(isNumberMarker){editor.style.borderRadius='50%';editor.style.textAlign='center';}
-    editor.style.backgroundColor=item.noFill?'transparent':rgba(item.fillColor||defaults.fillColor,item.fillOpacity??.94);
-    editor.style.border=item.noBorder?'none':`${Math.max(.5,Math.min(8,Number(item.borderWidth)||1))}px solid ${rgba(item.borderColor||defaults.borderColor,item.borderOpacity??1)}`;
-    editor.style.color=item.textColor||defaults.textColor;editor.style.fontWeight=item.bold?'800':'400';editor.style.fontSize=`${Math.max(6,Math.min(48,Number(item.fontSize)||Number(defaults.fontSize)||12))}px`;
-    editor.style.resize='both';editor.style.overflow='auto';window.__rnActiveTextItem=item;
+    // Clone the actual renderer output so edit mode and committed mode share identical box geometry,
+    // typography, padding, borders, colour/opacity and marker styling.
+    let editor;
+    try{editor=renderBoardItem(item,false);}catch(_){editor=null;}
+    if(!editor){editor=document.createElement('div');editor.className=`board-item ${isNumberMarker?'board-number':'board-text'}`;}
+    editor.classList.add('inline-board-text-editor');
+    editor.classList.toggle('rn-number-marker-editor',isNumberMarker);
+    editor.classList.toggle('rn-text-bold',!!item.bold);
+    editor.classList.toggle('rn-text-no-fill',!!item.noFill);
+    editor.classList.toggle('rn-text-no-border',!!item.noBorder);
+    editor.contentEditable='plaintext-only';
+    editor.setAttribute('role','textbox');editor.setAttribute('aria-multiline','true');
+    editor.setAttribute('aria-label',isNumberMarker?'Editable number marker text':'Editable text box');
+    editor.setAttribute('spellcheck','false');editor.tabIndex=0;
+    editor.textContent=String(item.text||'');
+    editor.style.left=`${Number(item.x??point.x)}%`;
+    editor.style.top=`${Number(item.y??point.y)}%`;
+    editor.style.width=`${isNumberMarker?Math.max(2,Math.min(60,Number(item.w)||5.5)):Math.max(8,Math.min(60,Number(item.w)||18))}%`;
+    editor.style.height=`${isNumberMarker?Math.max(2,Math.min(80,Number(item.h)||9)):Math.max(4,Math.min(80,Number(item.h)||9))}%`;
+    editor.style.zIndex='180';editor.style.cursor='text';editor.style.userSelect='text';
+    editor.style.resize='both';editor.style.overflow='auto';editor.style.outline='2px solid #f3d36a';editor.style.outlineOffset='2px';
+    editor.style.minWidth='0';editor.style.minHeight='0';editor.style.maxWidth='60%';editor.style.maxHeight='80%';
+    editor.title='Edit text. Ctrl+Enter to finish, Escape to cancel.';
+    window.__rnActiveTextItem=item;
+    const original=stage.querySelector(`[data-board-item="${CSS.escape(String(item.id))}"]`);
+    if(original)original.style.visibility='hidden';
     stage.appendChild(editor);
-    let closed=false;const initial=String(item.text||'');
-    const syncTextBoxSize=()=>{const sr=stage.getBoundingClientRect();if(sr.width>0&&sr.height>0){item.w=Math.max(isNumberMarker?2:8,Math.min(60,editor.getBoundingClientRect().width/sr.width*100));item.h=Math.max(isNumberMarker?2:4,Math.min(80,editor.getBoundingClientRect().height/sr.height*100));}};
-    const fit=()=>{if(editor.scrollHeight>editor.clientHeight+2)editor.style.height=`${Math.min(stage.clientHeight*.8,editor.scrollHeight+4)}px`;syncTextBoxSize();};
+    let closed=false;
+    const initial=String(item.text||'');
+    let textBoxObserver=null;
+    const readText=()=>String(editor.innerText??editor.textContent??'').replace(/\r/g,'').replace(/\u00a0/g,' ');
+    const syncTextBoxSize=()=>{
+      const sw=Math.max(1,stage.clientWidth),sh=Math.max(1,stage.clientHeight);
+      const minW=isNumberMarker?2:8,minH=isNumberMarker?2:4;
+      const w=Math.max(minW,Math.min(60,editor.offsetWidth/sw*100));
+      const h=Math.max(minH,Math.min(80,editor.offsetHeight/sh*100));
+      if(Math.abs((Number(item.w)||0)-w)>.04)item.w=w;
+      if(Math.abs((Number(item.h)||0)-h)>.04)item.h=h;
+    };
+    const fit=()=>{
+      // Grow only when text exceeds the visible box. The editor uses the rendered board item CSS,
+      // so the saved object keeps the exact dimensions shown during editing.
+      if(editor.scrollHeight>editor.clientHeight+2){
+        const next=Math.min(stage.clientHeight*.8,editor.scrollHeight+2);
+        editor.style.height=`${next}px`;
+      }
+      syncTextBoxSize();
+    };
     const finish=save=>{
       if(closed)return;closed=true;
-      if(save){item.text=String(editor.value||'').slice(0,240).trim();if(isNumberMarker&&!item.text)item.text=String(item.number||1);syncTextBoxSize();}else item.text=initial;
+      if(textBoxObserver){textBoxObserver.disconnect();textBoxObserver=null;}
+      if(save){item.text=readText().slice(0,240).trim();if(isNumberMarker&&!item.text)item.text=String(item.number||1);syncTextBoxSize();}
+      else item.text=initial;
       editor.remove();
       if(!isNumberMarker&&!String(item.text||'').trim())state.playItems=state.playItems.filter(x=>x.id!==item.id);
       window.__rnSetBoardTool?.('select');$('boardTextToolBtn')?.setAttribute('aria-pressed','false');
@@ -7325,17 +7395,30 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
       if(window.__rnActiveTextItem===item)window.__rnActiveTextItem=null;
     };
     editor.addEventListener('input',()=>{
-      item.text=String(editor.value||'').slice(0,240);fit();
+      item.text=readText().slice(0,240);fit();
       try{persist();}catch(error){console.warn('Text typing autosave failed',error);}
     });
-    if(window.ResizeObserver){const textBoxObserver=new ResizeObserver(()=>{if(editor.isConnected){syncTextBoxSize();try{persist();}catch(_){}}});textBoxObserver.observe(editor);editor.addEventListener('blur',()=>textBoxObserver.disconnect(),{once:true});}
+    editor.addEventListener('paste',event=>{
+      const text=event.clipboardData?.getData('text/plain');if(text==null)return;
+      event.preventDefault();
+      const selection=window.getSelection();if(!selection?.rangeCount)return;
+      const range=selection.getRangeAt(0);range.deleteContents();
+      const node=document.createTextNode(text);range.insertNode(node);range.setStartAfter(node);range.collapse(true);selection.removeAllRanges();selection.addRange(range);
+      editor.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:text}));
+    });
     editor.addEventListener('keydown',event=>{
       if(event.key==='Escape'){event.preventDefault();finish(false);}
       else if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();finish(true);}
     });
     editor.addEventListener('blur',()=>finish(true),{once:true});
+    if(window.ResizeObserver){textBoxObserver=new ResizeObserver(()=>{if(editor.isConnected){syncTextBoxSize();try{persist();}catch(_){}}});textBoxObserver.observe(editor);}
     fit();window.__rnActiveTextEditor=editor;window.__rnActiveTextItem=item;
-    requestAnimationFrame(()=>{if(editor.isConnected){editor.focus();editor.setSelectionRange(editor.value.length,editor.value.length);}});
+    requestAnimationFrame(()=>{
+      if(!editor.isConnected)return;
+      editor.focus();
+      const range=document.createRange();range.selectNodeContents(editor);range.collapse(false);
+      const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range);
+    });
     return editor;
   }
   window.__rnShowInlineTextEditor=point=>openPersistentTextEditor(point,null);
@@ -7348,7 +7431,7 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
   if(textBoard&&!textBoard.dataset.rnTextPersistenceDoubleClick){
     textBoard.dataset.rnTextPersistenceDoubleClick='1';
     textBoard.addEventListener('dblclick',event=>{
-      const target=event.target.closest?.('.board-text,.board-number');if(!target)return;
+      if(event.target.closest?.('.inline-board-text-editor'))return;const target=event.target.closest?.('.board-text,.board-number');if(!target)return;
       const id=target.dataset.boardItem;if(!id)return;
       event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
       window.__rnEditBoardTextItem(id);
@@ -7914,6 +7997,25 @@ body.playbook-mode .inline-board-text-editor.rn-number-marker-editor{
   box-sizing:border-box!important;min-width:48px!important;max-width:24%!important;min-height:44px!important;max-height:220px!important;
   padding:5px!important;border-radius:50%!important;text-align:center!important;resize:both!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;
 }
+</style>
+
+
+<style id="rn-v13-24-canvas-text-preview-and-navigation">
+/* The active text preview is the same .board-text/.board-number node used after commit. */
+body.playbook-mode #playBoardStage > .inline-board-text-editor{
+  position:absolute!important;box-sizing:border-box!important;min-width:0!important;min-height:0!important;
+  max-width:60%!important;max-height:80%!important;padding:8px 10px!important;
+  font-family:inherit!important;line-height:1.4!important;white-space:pre-wrap!important;
+  overflow-wrap:anywhere!important;resize:both!important;overflow:auto!important;
+  user-select:text!important;-webkit-user-select:text!important;cursor:text!important;
+}
+body.playbook-mode #playBoardStage > .inline-board-text-editor.board-number{
+  min-width:34px!important;min-height:34px!important;padding:4px!important;display:grid!important;place-items:center!important;border-radius:50%!important;text-align:center!important;
+}
+body.playbook-mode #playBoard.is-panning{cursor:grabbing!important;}
+body.playbook-mode #playBoard:not(.pen-active){cursor:grab!important;}
+body.playbook-mode #playBoard .inline-board-text-editor{cursor:text!important;}
+body.playbook-mode #playBoard .board-item{cursor:grab;}
 </style>
 
 </body>
