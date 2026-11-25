@@ -2084,7 +2084,7 @@ initData();bindPlaybook();render();renderPlaybook();
   relabel('addBoardTextBtn', '＋ TEXT', 'Add a text callout');
   relabel('addBoardArrowBtn', '↗ ARROW', 'Add a direction arrow');
   relabel('addBoardWallBtn', '▰ WALL', 'Add a wall');
-  relabel('addBoardPitBtn', '◉ PIT', 'Add a pit / drop zone');
+  $('addBoardPitBtn')?.remove();
   relabel('addBoardBrokenBtn', '┄ BROKEN LINE', 'Add a broken line');
   relabel('addBoardNumberBtn', '① NUMBER', 'Add a numbered marker');
   $('boardTextInput').placeholder = 'Type a short callout…';
@@ -3276,7 +3276,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     const chosen=state.playItems.filter(item=>selectedIds.has(item.id));
     const selectedShape=chosen.find(item=>item.type==='shape');
     const selectedStroke=chosen.find(item=>['pen','arrow','wall','broken'].includes(item.type));
-    const selectedText=chosen.find(item=>item.type==='text');
+    const selectedText=chosen.find(item=>item.type==='text'||item.type==='number');
     const shapeMode=activeTool==='shape'||!!selectedShape;
     const strokeMode=activeTool.startsWith('pen-')||!!selectedStroke;
     const textMode=activeTool==='text'||!!selectedText;
@@ -3287,7 +3287,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     if(colorRow)colorRow.hidden=textMode;
     if(textControls)textControls.hidden=!textMode;
     const textSizePanel=$('rnTextFontSizeControl'),fontSizeInput=$('rnTextFontSize'),noFillInput=$('rnTextNoFill'),noBorderInput=$('rnTextNoBorder');
-    const textItem=chosen.find(item=>item.type==='text');
+    const textItem=chosen.find(item=>item.type==='text'||item.type==='number');
     if(textSizePanel)textSizePanel.hidden=!textMode;
     const textDefaultsNow=window.__rnGetTextStyleDefaults?.()||{fontSize:12,noFill:false,noBorder:false};
     if(fontSizeInput)fontSizeInput.value=String(Math.max(6,Math.min(48,Number(textItem?.fontSize)||Number(textDefaultsNow.fontSize)||12)));
@@ -3374,6 +3374,21 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     if (type==='number' && !opts.number) opts.number=Math.max(0,...state.playItems.filter(x=>x.type==='number').map(x=>x.number||0))+1;
     const hasPosition=Number.isFinite(Number(opts.x)) && Number.isFinite(Number(opts.y));
     const item={id:`board-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,type,x:0,y:0,rotate:0,scale:1,color:'yellow',side:type==='hero'?'neutral':'ally',...opts};
+    if(type==='number'){
+      const d=window.__rnGetTextStyleDefaults?.()||{};
+      item.text=String(Object.prototype.hasOwnProperty.call(opts,'text')?opts.text:(item.number||1)).slice(0,240);
+      item.w=Math.max(2,Math.min(60,Number(item.w)||5.5));item.h=Math.max(2,Math.min(80,Number(item.h)||9));
+      item.fillColor=/^#[0-9a-f]{6}$/i.test(String(item.fillColor||''))?item.fillColor:(d.fillColor||'#253845');
+      item.borderColor=/^#[0-9a-f]{6}$/i.test(String(item.borderColor||''))?item.borderColor:(d.borderColor||'#73c9c4');
+      item.textColor=/^#[0-9a-f]{6}$/i.test(String(item.textColor||''))?item.textColor:(d.textColor||'#f2f7fa');
+      item.fillOpacity=Number.isFinite(Number(item.fillOpacity))?Math.max(0,Math.min(1,Number(item.fillOpacity))):.94;
+      item.borderOpacity=Number.isFinite(Number(item.borderOpacity))?Math.max(0,Math.min(1,Number(item.borderOpacity))):1;
+      item.borderWidth=Math.max(.5,Math.min(8,Number(item.borderWidth)||1.5));
+      item.fontSize=Math.max(6,Math.min(48,Number(item.fontSize)||Number(d.fontSize)||12));
+      item.noFill=Object.prototype.hasOwnProperty.call(opts,'noFill')?!!item.noFill:!!d.noFill;
+      item.noBorder=Object.prototype.hasOwnProperty.call(opts,'noBorder')?!!item.noBorder:!!d.noBorder;
+      item.bold=Object.prototype.hasOwnProperty.call(opts,'bold')?!!item.bold:!!d.bold;
+    }
     if (type==='shape') { item.w=Number(item.w)||({circle:9,area:14,rectangle:11,triangle:11,'triangle-down':11,diamond:9,cone:10,star:9,line:14,pin:9,warning:10,flag:9,anchor:9,target:10}[item.shapeKind]||11); item.h=Number(item.h)||({line:4,circle:14,area:12,rectangle:11,triangle:14,'triangle-down':14,diamond:14,cone:14,star:14,pin:9,warning:10,flag:9,anchor:9,target:14}[item.shapeKind]||13);if(!Object.prototype.hasOwnProperty.call(opts,'fillOpacity'))item.fillOpacity=shapeStyleDefaults.fillOpacity;if(!Object.prototype.hasOwnProperty.call(opts,'borderOpacity'))item.borderOpacity=shapeStyleDefaults.borderOpacity;if(!Object.prototype.hasOwnProperty.call(opts,'borderWidth'))item.borderWidth=shapeStyleDefaults.borderWidth; }
     if (['arrow','wall','pen'].includes(type)) { item.w=Number(item.w)||15; item.h=Number(item.h)||(type==='arrow'?6:type==='wall'?5:2); }
     if (type==='image') { item.w=Math.max(2,Number(item.w)||18); item.h=Math.max(2,Number(item.h)||20); }
@@ -4416,7 +4431,7 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
  window.__rnSetTextStyleDefault=(key,value)=>{if(Object.prototype.hasOwnProperty.call(textStyleDefaults,key))textStyleDefaults[key]=value;};
  const textStyleControls=[['fillColor','rnTextFillColor','rnPlaybookTextFillColor'],['borderColor','rnTextBorderColor','rnPlaybookTextBorderColor'],['textColor','rnTextFontColor','rnPlaybookTextColor']];
  const asRgba=(hex,alpha)=>{const m=/^#([0-9a-f]{6})$/i.exec(String(hex||''));if(!m)return `rgba(37,56,69,${alpha})`;const n=parseInt(m[1],16);return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${Math.max(0,Math.min(1,alpha))})`;};
- textStyleControls.forEach(([key,id,storage])=>{const input=kit.querySelector('#'+id);if(!input)return;input.value=textStyleDefaults[key];input.addEventListener('input',()=>{textStyleDefaults[key]=input.value;localStorage.setItem(storage,input.value);const selectedIds=Array.isArray(state.selectedBoardItems)?state.selectedBoardItems:(state.selectedBoardItem?[state.selectedBoardItem]:[]);let changed=false;(state.playItems||[]).forEach(item=>{if(item.type==='text'&&selectedIds.includes(item.id)){item[key]=input.value;changed=true;}});const editor=document.querySelector('.inline-board-text-editor');if(editor){const activeText=window.__rnActiveTextItem;if(key==='fillColor'&&!activeText?.noFill)editor.style.backgroundColor=input.value;if(key==='borderColor'&&!activeText?.noBorder)editor.style.borderColor=input.value;if(key==='textColor')editor.style.color=input.value;}if(changed){window.__rnRenderBoard?.();persist();}});});
+ textStyleControls.forEach(([key,id,storage])=>{const input=kit.querySelector('#'+id);if(!input)return;input.value=textStyleDefaults[key];input.addEventListener('input',()=>{textStyleDefaults[key]=input.value;localStorage.setItem(storage,input.value);const selectedIds=Array.isArray(state.selectedBoardItems)?state.selectedBoardItems:(state.selectedBoardItem?[state.selectedBoardItem]:[]);let changed=false;(state.playItems||[]).forEach(item=>{if((item.type==='text'||item.type==='number')&&selectedIds.includes(item.id)){item[key]=input.value;changed=true;}});const editor=document.querySelector('.inline-board-text-editor');if(editor){const activeText=window.__rnActiveTextItem;if(key==='fillColor'&&!activeText?.noFill)editor.style.backgroundColor=input.value;if(key==='borderColor'&&!activeText?.noBorder)editor.style.borderColor=input.value;if(key==='textColor')editor.style.color=input.value;}if(changed){window.__rnRenderBoard?.();persist();}});});
  const paint={white:'#f4f7fb',black:'#101820',red:'#ef665c',yellow:'#f1d76b',green:'#79d89e',blue:'#68bdf2'};
  function applySettingsToSelected(){const ids=Array.isArray(state.selectedBoardItems)?state.selectedBoardItems:(state.selectedBoardItem?[state.selectedBoardItem]:[]);let changed=false;for(const item of state.playItems||[]){if(!ids.includes(item.id)||!['shape','pen','arrow','wall','broken','pit','number'].includes(item.type))continue;item.color=currentColor;if(item.type!=='shape')item.opacity=currentOpacity;changed=true;}if(changed){window.__rnRenderBoard?.();persist();}}
  function setColor(color){currentColor=color;localStorage.setItem('rnPlaybookPenColor',color);window.__rnSetBoardStyle?.(currentColor,currentOpacity);swatches.querySelectorAll('[data-color]').forEach(b=>b.classList.toggle('active',b.dataset.color===color));custom.classList.toggle('active',/^#[0-9a-f]{6}$/i.test(String(color)));if(custom.classList.contains('active'))custom.querySelector('input').value=color;applySettingsToSelected();}
@@ -4458,14 +4473,16 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
  entries.forEach(([kind,title,svg])=>{const b=document.createElement('button');b.type='button';b.className='rn-shape-tool';b.dataset.shapeKind=kind;b.title=title;b.setAttribute('aria-label',title);b.draggable=true;b.innerHTML=svg;b.addEventListener('click',()=>{window.__rnSetBoardTool?.('shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));const dims={area:[14,12],circle:[9,14],rectangle:[11,13],triangle:[11,14],'triangle-down':[11,14],diamond:[9,14],cone:[10,14],star:[9,14],line:[14,4],pin:[9,14],warning:[10,14],flag:[9,14],anchor:[9,14],target:[10,14]};window.newBoardItem?.('shape',{shapeKind:kind,w:dims[kind]?.[0],h:dims[kind]?.[1],color:currentColor,opacity:currentOpacity,__center:{x:50,y:50}});settings.hidden=false;});b.addEventListener('dragstart',e=>{window.__rnSetBoardTool?.('shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));settings.hidden=false;const payload={kind:'shape',shapeKind:kind,color:currentColor,opacity:currentOpacity};e.dataTransfer.setData('application/x-rn-board-tool',JSON.stringify(payload));e.dataTransfer.setData('text/plain',JSON.stringify(payload));e.dataTransfer.effectAllowed='copy';b.classList.add('dragging');});b.addEventListener('dragend',()=>b.classList.remove('dragging'));shapePalette.appendChild(b);});
  shapePalette.parentNode.insertBefore(shapeHeading,shapePalette);
  // Re-home legacy wall/number/arrow actions into the palette as compact draggable controls.
- const addSpecial=(kind,title,svg,shapeKind=null)=>{const b=document.createElement('button');b.type='button';b.className='rn-shape-tool';b.title=title;b.setAttribute('aria-label',title);b.draggable=true;b.innerHTML=svg;b.addEventListener('click',()=>{window.__rnSetBoardTool?.('shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));window.newBoardItem?.(kind,{...(shapeKind?{shapeKind}:{}),color:currentColor,opacity:currentOpacity,__center:{x:50,y:50}});settings.hidden=false;});b.addEventListener('dragstart',e=>{window.__rnSetBoardTool?.('shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));settings.hidden=false;const payload={kind, ...(shapeKind?{shapeKind}:{}),color:currentColor,opacity:currentOpacity};e.dataTransfer.setData('application/x-rn-board-tool',JSON.stringify(payload));e.dataTransfer.effectAllowed='copy';});shapePalette.appendChild(b);};
+ const numberMarkerStyle=()=>{const d=window.__rnGetTextStyleDefaults?.()||{};return {fillColor:d.fillColor||'#253845',borderColor:d.borderColor||'#73c9c4',textColor:d.textColor||'#f2f7fa',noFill:!!d.noFill,noBorder:!!d.noBorder,bold:!!d.bold,fontSize:Number(d.fontSize)||12,fillOpacity:.94,borderOpacity:1,borderWidth:1.5,w:5.5,h:9};};
+ const openNumberMarkerEditor=item=>{if(item?.id)requestAnimationFrame(()=>window.__rnEditBoardTextItem?.(item.id));};
+ const addSpecial=(kind,title,svg,shapeKind=null)=>{const b=document.createElement('button');b.type='button';b.className='rn-shape-tool';b.title=title;b.setAttribute('aria-label',title);b.draggable=true;b.innerHTML=svg;b.addEventListener('click',()=>{const isNumber=kind==='number';window.__rnSetBoardTool?.(isNumber?'text':'shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));const item=window.newBoardItem?.(kind,{...(shapeKind?{shapeKind}:{}),...(isNumber?numberMarkerStyle():{}),color:currentColor,opacity:currentOpacity,__center:{x:50,y:50}});settings.hidden=false;if(isNumber)openNumberMarkerEditor(item);});b.addEventListener('dragstart',e=>{const isNumber=kind==='number';window.__rnSetBoardTool?.(isNumber?'text':'shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));settings.hidden=false;const payload={kind,...(shapeKind?{shapeKind}:{}),...(isNumber?numberMarkerStyle():{}),color:currentColor,opacity:currentOpacity};e.dataTransfer.setData('application/x-rn-board-tool',JSON.stringify(payload));e.dataTransfer.effectAllowed='copy';});shapePalette.appendChild(b);};
  addSpecial('wall','Wall',icon('<path d="M2 5h20v14H2zM2 10h20M8 5v5m8 0v9"/>'));
  addSpecial('number','Number marker',icon('<circle cx="12" cy="12" r="10"/><path d="M10 8h3v8m-4 0h6"/>'));
  addSpecial('arrow','Arrow',icon('<path d="M3 12h17m-7-7 7 7-7 7"/>'));
- addSpecial('shape','Pit / hazard',icon('<ellipse cx="12" cy="13" rx="10" ry="7"/><path d="m7 10 5 7 5-7"/>'),'area');
+ // The old PIT / HAZARD action has been removed; existing saved pit objects remain readable.
  // The canvas accepts shape drags at the exact pointer position; click actions still auto-place at centre.
  const stage=$('playBoardStage');
- if(stage&&!stage.dataset.rnPaletteDrop){stage.dataset.rnPaletteDrop='1';const canvas=stage.closest('#playBoard');canvas.addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('application/x-rn-board-tool')){e.preventDefault();e.dataTransfer.dropEffect='copy';canvas.classList.add('drop-ready');}},true);canvas.addEventListener('drop',e=>{const raw=e.dataTransfer.getData('application/x-rn-board-tool');if(!raw)return;try{const data=JSON.parse(raw),point=window.__rnBoardPoint?.(e)||{x:50,y:50};e.preventDefault();e.stopImmediatePropagation();canvas.classList.remove('drop-ready');if(data.kind==='shape')window.newBoardItem?.('shape',{shapeKind:data.shapeKind,color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});else window.newBoardItem?.(data.kind,{color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});}catch(err){console.warn(err);}},true);}
+ if(stage&&!stage.dataset.rnPaletteDrop){stage.dataset.rnPaletteDrop='1';const canvas=stage.closest('#playBoard');canvas.addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('application/x-rn-board-tool')){e.preventDefault();e.dataTransfer.dropEffect='copy';canvas.classList.add('drop-ready');}},true);canvas.addEventListener('drop',e=>{const raw=e.dataTransfer.getData('application/x-rn-board-tool');if(!raw)return;try{const data=JSON.parse(raw),point=window.__rnBoardPoint?.(e)||{x:50,y:50};e.preventDefault();e.stopImmediatePropagation();canvas.classList.remove('drop-ready');let item;if(data.kind==='shape')item=window.newBoardItem?.('shape',{shapeKind:data.shapeKind,color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});else{const isNumber=data.kind==='number';item=window.newBoardItem?.(data.kind,{...(isNumber?numberMarkerStyle():{}),fillColor:data.fillColor,borderColor:data.borderColor,textColor:data.textColor,noFill:data.noFill,noBorder:data.noBorder,bold:data.bold,fontSize:data.fontSize,w:data.w,h:data.h,fillOpacity:data.fillOpacity,borderOpacity:data.borderOpacity,borderWidth:data.borderWidth,color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});if(isNumber){window.__rnSetBoardTool?.('text');openNumberMarkerEditor(item);}}}catch(err){console.warn(err);}},true);}
  // Primary tool actions; Select is the default active tool and uses a cursor glyph.
  penBtn.addEventListener('click',()=>window.__rnSetBoardTool?.('pen-solid'));
  const oldSelectHandler=selectBtn;oldSelectHandler.addEventListener('click',()=>{shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.remove('active'));settings.hidden=true;});
@@ -6179,7 +6196,7 @@ body.groups-mode .rn-v13-group-top{display:flex!important;align-items:flex-start
 body.groups-mode .rn-v13-group-top .group-icon-view{width:30px!important;height:30px!important;flex:none!important;display:grid!important;place-items:center!important}
 body.groups-mode .rn-v13-group-top .group-svg-icon{width:25px!important;height:25px!important}
 body.groups-mode .rn-v13-group-heading{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:4px!important;min-width:0!important;flex:1!important}
-body.groups-mode .rn-v13-group-name{font-size:12px!important;font-weight:950!important;line-height:1.2!important;color:#f2f6f9!important;overflow-wrap:anywhere!important}
+body.groups-mode .rn-v13-group-name{position:relative!important;top:6px!important;font-size:12px!important;font-weight:950!important;line-height:1.2!important;color:#f2f6f9!important;overflow-wrap:anywhere!important}
 body.groups-mode .rn-v13-group-count{font-size:7px!important;color:#9eb3c1!important;letter-spacing:.05em!important;margin-left:4px!important}
 body.groups-mode .rn-v13-group-inline-actions{display:flex!important;align-items:center!important;gap:5px!important;margin:1px 0!important}
 body.groups-mode .rn-v13-group-inline-actions button{height:22px!important;min-height:22px!important;padding:3px 7px!important;font-size:7px!important;font-weight:950!important;border-radius:4px!important;line-height:1!important}
@@ -7204,19 +7221,22 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
     const wrapped=function(list){
       const source=(Array.isArray(list)?list:[]).filter(item=>item?.type!=='text'||String(item.text||'').trim().length>0);
       return baseNormalize(source).map(item=>{
-        if(item.type==='text'){
+        if(item.type==='text'||item.type==='number'){
           const raw=(Array.isArray(list)?list:[]).find(x=>String(x?.id||'')===String(item.id))||{};
           const d=textDefaults();
+          if(item.type==='number')item.text=String(raw.text!=null&&String(raw.text).trim()?raw.text:(raw.number||item.number||1)).slice(0,240);
           item.fillColor=/^#[0-9a-f]{6}$/i.test(String(raw.fillColor||''))?raw.fillColor:d.fillColor;
           item.borderColor=/^#[0-9a-f]{6}$/i.test(String(raw.borderColor||''))?raw.borderColor:d.borderColor;
           item.textColor=/^#[0-9a-f]{6}$/i.test(String(raw.textColor||''))?raw.textColor:d.textColor;
           item.fillOpacity=Number.isFinite(Number(raw.fillOpacity))?Math.max(0,Math.min(1,Number(raw.fillOpacity))):.94;
           item.borderOpacity=Number.isFinite(Number(raw.borderOpacity))?Math.max(0,Math.min(1,Number(raw.borderOpacity))):1;
           item.borderWidth=Math.max(.5,Math.min(8,Number(raw.borderWidth)||1.5));
-          item.noFill=!!raw.noFill;item.noBorder=!!raw.noBorder;item.bold=!!raw.bold;
+          item.noFill=Object.prototype.hasOwnProperty.call(raw,'noFill')?!!raw.noFill:!!d.noFill;
+          item.noBorder=Object.prototype.hasOwnProperty.call(raw,'noBorder')?!!raw.noBorder:!!d.noBorder;
+          item.bold=Object.prototype.hasOwnProperty.call(raw,'bold')?!!raw.bold:!!d.bold;
           item.fontSize=Math.max(6,Math.min(48,Number(raw.fontSize)||Number(d.fontSize)||12));
-          item.w=Math.max(8,Math.min(60,Number(raw.w)||18));
-          item.h=Math.max(4,Math.min(80,Number(raw.h)||9));
+          item.w=item.type==='number'?Math.max(2,Math.min(60,Number(raw.w)||5.5)):Math.max(8,Math.min(60,Number(raw.w)||18));
+          item.h=item.type==='number'?Math.max(2,Math.min(80,Number(raw.h)||9)):Math.max(4,Math.min(80,Number(raw.h)||9));
         }
         return item;
       });
@@ -7227,21 +7247,28 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
     const baseRender=renderBoardItem;
     const wrapped=function(item,selected=false){
       const el=baseRender(item,selected);
-      if(item?.type==='text'){
-        const d=textDefaults();
-        el.classList.add('rn-editable-text-box');
+      if(item?.type==='text'||item?.type==='number'){
+        const d=textDefaults(),isNumber=item.type==='number';
+        el.classList.add(isNumber?'rn-editable-number-marker':'rn-editable-text-box');
         el.classList.toggle('rn-text-no-fill',!!item.noFill);
         el.classList.toggle('rn-text-no-border',!!item.noBorder);
-        el.style.width=`${Math.max(8,Math.min(60,Number(item.w)||18))}%`;
-        el.style.height=`${Math.max(4,Math.min(80,Number(item.h)||9))}%`;
-        el.style.minHeight='0';
+        el.style.width=`${isNumber?Math.max(2,Math.min(60,Number(item.w)||5.5)):Math.max(8,Math.min(60,Number(item.w)||18))}%`;
+        el.style.height=`${isNumber?Math.max(2,Math.min(80,Number(item.h)||9)):Math.max(4,Math.min(80,Number(item.h)||9))}%`;
+        el.style.minHeight=isNumber?'34px':'0';
         el.style.backgroundColor=item.noFill?'transparent':rgba(item.fillColor||d.fillColor,item.fillOpacity??.94);
         el.style.border=item.noBorder?'none':`${Math.max(.5,Math.min(8,Number(item.borderWidth)||1.5))}px solid ${rgba(item.borderColor||d.borderColor,item.borderOpacity??1)}`;
         el.style.color=item.textColor||d.textColor;
         el.style.fontWeight=item.bold?'800':'400';
         el.style.fontSize=`${Math.max(6,Math.min(48,Number(item.fontSize)||Number(d.fontSize)||12))}px`;
-        el.title='Double-click to edit text';
-        el.setAttribute('aria-label',`Text: ${String(item.text||'').slice(0,100)}`);
+        if(isNumber){
+          const markerText=String(item.text!=null&&String(item.text).trim()?item.text:(item.number||1));
+          const textNode=[...el.childNodes].find(node=>node.nodeType===Node.TEXT_NODE);
+          if(textNode)textNode.textContent=markerText;else el.insertBefore(document.createTextNode(markerText),el.firstChild);
+          el.style.boxSizing='border-box';el.style.display='grid';el.style.placeItems='center';el.style.padding='4px';el.style.borderRadius='50%';el.style.textAlign='center';el.style.whiteSpace='pre-wrap';el.style.overflowWrap='anywhere';
+          el.title='Double-click to edit marker text';el.setAttribute('aria-label',`Number marker: ${markerText}`);
+        }else{
+          el.title='Double-click to edit text';el.setAttribute('aria-label',`Text: ${String(item.text||'').slice(0,100)}`);
+        }
       }
       return el;
     };
@@ -7262,23 +7289,32 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
       }
     }
     const stage=editorStage();if(!stage)return null;
+    const isNumberMarker=item.type==='number';
+    if(isNumberMarker){
+      if(!String(item.text||'').trim())item.text=String(item.number||1);
+      item.fillColor=item.fillColor||defaults.fillColor;item.borderColor=item.borderColor||defaults.borderColor;item.textColor=item.textColor||defaults.textColor;
+      item.fillOpacity=Number.isFinite(Number(item.fillOpacity))?item.fillOpacity:.94;item.borderOpacity=Number.isFinite(Number(item.borderOpacity))?item.borderOpacity:1;
+      item.borderWidth=Number(item.borderWidth)||1.5;item.fontSize=Number(item.fontSize)||Number(defaults.fontSize)||12;
+      if(typeof item.noFill!=='boolean')item.noFill=!!defaults.noFill;if(typeof item.noBorder!=='boolean')item.noBorder=!!defaults.noBorder;if(typeof item.bold!=='boolean')item.bold=!!defaults.bold;
+    }
     const editor=document.createElement('textarea');
-    editor.className='inline-board-text-editor';editor.classList.toggle('rn-text-bold',!!item.bold);editor.classList.toggle('rn-text-no-fill',!!item.noFill);editor.classList.toggle('rn-text-no-border',!!item.noBorder);editor.rows=1;editor.maxLength=240;editor.placeholder='Type here…';editor.setAttribute('aria-label','Editable text box');
+    editor.className='inline-board-text-editor';editor.classList.toggle('rn-number-marker-editor',isNumberMarker);editor.classList.toggle('rn-text-bold',!!item.bold);editor.classList.toggle('rn-text-no-fill',!!item.noFill);editor.classList.toggle('rn-text-no-border',!!item.noBorder);editor.rows=1;editor.maxLength=240;editor.placeholder=isNumberMarker?'Edit marker text…':'Type here…';editor.setAttribute('aria-label',isNumberMarker?'Editable number marker text':'Editable text box');
     editor.value=String(item.text||'');
-    editor.style.left=`${Number(item.x??point.x)}%`;editor.style.top=`${Number(item.y??point.y)}%`;editor.style.width=`${Math.max(8,Math.min(60,Number(item.w)||18))}%`;editor.style.height=`${Math.max(4,Math.min(80,Number(item.h)||9))}%`;
+    editor.style.left=`${Number(item.x??point.x)}%`;editor.style.top=`${Number(item.y??point.y)}%`;editor.style.width=`${isNumberMarker?Math.max(2,Math.min(60,Number(item.w)||5.5)):Math.max(8,Math.min(60,Number(item.w)||18))}%`;editor.style.height=`${isNumberMarker?Math.max(2,Math.min(80,Number(item.h)||9)):Math.max(4,Math.min(80,Number(item.h)||9))}%`;
+    if(isNumberMarker){editor.style.borderRadius='50%';editor.style.textAlign='center';}
     editor.style.backgroundColor=item.noFill?'transparent':rgba(item.fillColor||defaults.fillColor,item.fillOpacity??.94);
     editor.style.border=item.noBorder?'none':`${Math.max(.5,Math.min(8,Number(item.borderWidth)||1.5))}px solid ${rgba(item.borderColor||defaults.borderColor,item.borderOpacity??1)}`;
     editor.style.color=item.textColor||defaults.textColor;editor.style.fontWeight=item.bold?'800':'400';editor.style.fontSize=`${Math.max(6,Math.min(48,Number(item.fontSize)||Number(defaults.fontSize)||12))}px`;
     editor.style.resize='both';editor.style.overflow='auto';window.__rnActiveTextItem=item;
     stage.appendChild(editor);
     let closed=false;const initial=String(item.text||'');
-    const syncTextBoxSize=()=>{const sr=stage.getBoundingClientRect();if(sr.width>0&&sr.height>0){item.w=Math.max(8,Math.min(60,editor.getBoundingClientRect().width/sr.width*100));item.h=Math.max(4,Math.min(80,editor.getBoundingClientRect().height/sr.height*100));}};
+    const syncTextBoxSize=()=>{const sr=stage.getBoundingClientRect();if(sr.width>0&&sr.height>0){item.w=Math.max(isNumberMarker?2:8,Math.min(60,editor.getBoundingClientRect().width/sr.width*100));item.h=Math.max(isNumberMarker?2:4,Math.min(80,editor.getBoundingClientRect().height/sr.height*100));}};
     const fit=()=>{if(editor.scrollHeight>editor.clientHeight+2)editor.style.height=`${Math.min(stage.clientHeight*.8,editor.scrollHeight+4)}px`;syncTextBoxSize();};
     const finish=save=>{
       if(closed)return;closed=true;
-      if(save){item.text=String(editor.value||'').slice(0,240).trim();syncTextBoxSize();}else item.text=initial;
+      if(save){item.text=String(editor.value||'').slice(0,240).trim();if(isNumberMarker&&!item.text)item.text=String(item.number||1);syncTextBoxSize();}else item.text=initial;
       editor.remove();
-      if(!String(item.text||'').trim())state.playItems=state.playItems.filter(x=>x.id!==item.id);
+      if(!isNumberMarker&&!String(item.text||'').trim())state.playItems=state.playItems.filter(x=>x.id!==item.id);
       window.__rnSetBoardTool?.('select');$('boardTextToolBtn')?.setAttribute('aria-pressed','false');
       window.__rnRenderBoard?.();
       try{persist();}catch(error){console.warn('Text box could not be persisted',error);}
@@ -7301,7 +7337,7 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
   }
   window.__rnShowInlineTextEditor=point=>openPersistentTextEditor(point,null);
   window.__rnEditBoardTextItem=id=>{
-    const item=(state.playItems||[]).find(x=>x.id===id&&x.type==='text');
+    const item=(state.playItems||[]).find(x=>x.id===id&&(x.type==='text'||x.type==='number'));
     if(!item)return null;
     window.__rnSetBoardSelection?.([item.id]);
     return openPersistentTextEditor({x:item.x,y:item.y},item);
@@ -7309,7 +7345,7 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
   if(textBoard&&!textBoard.dataset.rnTextPersistenceDoubleClick){
     textBoard.dataset.rnTextPersistenceDoubleClick='1';
     textBoard.addEventListener('dblclick',event=>{
-      const target=event.target.closest?.('.board-text');if(!target)return;
+      const target=event.target.closest?.('.board-text,.board-number');if(!target)return;
       const id=target.dataset.boardItem;if(!id)return;
       event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
       window.__rnEditBoardTextItem(id);
@@ -7507,11 +7543,11 @@ body:not(.playbook-mode) #synergiesPage .synergy-results .synergy-section-title{
   const $=id=>document.getElementById(id);
   const getItems=()=>window.__rnGetBoardItems?.()||[];
   const selectedTextItems=()=>{
-    const ids=new Set([...document.querySelectorAll('.board-item.board-text.selected')].map(el=>el.dataset.boardItem).filter(Boolean));
+    const ids=new Set([...document.querySelectorAll('.board-item.board-text.selected,.board-item.board-number.selected')].map(el=>el.dataset.boardItem).filter(Boolean));
     try{if(typeof state!=='undefined'){(state.selectedBoardItems||[]).forEach(id=>ids.add(id));if(state.selectedBoardItem)ids.add(state.selectedBoardItem);}}catch(_){}
-    const list=getItems().filter(item=>item?.type==='text'&&ids.has(item.id));
+    const list=getItems().filter(item=>(item?.type==='text'||item?.type==='number')&&ids.has(item.id));
     const active=window.__rnActiveTextItem;
-    if(active?.type==='text'&&!list.some(item=>item.id===active.id))list.push(active);
+    if((active?.type==='text'||active?.type==='number')&&!list.some(item=>item.id===active.id))list.push(active);
     return list;
   };
   const defaults=window.__rnGetTextStyleDefaults?.()||{fillColor:'#253845',borderColor:'#73c9c4',textColor:'#f2f7fa',fontSize:12,noFill:false,noBorder:false};
@@ -7525,7 +7561,7 @@ body:not(.playbook-mode) #synergiesPage .synergy-results .synergy-section-title{
       const value=!!input.checked;window.__rnSetTextStyleDefault?.(key,value);localStorage.setItem(storage,value?'1':'0');
       const items=selectedTextItems();items.forEach(item=>{item[key]=value;});
       const activeEditor=editor(),activeItem=window.__rnActiveTextItem;
-      if(activeEditor&&activeItem?.type==='text'){
+      if(activeEditor&&(activeItem?.type==='text'||activeItem?.type==='number')){
         if(key==='noFill'){activeEditor.classList.toggle('rn-text-no-fill',value);activeEditor.style.backgroundColor=value?'transparent':(activeItem.fillColor||defaults.fillColor);}
         if(key==='noBorder'){activeEditor.classList.toggle('rn-text-no-border',value);activeEditor.style.border=value?'none':`${Number(activeItem.borderWidth)||1.5}px solid ${activeItem.borderColor||defaults.borderColor}`;}
       }
@@ -7692,12 +7728,12 @@ body.playbook-mode .inline-board-text-editor.rn-text-bold{font-weight:800!import
   const $=id=>document.getElementById(id);
   const getItems=()=>window.__rnGetBoardItems?.()||[];
   const selectedTextItems=()=>{
-    const ids=new Set([...document.querySelectorAll('.board-item.board-text.selected')].map(el=>el.dataset.boardItem).filter(Boolean));
+    const ids=new Set([...document.querySelectorAll('.board-item.board-text.selected,.board-item.board-number.selected')].map(el=>el.dataset.boardItem).filter(Boolean));
     const selectedId=window.__rnGetBoardSelection?.();
     if(Array.isArray(selectedId))selectedId.forEach(id=>ids.add(id));
     const active=window.__rnActiveTextItem;
-    const items=getItems().filter(item=>item?.type==='text'&&ids.has(item.id));
-    if(active?.type==='text'&&!items.some(item=>item.id===active.id))items.push(active);
+    const items=getItems().filter(item=>(item?.type==='text'||item?.type==='number')&&ids.has(item.id));
+    if((active?.type==='text'||active?.type==='number')&&!items.some(item=>item.id===active.id))items.push(active);
     return items;
   };
   const save=()=>{try{if(typeof persistPlaybook==='function')persistPlaybook();else if(typeof persist==='function')persist();else window.__rnPersistBoard?.();}catch(error){console.warn('Text formatting save failed',error);}};
@@ -7720,7 +7756,7 @@ body.playbook-mode .inline-board-text-editor.rn-text-bold{font-weight:800!import
   const syncBold=()=>{
     const active=window.__rnActiveTextItem;
     const items=selectedTextItems();
-    const value=active?.type==='text'?!!active.bold:(items.length?items.every(item=>!!item.bold):!!(window.__rnGetTextStyleDefaults?.()||{}).bold);
+    const value=(active?.type==='text'||active?.type==='number')?!!active.bold:(items.length?items.every(item=>!!item.bold):!!(window.__rnGetTextStyleDefaults?.()||{}).bold);
     updateStateButton('rnTextBoldBtn',value);
   };
   if(boldButton&&!boldButton.dataset.rnV1319){
@@ -7729,15 +7765,15 @@ body.playbook-mode .inline-board-text-editor.rn-text-bold{font-weight:800!import
       event.preventDefault();event.stopPropagation();
       const items=selectedTextItems();
       const active=window.__rnActiveTextItem;
-      const current=active?.type==='text'?!!active.bold:(items.length?items.every(item=>!!item.bold):!!(window.__rnGetTextStyleDefaults?.()||{}).bold);
+      const current=(active?.type==='text'||active?.type==='number')?!!active.bold:(items.length?items.every(item=>!!item.bold):!!(window.__rnGetTextStyleDefaults?.()||{}).bold);
       const next=!current;
       window.__rnSetTextStyleDefault?.('bold',next);
       try{localStorage.setItem('rnPlaybookTextBold',next?'1':'0');}catch(_){}
       items.forEach(item=>{item.bold=next;});
-      if(active?.type==='text')active.bold=next;
+      if(active?.type==='text'||active?.type==='number')active.bold=next;
       const editor=document.querySelector('.inline-board-text-editor');if(editor)editor.classList.toggle('rn-text-bold',next);
       updateStateButton('rnTextBoldBtn',next);
-      if(items.length||active?.type==='text')window.__rnRenderBoard?.();
+      if(items.length||active?.type==='text'||active?.type==='number')window.__rnRenderBoard?.();
       save();
     });
   }
@@ -7858,6 +7894,24 @@ body.playbook-mode .hero-role-filters #rnEnemyPlacementToggle[aria-pressed="true
   window.__rnRenderBoard?.();
 })();
 </script>
+
+
+<style id="rn-v13-22-board-alignment-and-number-markers">
+/* Hero token dimensions describe its measured footprint; its anchor remains the board-stage point. */
+body.playbook-mode #playBoardStage > .board-item.board-hero{position:absolute!important;}
+/* Number markers inherit the text-box colour and typography model while retaining a round badge shape. */
+body.playbook-mode #playBoardStage > .board-item.board-number.rn-editable-number-marker{
+  box-sizing:border-box!important;min-width:34px!important;min-height:34px!important;max-width:60%!important;max-height:80%!important;
+  display:grid!important;place-items:center!important;padding:4px!important;border-radius:50%!important;
+  white-space:pre-wrap!important;overflow-wrap:anywhere!important;text-align:center!important;overflow:auto!important;
+}
+body.playbook-mode #playBoardStage > .board-item.board-number.rn-text-no-fill{background:transparent!important;background-color:transparent!important;}
+body.playbook-mode #playBoardStage > .board-item.board-number.rn-text-no-border{border:0!important;border-style:none!important;border-width:0!important;box-shadow:none!important;}
+body.playbook-mode .inline-board-text-editor.rn-number-marker-editor{
+  box-sizing:border-box!important;min-width:48px!important;max-width:24%!important;min-height:44px!important;max-height:220px!important;
+  padding:5px!important;border-radius:50%!important;text-align:center!important;resize:both!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;
+}
+</style>
 
 </body>
 </html>
