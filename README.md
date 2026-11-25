@@ -254,3 +254,8 @@ See `V13.9_RELEASE_NOTES.md` for the latest changes.
 ## V13.13
 
 See [V13.13 Release Notes](V13.13_RELEASE_NOTES.md) for deployment-safe embedded Convergence point images and Playbook text styling/editor improvements.
+
+
+## V13.14
+
+See [V13.14 Release Notes](V13.14_RELEASE_NOTES.md) for the latest Playbook toolbar, themed save actions, Enemy toggle, and editable text-box improvements.

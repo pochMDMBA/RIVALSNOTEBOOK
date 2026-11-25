@@ -6872,5 +6872,292 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
 })();
 </script>
 
+
+
+<style id="rn-v13-14-toolbar-play-actions-text-persistence-style">
+/* Keep the three text colour pickers fully inside the narrow Playbook settings panel. */
+body.playbook-mode #rnToolSettings{box-sizing:border-box!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow:visible!important;padding:7px!important;}
+body.playbook-mode #rnTextStyleControls{box-sizing:border-box!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;width:100%!important;max-width:100%!important;min-width:0!important;padding:2px 0 0!important;}
+body.playbook-mode #rnTextStyleControls[hidden]{display:none!important;}
+body.playbook-mode #rnTextStyleControls .rn-text-style-control{box-sizing:border-box!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:5px!important;width:100%!important;max-width:100%!important;min-width:0!important;min-height:53px!important;padding:6px 2px!important;overflow:hidden!important;font-size:6.5px!important;line-height:1.15!important;letter-spacing:0!important;white-space:normal!important;overflow-wrap:anywhere!important;text-align:center!important;}
+body.playbook-mode #rnTextStyleControls .rn-text-style-control input[type="color"]{box-sizing:border-box!important;display:block!important;flex:0 0 24px!important;width:26px!important;min-width:26px!important;max-width:26px!important;height:24px!important;min-height:24px!important;margin:0!important;padding:2px!important;}
+/* Four presets and the custom picker use a 3-column grid so no swatch overlaps another. */
+body.playbook-mode #rnToolSettings .rn-color-swatches{box-sizing:border-box!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px 5px!important;width:100%!important;max-width:100%!important;min-width:0!important;justify-items:center!important;align-items:center!important;overflow:visible!important;padding:2px 1px!important;}
+body.playbook-mode #rnToolSettings .rn-color-chip,
+body.playbook-mode #rnToolSettings .rn-custom-color{box-sizing:border-box!important;display:grid!important;place-items:center!important;justify-self:center!important;align-self:center!important;width:25px!important;min-width:25px!important;max-width:25px!important;height:25px!important;min-height:25px!important;max-height:25px!important;margin:0!important;}
+body.playbook-mode #rnToolSettings .rn-custom-color input[type="color"]{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-width:0!important;max-width:none!important;opacity:0!important;cursor:pointer!important;}
+/* Role filters: restore ALL/V/D/S sizing and add one circular E toggle directly after S. */
+body.playbook-mode .hero-role-filters{box-sizing:border-box!important;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-start!important;gap:4px!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow:visible!important;}
+body.playbook-mode .hero-role-filters>button{box-sizing:border-box!important;display:grid!important;place-items:center!important;flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important;height:21px!important;min-height:21px!important;max-height:21px!important;padding:0 2px!important;border-radius:4px!important;font-size:8px!important;line-height:1!important;white-space:nowrap!important;overflow:hidden!important;}
+body.playbook-mode .hero-role-filters>#rnEnemyPlacementToggle{box-sizing:border-box!important;display:grid!important;place-items:center!important;flex:0 0 21px!important;width:21px!important;min-width:21px!important;max-width:21px!important;height:21px!important;min-height:21px!important;max-height:21px!important;margin-left:1px!important;padding:0!important;border:1px solid #80505a!important;border-radius:50%!important;background:#202b37!important;color:#e5edf5!important;font-size:9px!important;font-weight:950!important;line-height:1!important;letter-spacing:0!important;}
+body.playbook-mode .hero-role-filters>#rnEnemyPlacementToggle[aria-pressed="true"]{background:linear-gradient(145deg,#ce354d,#852536)!important;border-color:#ff9aa7!important;color:#fff!important;box-shadow:0 0 0 1px #ef5d7080,0 0 10px #ef5d7060!important;}
+@media(max-width:580px){body.playbook-mode .hero-dock-filters{grid-template-columns:38px minmax(60px,1fr) minmax(108px,1.2fr)!important;}
+ body.playbook-mode .hero-role-filters{grid-column:3!important;width:100%!important;justify-content:flex-start!important;gap:2px!important;}
+ body.playbook-mode .hero-role-filters>button{height:19px!important;min-height:19px!important;max-height:19px!important;font-size:7px!important;padding:0 1px!important;}
+ body.playbook-mode .hero-role-filters>#rnEnemyPlacementToggle{flex-basis:19px!important;width:19px!important;min-width:19px!important;max-width:19px!important;height:19px!important;min-height:19px!important;max-height:19px!important;font-size:8px!important;}}
+/* Save controls stay grouped and compact at the top of the board. */
+body.playbook-mode .rn-save-play-actions{display:flex!important;align-items:center!important;justify-content:stretch!important;gap:4px!important;flex:1 1 100%!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;}
+body.playbook-mode .rn-save-play-actions .btn{height:29px!important;min-width:0!important;padding:5px 7px!important;font-size:7px!important;letter-spacing:.035em!important;}
+body.playbook-mode #rnSaveAsPlayBtn{background:#293847!important;border-color:#61788b!important;color:#dceaf3!important;}
+/* The text box and its editing surface retain their chosen styles and stay editable. */
+body.playbook-mode .board-item.board-text{box-sizing:border-box!important;min-width:90px!important;min-height:42px!important;max-width:60%!important;padding:8px 10px!important;border-style:solid!important;border-width:1.5px!important;border-radius:5px!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;cursor:move!important;}
+body.playbook-mode .inline-board-text-editor{box-sizing:border-box!important;z-index:180!important;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;min-width:120px!important;max-width:60%!important;min-height:42px!important;max-height:260px!important;resize:both!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;}
+body.playbook-mode .rn-play-dialog-backdrop{position:fixed!important;inset:0!important;z-index:10000!important;display:none!important;align-items:center!important;justify-content:center!important;padding:16px!important;background:rgba(4,10,16,.78)!important;backdrop-filter:blur(5px)!important;}
+body.playbook-mode .rn-play-dialog-backdrop.open{display:flex!important;}
+.rn-play-dialog-backdrop{display:none!important;}
+.rn-play-dialog-backdrop.open{display:flex!important;}
+body.playbook-mode .rn-play-dialog{box-sizing:border-box!important;width:min(390px,calc(100vw - 28px))!important;padding:19px!important;border:1px solid #486477!important;border-radius:10px!important;background:linear-gradient(155deg,#243746,#15222e)!important;color:#eef6fb!important;box-shadow:0 22px 70px #000b!important;}
+body.playbook-mode .rn-play-dialog-kicker{margin:0 0 7px!important;color:#7fd7cf!important;font-size:8px!important;font-weight:950!important;letter-spacing:.16em!important;text-transform:uppercase!important;}
+body.playbook-mode .rn-play-dialog h3{margin:0 0 8px!important;color:#f2f7fb!important;font-size:17px!important;font-weight:950!important;}
+body.playbook-mode .rn-play-dialog p{margin:0 0 14px!important;color:#b8c9d5!important;font-size:11px!important;line-height:1.5!important;}
+body.playbook-mode .rn-play-dialog input{box-sizing:border-box!important;width:100%!important;height:36px!important;margin:0 0 13px!important;padding:7px 9px!important;border:1px solid #4e687b!important;border-radius:5px!important;background:#111d28!important;color:#f2f7fb!important;font-size:11px!important;outline:none!important;}
+body.playbook-mode .rn-play-dialog input:focus{border-color:#70cfc5!important;box-shadow:0 0 0 2px #70cfc533!important;}
+body.playbook-mode .rn-play-dialog-actions{display:flex!important;justify-content:flex-end!important;gap:7px!important;margin-top:12px!important;}
+body.playbook-mode .rn-play-dialog-actions button{min-width:78px!important;height:31px!important;padding:5px 10px!important;border:1px solid #526a7b!important;border-radius:5px!important;background:#263a49!important;color:#e3eef5!important;font-size:8px!important;font-weight:900!important;cursor:pointer!important;}
+body.playbook-mode .rn-play-dialog-actions button.confirm{border-color:#58b9b1!important;background:#246b70!important;color:#f2ffff!important;}
+body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!important;background:#71313e!important;color:#fff0f1!important;}
+</style>
+
+<script id="rn-v13-14-toolbar-play-actions-text-persistence">
+(()=>{
+  if(typeof state==='undefined')return;
+  const $=id=>document.getElementById(id);
+  const board=$('playBoard');
+  const deep=value=>{try{return JSON.parse(JSON.stringify(value));}catch(_){return value;}};
+  const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+  // Convert the old worded enemy control into the compact circular E at the right of S.
+  const roleFilters=$('heroRoleFilters');
+  if(roleFilters){
+    const enemy=$('rnEnemyPlacementToggle');
+    const support=roleFilters.querySelector('[data-role-filter="Strategist"]');
+    if(enemy){enemy.textContent='E';enemy.setAttribute('aria-label','Enemy placement');enemy.title='Enemy placement: newly added heroes receive a red border';enemy.classList.add('rn-enemy-circle-toggle');if(support&&enemy.previousElementSibling!==support)support.after(enemy);}
+  }
+
+  // Group Save As / Save / New, while retaining the existing button IDs and handlers.
+  const saveBtn=$('savePlayBtn'),newBtn=$('newPlayBtn'),topControls=$('playbookTopControls');
+  if(saveBtn&&newBtn&&topControls&&!$('rnSaveAsPlayBtn')){
+    saveBtn.textContent='SAVE';saveBtn.title='Save changes to the current play';
+    newBtn.textContent='NEW';newBtn.title='Start a new play';
+    const group=document.createElement('div');group.className='rn-save-play-actions';group.id='rnSavePlayActions';
+    const saveAs=document.createElement('button');saveAs.type='button';saveAs.id='rnSaveAsPlayBtn';saveAs.className='btn';saveAs.textContent='SAVE AS';saveAs.title='Save the current setup as a separate play';
+    saveBtn.parentNode.insertBefore(group,saveBtn);
+    group.append(saveAs,saveBtn,newBtn);
+  }
+
+  // One themed confirmation/name dialog for Save, Save As, New and Delete.
+  if(!$('rnPlayDialogBackdrop')){
+    const backdrop=document.createElement('div');backdrop.id='rnPlayDialogBackdrop';backdrop.className='rn-play-dialog-backdrop';
+    backdrop.innerHTML=`<section class="rn-play-dialog" role="dialog" aria-modal="true" aria-labelledby="rnPlayDialogTitle" aria-describedby="rnPlayDialogMessage"><div class="rn-play-dialog-kicker">RIVALSNOTEBOOK · PLAYBOOK</div><h3 id="rnPlayDialogTitle"></h3><p id="rnPlayDialogMessage"></p><input id="rnPlayDialogInput" type="text" maxlength="70" autocomplete="off" hidden><div class="rn-play-dialog-actions"><button type="button" id="rnPlayDialogCancel">CANCEL</button><button type="button" id="rnPlayDialogConfirm" class="confirm">CONFIRM</button></div></section>`;
+    document.body.appendChild(backdrop);
+    let resolveDialog=null;
+    const input=$('rnPlayDialogInput'),confirmButton=$('rnPlayDialogConfirm'),cancelButton=$('rnPlayDialogCancel');
+    const close=result=>{backdrop.classList.remove('open');if(resolveDialog){const resolve=resolveDialog;resolveDialog=null;resolve(result);}};
+    backdrop.addEventListener('click',event=>{if(event.target===backdrop)close({ok:false});});
+    cancelButton.addEventListener('click',()=>close({ok:false}));
+    confirmButton.addEventListener('click',()=>close({ok:true,value:input.value.trim()}));
+    input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();confirmButton.click();}if(event.key==='Escape'){event.preventDefault();close({ok:false});}});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape'&&backdrop.classList.contains('open'))close({ok:false});});
+    window.__rnOpenPlayDialog=(config={})=>new Promise(resolve=>{
+      resolveDialog=resolve;
+      $('rnPlayDialogTitle').textContent=config.title||'Confirm action';
+      $('rnPlayDialogMessage').textContent=config.message||'';
+      confirmButton.textContent=config.confirmText||'CONFIRM';
+      confirmButton.classList.toggle('danger',!!config.danger);
+      input.hidden=!config.input;
+      input.value=config.input?String(config.value||''):'';
+      input.placeholder=config.placeholder||'Play name';
+      backdrop.classList.add('open');
+      requestAnimationFrame(()=>config.input?input.focus():confirmButton.focus());
+    });
+  }
+
+  let replayingPlayAction=false;
+  function replayButton(button,skipNativeConfirm=false){
+    if(!button)return;
+    replayingPlayAction=true;
+    const originalConfirm=window.confirm;
+    if(skipNativeConfirm)window.confirm=()=>true;
+    try{button.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));}
+    finally{window.confirm=originalConfirm;replayingPlayAction=false;}
+  }
+  // Window capture runs before the older document-capture board-set hooks, so cancelled
+  // actions do not partially transition or clear the current map/view draft sets.
+  window.addEventListener('click',async event=>{
+    if(replayingPlayAction)return;
+    const button=event.target?.closest?.('#savePlayBtn,#newPlayBtn,#deletePlayBtn');
+    if(!button)return;
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+    const id=button.id;
+    if(id==='deletePlayBtn'){
+      const chosen=$('savedPlaySelect')?.value||state.activePlayId;
+      const play=(state.plays||[]).find(p=>String(p.id)===String(chosen));
+      if(!play){toast('Select a saved play first');return;}
+      const answer=await window.__rnOpenPlayDialog({title:'Delete saved play?',message:`Delete “${play.name}”? This action cannot be undone.`,confirmText:'DELETE',danger:true});
+      if(answer.ok)replayButton(button,true);
+      return;
+    }
+    if(id==='newPlayBtn'){
+      const answer=await window.__rnOpenPlayDialog({title:'Start a new play?',message:'A blank play will open. Existing saved plays will remain available. Draft objects in the current workspace will be cleared.',confirmText:'CREATE NEW'});
+      if(answer.ok)replayButton(button,false);
+      return;
+    }
+    const active=(state.plays||[]).find(p=>String(p.id)===String(state.activePlayId));
+    const answer=await window.__rnOpenPlayDialog({title:'Save current play?',message:active?`Save your latest changes to “${active.name}”?`:`Save “${$('playName')?.value.trim()||'Untitled Play'}” to your Saved Plays?`,confirmText:'SAVE'});
+    if(answer.ok)replayButton(button,false);
+  },true);
+
+  // Save As creates a separate play and carries across all known map/view board sets.
+  $('rnSaveAsPlayBtn')?.addEventListener('click',async()=>{
+    const existing=(state.plays||[]).find(p=>String(p.id)===String(state.activePlayId));
+    const defaultName=`${String(existing?.name||$('playName')?.value||'Untitled Play').trim()} Copy`.slice(0,70);
+    const answer=await window.__rnOpenPlayDialog({title:'Save as a new play',message:'Choose a name for this separate copy. The original saved play will remain unchanged.',confirmText:'SAVE AS',input:true,value:defaultName,placeholder:'Enter play name'});
+    if(!answer.ok)return;
+    const name=String(answer.value||'').trim().slice(0,70);
+    if(!name){toast('Enter a name for this play');return;}
+    try{persist();}catch(error){console.warn('Could not capture current play before Save As',error);}
+    const copy=deep(existing||{})||{};
+    copy.id=`play-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    copy.name=name;copy.updatedAt=new Date().toISOString();
+    const mapId=String(window.__rnGetTacticalMap?.()||copy.mapId||'');
+    const view=String(window.__rnGetTacticalMapView?.()||copy.mapView||'2d');
+    const key=`${mapId||'__blank__'}::${view.toLowerCase()==='2d'?'2d':view.toUpperCase()}`;
+    copy.mapId=mapId;copy.mapView=view;copy.rnBoardSetVersion=2;
+    copy.mapBoards=copy.mapBoards&&typeof copy.mapBoards==='object'?copy.mapBoards:{};
+    // Include unsaved draft view sets where no active play existed yet.
+    try{
+      const raw=JSON.parse(localStorage.getItem('rnPlaybookDraftBoardsV1313b')||'{}');
+      Object.entries(raw||{}).forEach(([draftKey,items])=>{if(!Object.prototype.hasOwnProperty.call(copy.mapBoards,draftKey))copy.mapBoards[draftKey]=deep(items||[]);});
+    }catch(_){}
+    const currentItems=deep(state.playItems||[]);
+    copy.mapBoards[key]=currentItems;copy.items=currentItems;
+    state.plays=Array.isArray(state.plays)?state.plays:[];state.plays.push(copy);
+    state.activePlayId=copy.id;state.playName=name;
+    try{persist();}catch(error){console.warn('Save As persist failed',error);}
+    if(typeof renderPlaybook==='function')renderPlaybook();
+    window.__rnRefreshSavedPlayPicker?.();
+    toast(`Saved “${name}” as a new play`);
+  });
+
+  // Keep text boxes as editable text objects in every saved play and map/view set.
+  const textDefaults=()=>window.__rnGetTextStyleDefaults?.()||{fillColor:'#253845',borderColor:'#73c9c4',textColor:'#f2f7fa'};
+  const rgba=(hex,alpha)=>{
+    const match=/^#([0-9a-f]{6})$/i.exec(String(hex||''));
+    if(!match)return `rgba(37,56,69,${alpha})`;
+    const n=parseInt(match[1],16);
+    return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${Math.max(0,Math.min(1,Number(alpha)))})`;
+  };
+  if(typeof normalizePlayItems==='function'&&!normalizePlayItems.__rnTextPersistV1314){
+    const baseNormalize=normalizePlayItems;
+    const wrapped=function(list){
+      const source=(Array.isArray(list)?list:[]).filter(item=>item?.type!=='text'||String(item.text||'').trim().length>0);
+      return baseNormalize(source).map(item=>{
+        if(item.type==='text'){
+          const raw=(Array.isArray(list)?list:[]).find(x=>String(x?.id||'')===String(item.id))||{};
+          const d=textDefaults();
+          item.fillColor=/^#[0-9a-f]{6}$/i.test(String(raw.fillColor||''))?raw.fillColor:d.fillColor;
+          item.borderColor=/^#[0-9a-f]{6}$/i.test(String(raw.borderColor||''))?raw.borderColor:d.borderColor;
+          item.textColor=/^#[0-9a-f]{6}$/i.test(String(raw.textColor||''))?raw.textColor:d.textColor;
+          item.fillOpacity=Number.isFinite(Number(raw.fillOpacity))?Math.max(0,Math.min(1,Number(raw.fillOpacity))):.94;
+          item.borderOpacity=Number.isFinite(Number(raw.borderOpacity))?Math.max(0,Math.min(1,Number(raw.borderOpacity))):1;
+          item.borderWidth=Math.max(.5,Math.min(8,Number(raw.borderWidth)||1.5));
+          item.w=Math.max(8,Math.min(60,Number(raw.w)||18));
+        }
+        return item;
+      });
+    };
+    wrapped.__rnTextPersistV1314=true;normalizePlayItems=wrapped;
+  }
+  if(typeof renderBoardItem==='function'&&!renderBoardItem.__rnStyledTextV1314){
+    const baseRender=renderBoardItem;
+    const wrapped=function(item,selected=false){
+      const el=baseRender(item,selected);
+      if(item?.type==='text'){
+        const d=textDefaults();
+        el.classList.add('rn-editable-text-box');
+        el.style.width=`${Math.max(8,Math.min(60,Number(item.w)||18))}%`;
+        el.style.backgroundColor=rgba(item.fillColor||d.fillColor,item.fillOpacity??.94);
+        el.style.borderColor=rgba(item.borderColor||d.borderColor,item.borderOpacity??1);
+        el.style.borderWidth=`${Math.max(.5,Math.min(8,Number(item.borderWidth)||1.5))}px`;
+        el.style.color=item.textColor||d.textColor;
+        el.title='Double-click to edit text';
+        el.setAttribute('aria-label',`Text: ${String(item.text||'').slice(0,100)}`);
+      }
+      return el;
+    };
+    wrapped.__rnStyledTextV1314=true;renderBoardItem=wrapped;
+  }
+
+  const textBoard=$('playBoard');
+  const editorStage=()=>$('playBoardStage')||textBoard?.querySelector('.board-surface-zoom')||textBoard;
+  function openPersistentTextEditor(point,existing=null){
+    if(!point||!Number.isFinite(Number(point.x))||!Number.isFinite(Number(point.y)))return null;
+    const defaults=textDefaults();
+    let item=existing;
+    if(!item){
+      item=window.newBoardItem?.('text',{text:'',x:Number(point.x),y:Number(point.y),w:18,h:8,fillColor:defaults.fillColor,borderColor:defaults.borderColor,textColor:defaults.textColor,fillOpacity:.94,borderOpacity:1,borderWidth:1.5});
+      if(!item){
+        item={id:`text-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,type:'text',text:'',x:Number(point.x),y:Number(point.y),w:18,h:8,fillColor:defaults.fillColor,borderColor:defaults.borderColor,textColor:defaults.textColor,fillOpacity:.94,borderOpacity:1,borderWidth:1.5};
+        state.playItems.push(item);
+      }
+    }
+    const stage=editorStage();if(!stage)return null;
+    const editor=document.createElement('textarea');
+    editor.className='inline-board-text-editor';editor.rows=1;editor.maxLength=240;editor.placeholder='Type here…';editor.setAttribute('aria-label','Editable text box');
+    editor.value=String(item.text||'');
+    editor.style.left=`${Number(item.x??point.x)}%`;editor.style.top=`${Number(item.y??point.y)}%`;editor.style.width=`${Math.max(8,Math.min(60,Number(item.w)||18))}%`;
+    editor.style.backgroundColor=rgba(item.fillColor||defaults.fillColor,item.fillOpacity??.94);
+    editor.style.borderColor=rgba(item.borderColor||defaults.borderColor,item.borderOpacity??1);
+    editor.style.borderWidth=`${Math.max(.5,Math.min(8,Number(item.borderWidth)||1.5))}px`;
+    editor.style.color=item.textColor||defaults.textColor;
+    stage.appendChild(editor);
+    let closed=false;const initial=String(item.text||'');
+    const fit=()=>{editor.style.height='auto';editor.style.height=`${Math.max(44,Math.min(260,editor.scrollHeight))}px`;};
+    const finish=save=>{
+      if(closed)return;closed=true;
+      if(save)item.text=String(editor.value||'').slice(0,240).trim();else item.text=initial;
+      editor.remove();
+      if(!String(item.text||'').trim())state.playItems=state.playItems.filter(x=>x.id!==item.id);
+      window.__rnSetBoardTool?.('select');$('boardTextToolBtn')?.setAttribute('aria-pressed','false');
+      window.__rnRenderBoard?.();
+      try{persist();}catch(error){console.warn('Text box could not be persisted',error);}
+      if(window.__rnActiveTextEditor===editor)window.__rnActiveTextEditor=null;
+    };
+    editor.addEventListener('input',()=>{
+      item.text=String(editor.value||'').slice(0,240);fit();
+      try{persist();}catch(error){console.warn('Text typing autosave failed',error);}
+    });
+    editor.addEventListener('keydown',event=>{
+      if(event.key==='Escape'){event.preventDefault();finish(false);}
+      else if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();finish(true);}
+    });
+    editor.addEventListener('blur',()=>finish(true),{once:true});
+    fit();window.__rnActiveTextEditor=editor;
+    requestAnimationFrame(()=>{if(editor.isConnected){editor.focus();editor.setSelectionRange(editor.value.length,editor.value.length);}});
+    return editor;
+  }
+  window.__rnShowInlineTextEditor=point=>openPersistentTextEditor(point,null);
+  window.__rnEditBoardTextItem=id=>{
+    const item=(state.playItems||[]).find(x=>x.id===id&&x.type==='text');
+    if(!item)return null;
+    window.__rnSetBoardSelection?.([item.id]);
+    return openPersistentTextEditor({x:item.x,y:item.y},item);
+  };
+  if(textBoard&&!textBoard.dataset.rnTextPersistenceDoubleClick){
+    textBoard.dataset.rnTextPersistenceDoubleClick='1';
+    textBoard.addEventListener('dblclick',event=>{
+      const target=event.target.closest?.('.board-text');if(!target)return;
+      const id=target.dataset.boardItem;if(!id)return;
+      event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+      window.__rnEditBoardTextItem(id);
+    },true);
+  }
+  // Save a pending text edit before a strategy is saved or switched; persisted text remains editable.
+  ['savePlayBtn','newPlayBtn','loadPlayBtn','deletePlayBtn'].forEach(id=>$(id)?.addEventListener('click',()=>{
+    const active=document.querySelector('.inline-board-text-editor');if(active&&active.isConnected)active.blur();
+  },true));
+})();
+</script>
+
 </body>
 </html>
