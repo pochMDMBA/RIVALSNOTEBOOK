@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current package: v13.13.** See `V13.13_RELEASE_NOTES.md` for one-click text placement, Enemy role-row placement, Point A map defaults, and isolated A/B/C/2D board sets. Earlier release notes are retained below for version history.
+**Current package: v13.15.** See `V13.15_RELEASE_NOTES.md` for Playbook toolbar spacing, compact text color controls, Save As sizing, and Synergies results layout improvements. Earlier release notes are retained below for version history.
 
 RIVALSNOTEBOOK is the renamed Marvel Rivals counter-pick, synergy, hero-group and tactical whiteboard app. This package adds a Vercel-ready static site and a Supabase backend layer for account sync, shared community votes, public Community Groups, and live collaborative Playbook notebooks.
 
@@ -259,3 +259,8 @@ See [V13.13 Release Notes](V13.13_RELEASE_NOTES.md) for deployment-safe embedded
 ## V13.14
 
 See [V13.14 Release Notes](V13.14_RELEASE_NOTES.md) for the latest Playbook toolbar, themed save actions, Enemy toggle, and editable text-box improvements.
+
+
+## V13.15
+
+See [V13.15 Release Notes](V13.15_RELEASE_NOTES.md) for bounded Save As controls, compact FILL/BORDER/TEXT controls, reduced Playbook heading spacing, and the corrected Synergies results layout.
