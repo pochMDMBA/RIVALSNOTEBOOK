@@ -3197,8 +3197,10 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
         const strokeWidth=boardW*(Math.max(.05,Math.min(12,Number(item.penWidth)||.05))/100);
         const isArrowPen=String(item.penStyle||'').includes('arrow');
         const totalLen=pts.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pts[i].x,p.y-pts[i].y),0);
-        const arrowSize=Math.min(Math.max(boardW*.04,strokeWidth*2.8),Math.max(strokeWidth*2,totalLen*.32));
-        const arrowGeometry=isArrowPen?penArrowGeometry(pts,arrowSize,Math.min(arrowSize*.72,Math.max(boardW*.018,strokeWidth*1.35))):null;
+        /* A larger, broader arrowhead keeps its visual weight in proportion to the shaft. */
+        const arrowSize=Math.min(Math.max(boardW*.058,strokeWidth*5.2),Math.max(strokeWidth*3.5,totalLen*.42));
+        const arrowHalfWidth=Math.min(arrowSize*.78,Math.max(boardW*.028,strokeWidth*3.0));
+        const arrowGeometry=isArrowPen?penArrowGeometry(pts,arrowSize,arrowHalfWidth):null;
         const shaftPts=arrowGeometry?arrowGeometry.shaftPoints:pts;
         path.setAttribute('d',shaftPts.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' '));
         path.style.stroke=boardPaint(item.color);path.style.opacity='1';path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap='butt';path.style.strokeLinejoin='round';path.style.fill='none';
@@ -4345,13 +4347,13 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
        <div class="rn-text-style-control rn-text-style-fill" title="Text box fill">
          <span>FILL</span>
          <input id="rnTextFillColor" type="color" value="#253845" aria-label="Text box fill color">
-         <button type="button" class="rn-text-action-btn" id="rnTextNoFillBtn" aria-pressed="false" title="Toggle no fill">NO FILL</button>
+         <button type="button" class="rn-text-action-btn rn-text-icon-btn" id="rnTextNoFillBtn" aria-pressed="false" title="Toggle no fill" aria-label="No fill"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="3.5" width="17" height="17" rx="2" fill="#fff" stroke="#dce7ef"/><path d="M5 19 19 5" fill="none" stroke="#e14d58" stroke-width="2.8" stroke-linecap="round"/></svg></button>
          <input id="rnTextNoFill" class="rn-text-state-input" type="checkbox" tabindex="-1" aria-hidden="true">
        </div>
        <div class="rn-text-style-control rn-text-style-border" title="Text box border">
          <span>BORDER</span>
          <input id="rnTextBorderColor" type="color" value="#73c9c4" aria-label="Text box border color">
-         <button type="button" class="rn-text-action-btn" id="rnTextNoBorderBtn" aria-pressed="false" title="Toggle no border">NO BORDER</button>
+         <button type="button" class="rn-text-action-btn rn-text-icon-btn rn-borderless-icon" id="rnTextNoBorderBtn" aria-pressed="false" title="Toggle no border" aria-label="No border"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#eaf2f7" stroke-width="2"/><path d="M5 19 19 5" fill="none" stroke="#e14d58" stroke-width="2.8" stroke-linecap="round"/></svg></button>
          <input id="rnTextNoBorder" class="rn-text-state-input" type="checkbox" tabindex="-1" aria-hidden="true">
        </div>
        <div class="rn-text-style-control rn-text-style-font" title="Text color and weight">
@@ -7665,6 +7667,46 @@ body.playbook-mode .inline-board-text-editor.rn-text-bold{font-weight:800!import
   syncBold();updateStateButton('rnTextNoFillBtn',!!$('rnTextNoFill')?.checked);updateStateButton('rnTextNoBorderBtn',!!$('rnTextNoBorder')?.checked);
 })();
 </script>
+
+
+<style id="rn-v13-20-icons-fontsize-arrowhead-refinement">
+/* Match the original V13.18 no-fill and no-border icon artwork. */
+body.playbook-mode #rnTextStyleControls .rn-text-action-btn.rn-text-icon-btn{
+  display:grid!important;place-items:center!important;flex:0 0 25px!important;
+  width:25px!important;min-width:25px!important;max-width:25px!important;
+  height:24px!important;min-height:24px!important;max-height:24px!important;
+  margin:0 auto!important;padding:2px!important;border:1px solid #536d7f!important;
+  border-radius:4px!important;background:#263b4b!important;overflow:hidden!important;
+}
+body.playbook-mode #rnTextStyleControls .rn-text-action-btn.rn-text-icon-btn svg{
+  display:block!important;width:20px!important;height:20px!important;max-width:100%!important;max-height:100%!important;
+}
+body.playbook-mode #rnTextStyleControls .rn-text-action-btn.rn-text-icon-btn.active,
+body.playbook-mode #rnTextStyleControls .rn-text-action-btn.rn-text-icon-btn[aria-pressed="true"]{
+  border-color:#e4c75c!important;background:#4a442e!important;box-shadow:0 0 0 1px #e4c75c55!important;
+}
+/* Compact 3-part stepper: fixed-width +/- controls and a centered numeric field. */
+body.playbook-mode #rnTextFontSizeControl .rn-text-size-stepper{
+  display:grid!important;grid-template-columns:22px minmax(32px,1fr) 22px!important;
+  align-items:center!important;justify-content:stretch!important;gap:4px!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;overflow:visible!important;
+}
+body.playbook-mode #rnTextFontSizeControl .rn-text-size-stepper button{
+  box-sizing:border-box!important;display:grid!important;place-items:center!important;
+  width:22px!important;min-width:22px!important;max-width:22px!important;
+  height:23px!important;min-height:23px!important;max-height:23px!important;
+  margin:0!important;padding:0!important;font-size:13px!important;line-height:1!important;
+}
+body.playbook-mode #rnTextFontSizeControl .rn-text-size-stepper input[type="number"]{
+  box-sizing:border-box!important;display:block!important;width:100%!important;
+  min-width:32px!important;max-width:100%!important;height:23px!important;min-height:23px!important;
+  margin:0!important;padding:1px 2px!important;text-align:center!important;
+  font-size:10px!important;font-weight:900!important;font-variant-numeric:tabular-nums!important;
+}
+body.playbook-mode #rnTextFontSizeControl .rn-text-size-stepper>span{display:none!important;}
+/* Slightly larger filled arrowhead, without changing the base-midpoint attachment. */
+body.playbook-mode .board-pen .pen-arrow-head{fill:currentColor!important;stroke:none!important;}
+</style>
 
 </body>
 </html>
