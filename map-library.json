@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "maps": [
     {
       "id": "yggdrasil-path",
@@ -166,7 +166,12 @@
         "2": "Bifrost Garden",
         "3": "Throne Room"
       },
-      "location": "Yggsgard"
+      "location": "Yggsgard",
+      "layouts": {
+        "1": "https://rivals.gs/img/layouts/asgardc01.webp",
+        "2": "https://rivals.gs/img/layouts/asgardc02.webp",
+        "3": "https://rivals.gs/img/layouts/asgardc03.webp"
+      }
     },
     {
       "id": "birnin-tchalla",
@@ -186,7 +191,12 @@
         "2": "Imperial Institute of Science",
         "3": "Warrior Falls"
       },
-      "location": "Intergalactic Empire of Wakanda"
+      "location": "Intergalactic Empire of Wakanda",
+      "layouts": {
+        "1": "https://rivals.gs/img/layouts/wakandac01.webp",
+        "2": "https://rivals.gs/img/layouts/wakandac02.webp",
+        "3": "https://rivals.gs/img/layouts/wakandac03.webp"
+      }
     },
     {
       "id": "hells-heaven",
@@ -206,7 +216,12 @@
         "2": "Super-Soldier Factory",
         "3": "Eldritch Monument"
       },
-      "location": "Hydra Charteris Base"
+      "location": "Hydra Charteris Base",
+      "layouts": {
+        "1": "https://rivals.gs/img/layouts/hydrac01.webp",
+        "2": "https://rivals.gs/img/layouts/hydrac02.webp",
+        "3": "https://rivals.gs/img/layouts/hydrac03.webp"
+      }
     },
     {
       "id": "krakoa",
@@ -226,7 +241,12 @@
         "2": "The Grove",
         "3": "Carousel"
       },
-      "location": "Hellfire Gala"
+      "location": "Hellfire Gala",
+      "layouts": {
+        "1": "https://rivals.gs/img/layouts/krakoac01.webp",
+        "2": "https://rivals.gs/img/layouts/krakoac02.webp",
+        "3": "https://rivals.gs/img/layouts/krakoac03.webp"
+      }
     },
     {
       "id": "celestial-husk",
@@ -246,7 +266,12 @@
         "2": "Celestial Codex",
         "3": "Celestial Vault"
       },
-      "location": "Klyntar"
+      "location": "Klyntar",
+      "layouts": {
+        "1": "https://rivals.gs/img/layouts/klyntarc01.webp",
+        "2": "https://rivals.gs/img/layouts/klyntarc02.webp",
+        "3": "https://rivals.gs/img/layouts/klyntarc03.webp"
+      }
     },
     {
       "id": "god-quarry",
@@ -262,13 +287,18 @@
         "3": ""
       },
       "submapNames": {
-        "1": "Confessional Eternity",
-        "2": "Halls of All-Knowing",
-        "3": "House of Ideas"
+        "1": "Halls of All-Knowing",
+        "2": "House of Ideas",
+        "3": "Confessional Eternity"
+      },
+      "layouts": {
+        "1": "https://rivals.gs/img/layouts/godquarryc01.webp",
+        "2": "https://rivals.gs/img/layouts/godquarryc02.webp",
+        "3": "https://rivals.gs/img/layouts/godquarryc03.webp"
       }
     }
   ],
-  "runtimeAssetStrategy": "Existing Convoy and Convergence map assets remain bundled under assets/maps/. Domination cover cards use local SVG placeholders. The three competitive Domination submap screenshot slots are intentionally empty until the user supplies the images.",
+  "runtimeAssetStrategy": "All map-card cover art is embedded in index.html as data URLs so cards do not rely on relative asset paths. Domination area screenshots are reserved for later uploads; each area has a separate direct HTTPS 2D floor-plan URL hosted by rivals.gs, so 2D views require access to that source.",
   "notes": {
     "lowerManhattan2D": "A verified full top-down 2D overview was not available for this build. The supplied Point A, Point B and Point C images are available as separate map views.",
     "lowerManhattanCoverSource": "https://rivalsheroes.com/maps/lower-manhattan",
@@ -276,7 +306,8 @@
     "pointImageFormat": "All 18 uploaded Convoy point screenshots are optimized JPEG files and are embedded in index.html with static copies under assets/maps/.",
     "museumOfContemplation2D": "A verified top-down level-geometry plan is available from https://rivals.gs/maps/museum-of-contemplation/ and is loaded from https://rivals.gs/img/layouts/museume01.webp.",
     "convoyPointAssignments": "Arakko 1/2/3, Midtown 1/2/3, Museum 1/2/3, Spider-Islands 1/2/3, Thebes 1/2/3 and Yggdrasil 1/2/3 are assigned in upload order to Points A/B/C.",
-    "dominationPool": "Competitive Domination entries: Royal Palace, Birnin T’Challa, Hell’s Heaven, Krakoa, Celestial Husk and God Quarry. Each map has three separately saved submap views. Screenshot paths are intentionally blank pending user image uploads.",
-    "dominationSubmapNames": "Royal Palace: Odin’s Archive, Bifrost Garden, Throne Room; Birnin T’Challa: Stellar Spaceport, Imperial Institute of Science, Warrior Falls; Hell’s Heaven: Frozen Airfield, Super-Soldier Factory, Eldritch Monument; Krakoa: Cradle, The Grove, Carousel; Celestial Husk: Celestial Hand, Celestial Codex, Celestial Vault; God Quarry: Confessional Eternity, Halls of All-Knowing, House of Ideas."
+    "dominationPool": "Competitive Domination entries: Royal Palace, Birnin T’Challa, Hell’s Heaven, Krakoa, Celestial Husk and God Quarry. Each has three numbered area controls. Each number has a 2D layout button beneath it; numbered main-view screenshot slots remain available for user screenshots.",
+    "dominationSubmapNames": "Royal Palace: Odin’s Archive, Bifrost Garden, Throne Room; Birnin T’Challa: Stellar Spaceport, Imperial Institute of Science, Warrior Falls; Hell’s Heaven: Frozen Airfield, Super-Soldier Factory, Eldritch Monument; Krakoa: Cradle, The Grove, Carousel; Celestial Husk: Celestial Hand, Celestial Codex, Celestial Vault; God Quarry: Halls of All-Knowing, House of Ideas, Confessional Eternity.",
+    "domination2DLayouts": "The app references the published top-down image URLs on rivals.gs: asgardc01–03 (Royal Palace), wakandac01–03 (Birnin T’Challa), hydrac01–03 (Hell’s Heaven), krakoac01–03 (Krakoa), klyntarc01–03 (Celestial Husk), godquarryc01–03 (God Quarry). These are remote HTTPS images, not binaries bundled in the ZIP."
   }
 }
