@@ -2372,6 +2372,8 @@ initData();bindPlaybook();render();renderPlaybook();
       el.innerHTML = `<img src="${escapeHtml(h?.img || '')}" alt="" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="board-hero-fallback">${escapeHtml(initials)}</span><span class="board-hero-name">${escapeHtml(item.heroName)}</span>${item.side === 'neutral' ? '' : `<span class="board-side-label">${item.side === 'enemy' ? 'ENEMY' : 'ALLY'}</span>`}`;
     } else if (item.type === 'ability') {
       el.classList.add('board-ability-token', item.abilityKind || 'ability');
+      if (item.side === 'enemy') el.classList.add('board-enemy');
+      else if (item.side === 'ally') el.classList.add('board-ally');
       el.title = `${item.heroName} · ${item.abilityName} · ${item.abilityKey}`;
       const src = item.abilityIconUrl || '';
       el.innerHTML = `<span class="skill-icon ${src ? 'has-site-icon' : 'fallback'}">${src ? `<img class="skill-site-icon" src="${escapeHtml(src)}" alt="" onerror="this.remove();this.parentElement.classList.remove('has-site-icon');this.parentElement.classList.add('fallback')">` : ''}<span class="skill-icon-fallback">${fallbackSkillSvg(item.abilityKind)}</span></span><span class="ability-token-key">${escapeHtml(item.abilityKey)}</span><span class="ability-token-name">${escapeHtml(item.abilityName)}</span><span class="ability-token-hero">${escapeHtml(item.heroName)}</span>`;
@@ -3197,9 +3199,9 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
         const strokeWidth=boardW*(Math.max(.05,Math.min(12,Number(item.penWidth)||.05))/100);
         const isArrowPen=String(item.penStyle||'').includes('arrow');
         const totalLen=pts.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pts[i].x,p.y-pts[i].y),0);
-        /* A larger, broader arrowhead keeps its visual weight in proportion to the shaft. */
-        const arrowSize=Math.min(Math.max(boardW*.058,strokeWidth*5.2),Math.max(strokeWidth*3.5,totalLen*.42));
-        const arrowHalfWidth=Math.min(arrowSize*.78,Math.max(boardW*.028,strokeWidth*3.0));
+        /* A long, slim arrowhead, sized in board pixels and kept proportional to the shaft. */
+        const arrowSize=Math.min(Math.max(boardW*.14,strokeWidth*4.5),Math.max(strokeWidth*5,totalLen*.66));
+        const arrowHalfWidth=Math.min(arrowSize*.29,Math.max(boardW*.018,strokeWidth*.9));
         const arrowGeometry=isArrowPen?penArrowGeometry(pts,arrowSize,arrowHalfWidth):null;
         const shaftPts=arrowGeometry?arrowGeometry.shaftPoints:pts;
         path.setAttribute('d',shaftPts.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' '));
@@ -3208,17 +3210,18 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
         path.style.strokeDasharray=isDashed?`${strokeWidth*1.6}px ${strokeWidth*1.05}px`:'none';
         svg.querySelectorAll('.pen-arrow-head,.pen-arrow-shaft-connector').forEach(n=>n.remove());
         if(arrowGeometry){
-          // Explicitly draw the final shaft segment to the base midpoint after
-          // the dashed/solid polyline. This connector endpoint is numerically
-          // identical to the midpoint between the two arrowhead base corners.
-          const shaft=arrowGeometry.shaftPoints;
-          const join=pts.length>1?pts[pts.length-2]:shaft[0];
-          const connector=document.createElementNS('http://www.w3.org/2000/svg','path');
-          connector.setAttribute('d',`M ${join.x} ${join.y} L ${arrowGeometry.baseCenter.x} ${arrowGeometry.baseCenter.y}`);
-          connector.setAttribute('class','pen-arrow-shaft-connector');
-          connector.style.fill='none';connector.style.stroke=boardPaint(item.color);connector.style.opacity='1';
-          connector.style.strokeWidth=`${strokeWidth}px`;connector.style.strokeLinecap='butt';connector.style.strokeLinejoin='round';connector.style.strokeDasharray='none';
-          svg.appendChild(connector);
+          // Dashed patterns can finish on a gap. Add only a short, tangent-aligned
+          // solid tail so the shaft visibly reaches the midpoint of the arrow base.
+          if(isDashed){
+            const tail=Math.min(arrowSize*.16,Math.max(strokeWidth*1.8,5));
+            const start={x:arrowGeometry.baseCenter.x-arrowGeometry.unit.x*tail,y:arrowGeometry.baseCenter.y-arrowGeometry.unit.y*tail};
+            const connector=document.createElementNS('http://www.w3.org/2000/svg','path');
+            connector.setAttribute('d',`M ${start.x} ${start.y} L ${arrowGeometry.baseCenter.x} ${arrowGeometry.baseCenter.y}`);
+            connector.setAttribute('class','pen-arrow-shaft-connector');
+            connector.style.fill='none';connector.style.stroke=boardPaint(item.color);connector.style.opacity='1';
+            connector.style.strokeWidth=`${strokeWidth}px`;connector.style.strokeLinecap='butt';connector.style.strokeLinejoin='round';connector.style.strokeDasharray='none';
+            svg.appendChild(connector);
+          }
           const head=document.createElementNS('http://www.w3.org/2000/svg','path');
           head.setAttribute('d',arrowGeometry.headD);head.setAttribute('class','pen-arrow-head');
           head.style.fill=boardPaint(item.color);head.style.opacity='1';head.style.stroke='none';svg.appendChild(head);
@@ -3603,6 +3606,11 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     let segmentStart=pts.length-2;
     while(segmentStart>=0&&Math.hypot(tip.x-pts[segmentStart].x,tip.y-pts[segmentStart].y)<.001)segmentStart--;
     if(segmentStart<0)return null;
+    // Use a trailing look-back distance, not only the final pointer event. This
+    // prevents a tiny release wiggle from rotating a long horizontal arrow vertical.
+    const pathLength=pts.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pts[i].x,p.y-pts[i].y),0);
+    const lookBack=Math.max(8,Math.min((Number(size)||24)*.38,pathLength*.12));
+    while(segmentStart>0&&Math.hypot(tip.x-pts[segmentStart].x,tip.y-pts[segmentStart].y)<lookBack)segmentStart--;
     const directionStart=pts[segmentStart];
     const dx=tip.x-directionStart.x,dy=tip.y-directionStart.y,len=Math.hypot(dx,dy)||1;
     const ux=dx/len,uy=dy/len,px=-uy,py=ux;
@@ -3632,7 +3640,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     // Guard against tiny/short strokes: the base midpoint remains canonical.
     shaftPoints[shaftPoints.length-1]=baseCenter;
     const headD=`M ${tip.x} ${tip.y} L ${baseLeft.x} ${baseLeft.y} L ${baseRight.x} ${baseRight.y} Z`;
-    return {tip,baseCenter,baseLeft,baseRight,shaftPoints,headD,normal:{x:px,y:py}};
+    return {tip,baseCenter,baseLeft,baseRight,shaftPoints,headD,normal:{x:px,y:py},unit:{x:ux,y:uy}};
   }
   function beginPen(e){
     const pt=worldPoint(e);penStroke={pointerId:e.pointerId,points:[pt],style:penStyle,width:penThickness,color:penColor,opacity:penOpacity};
@@ -3659,13 +3667,27 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   }
   function finishPen(){
     if(!penStroke)return;const points=penStroke.points,style=penStroke.style,width=penStroke.width||penThickness,color=penStroke.color||penColor,opacity=Number.isFinite(Number(penStroke.opacity))?penStroke.opacity:penOpacity;penStroke=null;$('penPreview')?.remove();if(points.length<2)return;
-    let minX=Math.min(...points.map(p=>p.x)),maxX=Math.max(...points.map(p=>p.x)),minY=Math.min(...points.map(p=>p.y)),maxY=Math.max(...points.map(p=>p.y));
-    const pixelX=100/Math.max(1,stage.clientWidth),pixelY=100/Math.max(1,stage.clientHeight);
-    if(maxX-minX<pixelX){const mid=(minX+maxX)/2;minX=mid-pixelX/2;maxX=mid+pixelX/2;}
-    if(maxY-minY<pixelY){const mid=(minY+maxY)/2;minY=mid-pixelY/2;maxY=mid+pixelY/2;}
-    const w=maxX-minX,h=maxY-minY;
-    const path=points.map(p=>[((p.x-minX)/w)*1000,((p.y-minY)/h)*1000]);
-    newBoardItem('pen',{x:minX,y:minY,w,h,path,penStyle:style,penWidth:width,color,opacity});
+    const boardW=Math.max(1,stage.clientWidth),boardH=Math.max(1,stage.clientHeight);
+    const pixels=points.map(p=>({x:p.x/100*boardW,y:p.y/100*boardH}));
+    let bounds=[...pixels];
+    if(String(style).includes('arrow')){
+      const strokeWidth=boardW*(Math.max(.05,Math.min(12,Number(width)||.05))/100);
+      const totalLen=pixels.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pixels[i].x,p.y-pixels[i].y),0);
+      const arrowSize=Math.min(Math.max(boardW*.14,strokeWidth*4.5),Math.max(strokeWidth*5,totalLen*.66));
+      const arrowHalfWidth=Math.min(arrowSize*.29,Math.max(boardW*.018,strokeWidth*.9));
+      const geometry=penArrowGeometry(pixels,arrowSize,arrowHalfWidth);
+      if(geometry)bounds.push(geometry.baseLeft,geometry.baseRight);
+    }
+    const strokePadding=Math.max(1,boardW*(Math.max(.05,Math.min(12,Number(width)||.05))/100)/2);
+    let minPx=Math.min(...bounds.map(p=>p.x))-strokePadding,maxPx=Math.max(...bounds.map(p=>p.x))+strokePadding;
+    let minPy=Math.min(...bounds.map(p=>p.y))-strokePadding,maxPy=Math.max(...bounds.map(p=>p.y))+strokePadding;
+    const minX=minPx/boardW*100,maxX=maxPx/boardW*100,minY=minPy/boardH*100,maxY=maxPy/boardH*100;
+    const pixelX=100/boardW,pixelY=100/boardH;
+    if(maxX-minX<pixelX){const mid=(minX+maxX)/2;minPx=(mid-pixelX/2)*boardW/100;maxPx=(mid+pixelX/2)*boardW/100;}
+    if(maxY-minY<pixelY){const mid=(minY+maxY)/2;minPy=(mid-pixelY/2)*boardH/100;maxPy=(mid+pixelY/2)*boardH/100;}
+    const x=minPx/boardW*100,y=minPy/boardH*100,w=(maxPx-minPx)/boardW*100,h=(maxPy-minPy)/boardH*100;
+    const path=pixels.map(p=>[((p.x-minPx)/(maxPx-minPx))*1000,((p.y-minPy)/(maxPy-minPy))*1000]);
+    newBoardItem('pen',{x,y,w,h,path,penStyle:style,penWidth:width,color,opacity});
   }
   function finishPointer(){
     if(penStroke){finishPen();return;}
@@ -6818,59 +6840,138 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
   },true);
   // Remaining board drop handlers use the same board element.
 
-  // Enemy mode is independent of the Vanguard/Duelist/Strategist roster filters.
+  // ENEMY is a modifier for both newly-created and existing hero/skill objects.
   const roleFilters=$('heroRoleFilters');
+  const boardForEnemy=$('playBoard');
   let enemyMode=localStorage.getItem('rnPlaybookEnemyMode')==='1';
-  if(roleFilters&&!$('rnEnemyPlacementToggle')){
-    const button=document.createElement('button');button.type='button';button.id='rnEnemyPlacementToggle';button.textContent='ENEMY';button.title='Place newly added heroes as enemies with a red border';button.setAttribute('aria-pressed',String(enemyMode));
-    roleFilters.appendChild(button);
-    button.addEventListener('click',()=>{
-      enemyMode=!enemyMode;localStorage.setItem('rnPlaybookEnemyMode',enemyMode?'1':'0');
-      button.setAttribute('aria-pressed',String(enemyMode));
-      toast(enemyMode?'Enemy placement enabled':'Ally placement enabled');
+  let enemyButton=$('rnEnemyPlacementToggle');
+  if(roleFilters&&!enemyButton){
+    enemyButton=document.createElement('button');
+    enemyButton.type='button';enemyButton.id='rnEnemyPlacementToggle';enemyButton.textContent='E';
+    enemyButton.title='Enemy modifier: mark selected or clicked hero/skill icons as enemies, and place new icons as enemies';
+    enemyButton.setAttribute('aria-label','Enemy modifier');
+    roleFilters.appendChild(enemyButton);
+  }
+  function selectedBoardIds(){
+    const ids=new Set(Array.isArray(state.selectedBoardItems)?state.selectedBoardItems:[]);
+    if(state.selectedBoardItem)ids.add(state.selectedBoardItem);
+    return ids;
+  }
+  function applyEnemyModeToSelection(){
+    const ids=selectedBoardIds();let changed=false;
+    (state.playItems||[]).forEach(item=>{
+      if(ids.has(item.id)&&(item.type==='hero'||item.type==='ability')){
+        const side=enemyMode?'enemy':'ally';
+        if(item.side!==side){item.side=side;changed=true;}
+      }
     });
-  }else if($('rnEnemyPlacementToggle')){$('rnEnemyPlacementToggle').setAttribute('aria-pressed',String(enemyMode));}
+    if(changed){window.__rnRenderBoard?.();persist();}
+  }
+  function syncEnemyButton(){
+    if(!enemyButton)return;
+    enemyButton.setAttribute('aria-pressed',String(enemyMode));
+    enemyButton.classList.toggle('active',enemyMode);
+    enemyButton.textContent='E';
+  }
+  if(enemyButton&&!enemyButton.dataset.rnV1321Bound){
+    enemyButton.dataset.rnV1321Bound='1';
+    enemyButton.addEventListener('click',()=>{
+      enemyMode=!enemyMode;
+      localStorage.setItem('rnPlaybookEnemyMode',enemyMode?'1':'0');
+      syncEnemyButton();
+      // If a hero or skill is already selected, E changes its side immediately.
+      applyEnemyModeToSelection();
+      toast(enemyMode?'Enemy modifier enabled':'Enemy modifier disabled');
+    });
+  }
+  syncEnemyButton();
+  window.__rnEnemyModeActive=()=>enemyMode;
 
-  // Give clicked roster heroes safe, evenly spaced default slots; dropped heroes use the exact pointer.
+  // Click-to-add heroes use a bounded formation grid. The tenth and later heroes
+  // remain inside the board instead of advancing beyond the visible map.
   const baseNewBoardItem=newBoardItem;
   newBoardItem=function(type,extra={}){
     const options={...extra};
-    if(type==='hero'){
-      if(options.side==='neutral'||!options.side)options.side=enemyMode?'enemy':'ally';
-      if(!options.__center&&!Number.isFinite(Number(options.x))&&!Number.isFinite(Number(options.y))){
-        const side=options.side==='enemy'?'enemy':'ally';
-        const count=(state.playItems||[]).filter(item=>item.type==='hero'&&(item.side==='enemy'?'enemy':'ally')===side).length%6;
-        const xs=[17,50,83],ys=side==='enemy'?[65,83]:[25,45];
-        options.__center={x:xs[count%3],y:ys[Math.floor(count/3)]};
-      }
-      if(options.__center&&Number.isFinite(Number(options.__center.x))&&Number.isFinite(Number(options.__center.y))){
-        options.__center={x:Math.max(5,Math.min(95,Number(options.__center.x))),y:Math.max(6,Math.min(94,Number(options.__center.y)))};
-      }
+    if(type==='hero'||type==='ability'){
+      if(enemyMode)options.side='enemy';
+      else if(!options.side||options.side==='neutral')options.side='ally';
     }
+    if(type==='hero'&&!options.__center&&!Number.isFinite(Number(options.x))&&!Number.isFinite(Number(options.y))){
+      const side=options.side==='enemy'?'enemy':'ally';
+      const count=(state.playItems||[]).filter(item=>item.type==='hero'&&(item.side==='enemy'?'enemy':'ally')===side).length;
+      const slot=count%20,columns=side==='enemy'?[57,69,81,93]:[7,19,31,43],rows=[12,31,50,69,88];
+      // Derive a safe center margin from the actual rendered hero-card footprint.
+      const stage=document.getElementById('playBoardStage');
+      let halfW=4.5,halfH=8.5;
+      if(stage){
+        const probe=document.createElement('div');probe.className='board-item board-hero';probe.style.position='absolute';probe.style.left='0';probe.style.top='0';probe.style.visibility='hidden';probe.style.pointerEvents='none';
+        probe.innerHTML='<img alt=""><span class="board-hero-name">Hero</span><span class="board-side-label">ALLY</span>';stage.appendChild(probe);
+        halfW=Math.max(1,probe.offsetWidth/2/Math.max(1,stage.clientWidth)*100);
+        halfH=Math.max(1,probe.offsetHeight/2/Math.max(1,stage.clientHeight)*100);probe.remove();
+      }
+      const centerX=Math.max(halfW+1,Math.min(100-halfW-1,columns[slot%4]));
+      const centerY=Math.max(halfH+1,Math.min(100-halfH-1,rows[Math.floor(slot/4)]));
+      options.__center={x:centerX,y:centerY};
+    }
+    // Explicit drop coordinates are intentionally not clamped to an inset safe area.
     return baseNewBoardItem(type,options);
   };
   window.newBoardItem=newBoardItem;
 
-  // Intercept hero/skill drops in capture phase and use the transformed stage coordinate system.
-  board.addEventListener('dragover',event=>{
+  // While E is active, clicking an existing hero or skill converts it to an enemy
+  // without consuming the click; normal selection and dragging still work.
+  if(boardForEnemy&&!boardForEnemy.dataset.rnEnemyModifierBound){
+    boardForEnemy.dataset.rnEnemyModifierBound='1';
+    boardForEnemy.addEventListener('pointerdown',event=>{
+      if(!enemyMode||event.button!==0)return;
+      const el=event.target.closest?.('.board-item');
+      if(!el)return;
+      const item=(state.playItems||[]).find(x=>x.id===el.dataset.boardItem);
+      if(!item||!['hero','ability'].includes(item.type)||item.side==='enemy')return;
+      item.side='enemy';
+      el.classList.add('board-enemy');el.classList.remove('board-ally');
+      if(item.type==='hero'){
+        let tag=el.querySelector('.board-side-label');
+        if(!tag){tag=document.createElement('span');tag.className='board-side-label';el.appendChild(tag);}
+        tag.textContent='ENEMY';
+      }
+      persist();
+    },true);
+  }
+
+  // Use one stage-relative coordinate path for hero and skill drops. Stage coordinates
+  // account for zoom and pan, and remain unbounded so no invisible inset blocks placement.
+  function pointForDrop(event){
+    const stage=document.getElementById('playBoardStage');
+    if(!stage)return null;
+    // The stage is the single coordinate system for every map. Its visual rect
+    // already includes pan and zoom; normalizing against that rect inverts both.
+    // No 5–95% inset or map-specific safe area is used.
+    const rect=stage.getBoundingClientRect();
+    const width=Math.max(1,rect.width),height=Math.max(1,rect.height);
+    return {x:(event.clientX-rect.left)/width*100,y:(event.clientY-rect.top)/height*100};
+  }
+  boardForEnemy?.addEventListener('dragover',event=>{
     const types=Array.from(event.dataTransfer?.types||[]);
     if(types.includes('application/x-rivals-hero')||types.includes('application/x-rivals-skill')){
-      event.preventDefault();event.dataTransfer.dropEffect='copy';board.classList.add('drop-ready');
+      event.preventDefault();event.dataTransfer.dropEffect='copy';boardForEnemy.classList.add('drop-ready');
     }
   },true);
-  board.addEventListener('dragleave',event=>{if(!board.contains(event.relatedTarget))board.classList.remove('drop-ready');},true);
-  board.addEventListener('drop',event=>{
+  boardForEnemy?.addEventListener('dragleave',event=>{
+    if(!boardForEnemy.contains(event.relatedTarget))boardForEnemy.classList.remove('drop-ready');
+  },true);
+  boardForEnemy?.addEventListener('drop',event=>{
     const transfer=event.dataTransfer;if(!transfer)return;
     const rawSkill=transfer.getData('application/x-rivals-skill');
     const rawHero=transfer.getData('application/x-rivals-hero');
     if(!rawSkill&&!rawHero)return;
-    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();board.classList.remove('drop-ready');
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();boardForEnemy.classList.remove('drop-ready');
     let payload;try{payload=JSON.parse(rawSkill||rawHero);}catch(_){return;}
-    const point=window.__rnBoardPoint?.(event);
+    const point=pointForDrop(event);
     if(!point||!Number.isFinite(point.x)||!Number.isFinite(point.y))return;
-    const center={x:Math.max(5,Math.min(95,point.x)),y:Math.max(6,Math.min(94,point.y))};
+    const center={x:point.x,y:point.y};
     if(rawSkill){
-      if(hero(payload.heroName)&&payload.abilityName)newBoardItem('ability',{...payload,__center:center});
+      if(hero(payload.heroName)&&payload.abilityName)newBoardItem('ability',{...payload,side:enemyMode?'enemy':'ally',__center:center});
     }else if(hero(payload.heroName))newBoardItem('hero',{heroName:payload.heroName,side:enemyMode?'enemy':'ally',__center:center});
   },true);
 
@@ -7707,6 +7808,56 @@ body.playbook-mode #rnTextFontSizeControl .rn-text-size-stepper>span{display:non
 /* Slightly larger filled arrowhead, without changing the base-midpoint attachment. */
 body.playbook-mode .board-pen .pen-arrow-head{fill:currentColor!important;stroke:none!important;}
 </style>
+
+
+<style id="rn-v13-21-placement-enemy-arrow-refinement">
+/* Enemy mode applies consistently to existing and newly-created skill icons. */
+body.playbook-mode .board-item.board-ability-token.board-enemy{
+  border:2px solid #f05a66!important;background:#4b2028e8!important;
+  box-shadow:0 0 0 1px #601f2b,0 3px 12px #0009!important;
+}
+body.playbook-mode .board-item.board-ability-token.board-enemy.icon-only{
+  border:2px solid #f05a66!important;border-radius:7px!important;background:#4b2028a8!important;
+  box-shadow:0 0 0 1px #601f2b,0 0 10px #f05a664d!important;
+}
+/* Keep E compact beside the role buttons without pushing the row off-screen. */
+body.playbook-mode .hero-role-filters #rnEnemyPlacementToggle{
+  flex:0 0 22px!important;width:22px!important;min-width:22px!important;max-width:22px!important;
+  height:22px!important;min-height:22px!important;padding:0!important;border-radius:50%!important;
+  display:inline-grid!important;place-items:center!important;font-size:10px!important;font-weight:950!important;
+  line-height:1!important;background:#263b49!important;border:1px solid #617b8b!important;color:#dceaf2!important;
+}
+body.playbook-mode .hero-role-filters #rnEnemyPlacementToggle[aria-pressed="true"]{
+  color:#fff!important;background:linear-gradient(145deg,#b83c4c,#762631)!important;
+  border-color:#ff9ba4!important;box-shadow:0 0 0 2px #f05a6640,0 0 10px #f05a6666!important;
+}
+</style>
+
+
+<script id="rn-v13-21-enemy-render-final">
+(()=>{
+  if(typeof renderBoardItem!=='function'||window.__rnV1321EnemyRenderFinal)return;
+  const base=renderBoardItem;
+  const wrapped=function(item,selected=false){
+    const el=base(item,selected);
+    if(item&&(item.type==='hero'||item.type==='ability')){
+      el.classList.toggle('board-enemy',item.side==='enemy');
+      el.classList.toggle('board-ally',item.side==='ally');
+      if(item.type==='hero'){
+        let label=el.querySelector('.board-side-label');
+        if(item.side==='neutral')label?.remove();
+        else if(!label){label=document.createElement('span');label.className='board-side-label';el.appendChild(label);}
+        if(label)label.textContent=item.side==='enemy'?'ENEMY':'ALLY';
+      }
+    }
+    return el;
+  };
+  wrapped.__rnV1321EnemyRenderFinal=true;
+  renderBoardItem=wrapped;
+  window.__rnV1321EnemyRenderFinal=true;
+  window.__rnRenderBoard?.();
+})();
+</script>
 
 </body>
 </html>

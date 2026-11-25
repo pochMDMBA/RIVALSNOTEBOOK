@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current package: v13.19.** See `V13.19_RELEASE_NOTES.md` for base-connected solid/dashed arrowheads and direct text color controls with dedicated NO FILL, NO BORDER, and BOLD actions. Earlier release notes are retained below for version history.
+**Current package: v13.21.** See `V13.21_RELEASE_NOTES.md` for accurate board placement, the ENEMY modifier for hero and skill icons, and expanded arrowhead bounds with a stable base connection. Earlier release notes are retained below for version history.
 
 RIVALSNOTEBOOK is the renamed Marvel Rivals counter-pick, synergy, hero-group and tactical whiteboard app. This package adds a Vercel-ready static site and a Supabase backend layer for account sync, shared community votes, public Community Groups, and live collaborative Playbook notebooks.
 
