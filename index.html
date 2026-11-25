@@ -3597,12 +3597,12 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     const preview=document.createElementNS('http://www.w3.org/2000/svg','svg');
     const boardW=Math.max(1,stage.clientWidth),boardH=Math.max(1,stage.clientHeight);
     preview.setAttribute('viewBox',`0 0 ${boardW} ${boardH}`);preview.setAttribute('preserveAspectRatio','none');preview.classList.add('pen-preview');preview.id='penPreview';
-    preview.innerHTML='<path id="penPreviewPath" d=""/><path id="penPreviewConnector" d=""/><path id="penPreviewHead" d=""/>';
+    /* The in-progress preview is only the shaft. Arrowheads are created by
+       renderBoardItem after pointer release, so the head never chases the cursor. */
+    preview.innerHTML='<path id="penPreviewPath" d=""/>';
     const path=preview.querySelector('#penPreviewPath');
     const strokeWidth=boardW*(penStroke.width/100);
-    if(path){path.style.stroke=boardPaint(penStroke.color);path.style.opacity=String(penStroke.opacity);path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap='butt';path.style.strokeLinejoin='round';if(String(penStroke.style).includes('dashed'))path.style.strokeDasharray=`${strokeWidth*1.6}px ${strokeWidth*1.05}px`;}
-    const connector=preview.querySelector('#penPreviewConnector');if(connector){connector.style.fill='none';connector.style.stroke=boardPaint(penStroke.color);connector.style.opacity=String(penStroke.opacity);connector.style.strokeWidth=`${strokeWidth}px`;connector.style.strokeLinecap='butt';connector.style.strokeLinejoin='round';connector.style.strokeDasharray='none';}
-    const head=preview.querySelector('#penPreviewHead');if(head){head.style.fill=boardPaint(penStroke.color);head.style.opacity=String(penStroke.opacity);head.style.stroke='none';}
+    if(path){path.style.fill='none';path.style.stroke=boardPaint(penStroke.color);path.style.opacity=String(penStroke.opacity);path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap='butt';path.style.strokeLinejoin='round';if(String(penStroke.style).includes('dashed'))path.style.strokeDasharray=`${strokeWidth*1.6}px ${strokeWidth*1.05}px`;}
     stage.appendChild(preview);board.setPointerCapture(e.pointerId);e.preventDefault();
   }
   function updatePen(e){
@@ -3610,14 +3610,10 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     if(Math.hypot(pt.x-last.x,pt.y-last.y)<.15)return;penStroke.points.push(pt);
     const boardW=Math.max(1,stage.clientWidth),boardH=Math.max(1,stage.clientHeight);
     const pixels=penStroke.points.map(p=>({x:p.x/100*boardW,y:p.y/100*boardH}));
-    const strokeWidth=boardW*((penStroke.width||penThickness)/100),isArrow=String(penStroke.style).includes('arrow');
-    const totalLen=pixels.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pixels[i].x,p.y-pixels[i].y),0);const arrowSize=Math.min(Math.max(boardW*.04,strokeWidth*2.8),Math.max(strokeWidth*2,totalLen*.32)),shaftPixels=pixels.map(p=>({...p}));
-    let arrowBase=null;
-    if(isArrow&&shaftPixels.length>1){const tip=shaftPixels[shaftPixels.length-1],prev=shaftPixels[shaftPixels.length-2],dx=tip.x-prev.x,dy=tip.y-prev.y,len=Math.hypot(dx,dy)||1;arrowBase={x:tip.x-dx/len*arrowSize,y:tip.y-dy/len*arrowSize};shaftPixels[shaftPixels.length-1]=arrowBase;}
-    const d=shaftPixels.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' ');
+    /* Show the complete pointer path during drawing; the released object is
+       shortened to the arrowhead base and receives the final triangle. */
+    const d=pixels.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' ');
     const path=$('penPreviewPath');if(path)path.setAttribute('d',d);
-    const connector=$('penPreviewConnector');if(connector){const prev=pixels[pixels.length-2];connector.setAttribute('d',arrowBase&&prev?`M ${prev.x} ${prev.y} L ${arrowBase.x} ${arrowBase.y}`:'');}
-    const head=$('penPreviewHead');if(head){head.setAttribute('d',isArrow?penArrowHead(pixels,arrowSize,Math.min(arrowSize*.72,Math.max(boardW*.018,strokeWidth*1.35))):'');}
   }
   function finishPen(){
     if(!penStroke)return;const points=penStroke.points,style=penStroke.style,width=penStroke.width||penThickness,color=penStroke.color||penColor,opacity=Number.isFinite(Number(penStroke.opacity))?penStroke.opacity:penOpacity;penStroke=null;$('penPreview')?.remove();if(points.length<2)return;
@@ -3846,7 +3842,6 @@ body.playbook-mode .board-hero.hero-icon-only .board-hero-fallback{height:60px!i
 body.playbook-mode .board-pen .pen-arrow-head{fill:currentColor;stroke:none}
 body.playbook-mode .board-pen.pen-style-dashed path:first-child,body.playbook-mode .board-pen.pen-style-dashed-arrow path:first-child{stroke-dasharray:34 22}
 body.playbook-mode .pen-preview path{fill:none;stroke:#f1d76b;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-body.playbook-mode #penPreview #penPreviewHead{fill:#f1d76b;stroke:none}
 body.playbook-mode .inline-board-text-editor{position:absolute;z-index:38;width:min(270px,42%);min-width:155px;transform:translate(0,0);padding:5px;background:#182631;border:1px solid #73c9c4;border-radius:5px;box-shadow:0 8px 22px #0009}
 body.playbook-mode .inline-board-text-editor textarea{display:block;width:100%;min-height:62px;resize:both;background:#111c26;color:#f2f7fa;border:1px solid #536979;border-radius:3px;padding:6px;font:12px/1.35 inherit;outline:none}
 body.playbook-mode .inline-board-text-editor textarea:focus{border-color:#8fe2d8}
@@ -4307,9 +4302,31 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
      <div class="rn-setting-row rn-opacity-row" id="rnToolBorderOpacityRow" hidden><span class="rn-setting-label">BORDER OPACITY</span><output id="rnToolBorderOpacityValue">100%</output><input id="rnToolBorderOpacity" type="range" min="0" max="100" step="1" value="100"></div>
      <div class="rn-setting-row rn-thickness-row" id="rnToolThicknessRow"><span class="rn-setting-label">THICKNESS</span><div class="rn-thickness-slot"></div></div>
      <div class="rn-text-style-controls" id="rnTextStyleControls" hidden>
-       <div class="rn-text-style-control" title="Text box fill color"><span>FILL</span><input id="rnTextFillColor" type="color" value="#253845" aria-label="Text box fill color"><label class="rn-text-none-option"><input id="rnTextNoFill" type="checkbox"> NONE</label></div>
-       <div class="rn-text-style-control" title="Text box border color"><span>BORDER</span><input id="rnTextBorderColor" type="color" value="#73c9c4" aria-label="Text box border color"><label class="rn-text-none-option"><input id="rnTextNoBorder" type="checkbox"> NONE</label></div>
-       <div class="rn-text-style-control" title="Text color"><span>TEXT</span><input id="rnTextFontColor" type="color" value="#f2f7fa" aria-label="Text color"></div>
+       <div class="rn-text-style-control rn-text-style-fill" title="Text box fill">
+         <span>FILL</span>
+         <button type="button" class="rn-text-color-trigger" id="rnTextFillTrigger" aria-label="Open fill color options" aria-haspopup="dialog" aria-expanded="false"><span class="rn-text-color-preview" id="rnTextFillPreview"></span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="m2 4 4 4 4-4"/></svg></button>
+         <div class="rn-text-color-popover" id="rnTextFillPopup" role="dialog" aria-label="Fill color options" hidden>
+           <label class="rn-text-native-color" title="Choose fill color"><span>COLOR</span><input id="rnTextFillColor" type="color" value="#253845" aria-label="Text box fill color"></label>
+           <button type="button" class="rn-text-none-icon" id="rnTextNoFillBtn" title="No fill" aria-label="No fill"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2" fill="#fff" stroke="#dce7ef"/><path d="M5 19 19 5" fill="none" stroke="#e14d58" stroke-width="2.8" stroke-linecap="round"/></svg></button>
+         </div>
+         <input id="rnTextNoFill" class="rn-text-state-input" type="checkbox" tabindex="-1" aria-hidden="true">
+       </div>
+       <div class="rn-text-style-control rn-text-style-border" title="Text box border">
+         <span>BORDER</span>
+         <button type="button" class="rn-text-color-trigger" id="rnTextBorderTrigger" aria-label="Open border color options" aria-haspopup="dialog" aria-expanded="false"><span class="rn-text-color-preview" id="rnTextBorderPreview"></span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="m2 4 4 4 4-4"/></svg></button>
+         <div class="rn-text-color-popover" id="rnTextBorderPopup" role="dialog" aria-label="Border color options" hidden>
+           <label class="rn-text-native-color" title="Choose border color"><span>COLOR</span><input id="rnTextBorderColor" type="color" value="#73c9c4" aria-label="Text box border color"></label>
+           <button type="button" class="rn-text-none-icon rn-borderless-icon" id="rnTextNoBorderBtn" title="No border" aria-label="No border"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#eaf2f7" stroke-width="2"/><path d="M5 19 19 5" fill="none" stroke="#e14d58" stroke-width="2.8" stroke-linecap="round"/></svg></button>
+         </div>
+         <input id="rnTextNoBorder" class="rn-text-state-input" type="checkbox" tabindex="-1" aria-hidden="true">
+       </div>
+       <div class="rn-text-style-control rn-text-style-font" title="Text color">
+         <span>TEXT</span>
+         <button type="button" class="rn-text-color-trigger" id="rnTextFontTrigger" aria-label="Open text color picker" aria-haspopup="dialog" aria-expanded="false"><span class="rn-text-color-preview" id="rnTextFontPreview"></span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="m2 4 4 4 4-4"/></svg></button>
+         <div class="rn-text-color-popover" id="rnTextFontPopup" role="dialog" aria-label="Text color options" hidden>
+           <label class="rn-text-native-color" title="Choose text color"><span>COLOR</span><input id="rnTextFontColor" type="color" value="#f2f7fa" aria-label="Text color"></label>
+         </div>
+       </div>
      </div>
      <div class="rn-text-size-control" id="rnTextFontSizeControl" hidden>
        <label for="rnTextFontSize">FONT SIZE</label>
@@ -7425,9 +7442,6 @@ body.playbook-mode .board-pen .pen-arrow-shaft-connector{
   fill:none!important;stroke:currentColor!important;stroke-dasharray:none!important;
   stroke-linecap:butt!important;stroke-linejoin:round!important;pointer-events:none!important;
 }
-body.playbook-mode #playBoardStage>.pen-preview #penPreviewConnector{
-  fill:none!important;stroke-dasharray:none!important;stroke-linecap:butt!important;stroke-linejoin:round!important;pointer-events:none!important;
-}
 /* The font-size label sits above a full-width stepper; all controls remain inside the narrow sidebar. */
 body.playbook-mode #rnTextFontSizeControl{
   box-sizing:border-box!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;
@@ -7476,6 +7490,130 @@ body.playbook-mode #rnPenPrimaryBtn:not(.active){
 }
 body.playbook-mode #rnPenPrimaryBtn:not(.active):hover{background:#315166!important;border-color:#6caac0!important;}
 </style>
+
+
+
+<style id="rn-v13-18-text-color-popovers-and-final-arrow">
+/* Arrowheads are intentionally absent from the live pen preview. Final pen
+   items draw the triangle on pointerup; the shaft terminates at its base. */
+body.playbook-mode #playBoardStage .pen-preview #penPreviewPath{fill:none!important;}
+body.playbook-mode .board-pen .pen-arrow-shaft-connector{pointer-events:none!important;}
+
+/* Compact text color controls with themed option popovers. */
+body.playbook-mode #rnToolSettings{overflow:visible!important;}
+body.playbook-mode #rnTextStyleControls{position:relative!important;overflow:visible!important;}
+body.playbook-mode #rnTextStyleControls .rn-text-style-control{
+  position:relative!important;overflow:visible!important;z-index:1!important;
+  min-height:54px!important;padding:5px 3px!important;gap:4px!important;
+}
+body.playbook-mode #rnTextStyleControls .rn-text-style-control:has(.rn-text-color-popover:not([hidden])){z-index:30!important;}
+body.playbook-mode #rnTextStyleControls .rn-text-style-control>span{
+  width:100%!important;margin:0!important;text-align:center!important;font-size:7px!important;line-height:1.1!important;
+}
+body.playbook-mode #rnTextStyleControls .rn-text-color-trigger{
+  box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;
+  width:42px!important;min-width:42px!important;max-width:42px!important;height:27px!important;min-height:27px!important;
+  margin:0!important;padding:3px 4px!important;border:1px solid #61798a!important;border-radius:5px!important;
+  background:#243847!important;color:#eaf3f8!important;cursor:pointer!important;box-shadow:inset 0 1px #ffffff0b!important;
+}
+body.playbook-mode #rnTextStyleControls .rn-text-color-trigger:hover,
+body.playbook-mode #rnTextStyleControls .rn-text-color-trigger[aria-expanded="true"]{border-color:#91c5df!important;background:#2c4658!important;}
+body.playbook-mode #rnTextStyleControls .rn-text-color-preview{
+  display:block!important;box-sizing:border-box!important;width:17px!important;height:17px!important;min-width:17px!important;min-height:17px!important;
+  border:1px solid #a6b8c5!important;border-radius:3px!important;background:#253845;
+}
+body.playbook-mode #rnTextStyleControls .rn-text-color-trigger>svg{display:block!important;width:9px!important;height:9px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.5!important;}
+body.playbook-mode #rnTextStyleControls .rn-text-color-popover{
+  box-sizing:border-box!important;position:absolute!important;top:calc(100% + 7px)!important;left:50%!important;transform:translateX(-50%)!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;gap:9px!important;
+  min-width:92px!important;width:max-content!important;max-width:150px!important;min-height:50px!important;padding:8px!important;
+  border:1px solid #587486!important;border-radius:7px!important;background:#142431!important;color:#eaf3f8!important;
+  box-shadow:0 8px 24px #000b!important;z-index:100!important;white-space:nowrap!important;
+}
+body.playbook-mode #rnTextStyleControls .rn-text-color-popover[hidden]{display:none!important;}
+body.playbook-mode #rnTextStyleControls .rn-text-native-color{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:4px!important;
+  margin:0!important;padding:0!important;color:#b8cad6!important;font-size:7px!important;font-weight:900!important;line-height:1!important;
+}
+body.playbook-mode #rnTextStyleControls .rn-text-native-color input[type="color"]{
+  box-sizing:border-box!important;display:block!important;width:36px!important;height:30px!important;min-width:36px!important;max-width:36px!important;
+  min-height:30px!important;margin:0!important;padding:2px!important;border:1px solid #7790a1!important;border-radius:4px!important;
+  background:#1a2a37!important;cursor:pointer!important;
+}
+body.playbook-mode #rnTextStyleControls .rn-text-none-icon{
+  box-sizing:border-box!important;display:grid!important;place-items:center!important;flex:0 0 34px!important;
+  width:34px!important;min-width:34px!important;max-width:34px!important;height:34px!important;min-height:34px!important;
+  margin:0!important;padding:4px!important;border:1px solid #526a7b!important;border-radius:5px!important;
+  background:#263b4b!important;color:#fff!important;cursor:pointer!important;
+}
+body.playbook-mode #rnTextStyleControls .rn-text-none-icon:hover,
+body.playbook-mode #rnTextStyleControls .rn-text-none-icon.active{border-color:#e6c75a!important;background:#354b5b!important;box-shadow:0 0 0 1px #e6c75a66!important;}
+body.playbook-mode #rnTextStyleControls .rn-text-none-icon svg{display:block!important;width:25px!important;height:25px!important;min-width:25px!important;min-height:25px!important;}
+body.playbook-mode #rnTextStyleControls .rn-text-state-input{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;clip-path:inset(50%)!important;}
+</style>
+
+<script id="rn-v13-18-text-color-popover-interactions">
+(()=>{
+  const $=id=>document.getElementById(id);
+  const definitions=[
+    {trigger:'rnTextFillTrigger',popup:'rnTextFillPopup',input:'rnTextFillColor',preview:'rnTextFillPreview',none:'rnTextNoFill',noneButton:'rnTextNoFillBtn'},
+    {trigger:'rnTextBorderTrigger',popup:'rnTextBorderPopup',input:'rnTextBorderColor',preview:'rnTextBorderPreview',none:'rnTextNoBorder',noneButton:'rnTextNoBorderBtn'},
+    {trigger:'rnTextFontTrigger',popup:'rnTextFontPopup',input:'rnTextFontColor',preview:'rnTextFontPreview'}
+  ];
+  const setNone=(def,value)=>{
+    if(!def.none)return;
+    const input=$(def.none);if(!input)return;
+    if(input.checked!==!!value){input.checked=!!value;input.dispatchEvent(new Event('change',{bubbles:true}));}
+    $(def.noneButton)?.classList.toggle('active',!!value);
+  };
+  const closeAll=except=>definitions.forEach(def=>{
+    const popup=$(def.popup),trigger=$(def.trigger);if(def.popup===except)return;
+    if(popup)popup.hidden=true;if(trigger)trigger.setAttribute('aria-expanded','false');
+  });
+  definitions.forEach(def=>{
+    const trigger=$(def.trigger),popup=$(def.popup),input=$(def.input),preview=$(def.preview);
+    if(!trigger||!popup||!input||trigger.dataset.rnV1318)return;
+    trigger.dataset.rnV1318='1';
+    if(preview)preview.style.background=input.value||'#253845';
+    trigger.addEventListener('click',event=>{
+      event.preventDefault();event.stopPropagation();
+      const opening=popup.hidden;closeAll(opening?def.popup:null);popup.hidden=!opening;
+      trigger.setAttribute('aria-expanded',String(opening));
+      if(def.noneButton)$(def.noneButton)?.classList.toggle('active',!!$(def.none)?.checked);
+      if(opening)popup.querySelector('input[type="color"]')?.focus({preventScroll:true});
+    });
+    popup.addEventListener('pointerdown',event=>event.stopPropagation());
+    input.addEventListener('input',()=>{
+      if(preview)preview.style.background=input.value;
+      setNone(def,false);
+    });
+    input.addEventListener('change',()=>{if(preview)preview.style.background=input.value;setNone(def,false);});
+    if(def.noneButton){
+      const noneButton=$(def.noneButton);
+      noneButton?.addEventListener('click',event=>{
+        event.preventDefault();event.stopPropagation();setNone(def,true);
+        popup.hidden=true;trigger.setAttribute('aria-expanded','false');
+      });
+    }
+  });
+  document.addEventListener('pointerdown',event=>{
+    if(event.target.closest('#rnTextStyleControls'))return;closeAll(null);
+  });
+  document.addEventListener('keydown',event=>{if(event.key==='Escape')closeAll(null);});
+  const sync=()=>definitions.forEach(def=>{
+    const input=$(def.input),preview=$(def.preview),none=def.none?$(def.none):null,button=def.noneButton?$(def.noneButton):null;
+    if(input&&preview)preview.style.background=input.value;
+    if(button)button.classList.toggle('active',!!none?.checked);
+  });
+  const original=window.__rnSyncToolSettingsVisibility;
+  if(typeof original==='function'&&!original.__rnV1318Wrapped){
+    const wrapped=function(...args){const result=original.apply(this,args);sync();return result;};
+    wrapped.__rnV1318Wrapped=true;window.__rnSyncToolSettingsVisibility=wrapped;
+  }
+  document.addEventListener('change',event=>{if(['rnTextNoFill','rnTextNoBorder','rnTextFillColor','rnTextBorderColor','rnTextFontColor'].includes(event.target?.id))sync();});
+  sync();
+})();
+</script>
 
 </body>
 </html>

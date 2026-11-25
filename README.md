@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current package: v13.17.** See `V13.17_RELEASE_NOTES.md` for connected dashed-arrow arrowheads, the four-button Playbook toolbar without Eraser, matching pen-button styling, compact FONT SIZE controls, and reduced spacing above the drawing tools. Earlier release notes are retained below for version history.
+**Current package: v13.18.** See `V13.18_RELEASE_NOTES.md` for arrowheads rendered only after pointer release with the shaft connected at the triangle base, and themed FILL/BORDER color popovers with icon-based no-fill and no-border actions. Earlier release notes are retained below for version history.
 
 RIVALSNOTEBOOK is the renamed Marvel Rivals counter-pick, synergy, hero-group and tactical whiteboard app. This package adds a Vercel-ready static site and a Supabase backend layer for account sync, shared community votes, public Community Groups, and live collaborative Playbook notebooks.
 
@@ -274,3 +274,7 @@ See [V13.16 Release Notes](V13.16_RELEASE_NOTES.md) for smaller default hero/ene
 ## V13.17
 
 See [V13.17 Release Notes](V13.17_RELEASE_NOTES.md) for the arrowhead-base connector fix, removed Eraser tool, updated freehand button styling, non-overlapping text font-size controls, and tighter Playbook tool-header spacing.
+
+## V13.18
+
+See [V13.18 Release Notes](V13.18_RELEASE_NOTES.md) for release-time-only arrowheads with exact base connection, simplified live pen previews, and custom text FILL/BORDER color popovers with icon-only no-fill/no-border actions.
