@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current package: v13.22.** See `V13.22_RELEASE_NOTES.md` for Playbook hero drop alignment, editable text-style number markers, group-name alignment, and PIT / HAZARD palette removal. Earlier release notes are retained below for version history.
+**Current package: v13.23.** See `V13.23_RELEASE_NOTES.md` for the six Convoy map point sets, Museum of Contemplation 2D layout, and slimmer default drawing strokes. Earlier release notes are retained below for version history.
 
 RIVALSNOTEBOOK is the renamed Marvel Rivals counter-pick, synergy, hero-group and tactical whiteboard app. This package adds a Vercel-ready static site and a Supabase backend layer for account sync, shared community votes, public Community Groups, and live collaborative Playbook notebooks.
 

@@ -1,40 +1,78 @@
 {
-  "version": 2,
+  "version": 3,
   "maps": [
     {
       "id": "yggdrasil-path",
-      "name": "Yggdrasil Path",
+      "name": "Yggdrasill Path",
       "mode": "Convoy",
       "cover": "assets/maps/covers/yggdrasil-path.jpg",
-      "image": "assets/maps/yggdrasil-path.jpg"
+      "image": "assets/maps/yggdrasil-path.jpg",
+      "points": {
+        "A": "assets/maps/yggdrasil-path-point-a.jpg",
+        "B": "assets/maps/yggdrasil-path-point-b.jpg",
+        "C": "assets/maps/yggdrasil-path-point-c.jpg"
+      }
     },
     {
       "id": "spider-islands",
       "name": "Spider-Islands",
       "mode": "Convoy",
       "cover": "assets/maps/covers/spider-islands.jpg",
-      "image": "assets/maps/spider-islands.jpg"
+      "image": "assets/maps/spider-islands.jpg",
+      "points": {
+        "A": "assets/maps/spider-islands-point-a.jpg",
+        "B": "assets/maps/spider-islands-point-b.jpg",
+        "C": "assets/maps/spider-islands-point-c.jpg"
+      }
     },
     {
       "id": "midtown",
       "name": "Midtown",
       "mode": "Convoy",
       "cover": "assets/maps/covers/midtown.jpg",
-      "image": "assets/maps/midtown.jpg"
+      "image": "assets/maps/midtown.jpg",
+      "points": {
+        "A": "assets/maps/midtown-point-a.jpg",
+        "B": "assets/maps/midtown-point-b.jpg",
+        "C": "assets/maps/midtown-point-c.jpg"
+      }
     },
     {
       "id": "arakko",
       "name": "Arakko",
       "mode": "Convoy",
       "cover": "assets/maps/covers/arakko.jpg",
-      "image": "assets/maps/arakko.jpg"
+      "image": "assets/maps/arakko.jpg",
+      "points": {
+        "A": "assets/maps/arakko-point-a.jpg",
+        "B": "assets/maps/arakko-point-b.jpg",
+        "C": "assets/maps/arakko-point-c.jpg"
+      }
+    },
+    {
+      "id": "museum-of-contemplation",
+      "name": "Museum of Contemplation",
+      "mode": "Convoy",
+      "cover": "assets/maps/covers/museum-of-contemplation.jpg",
+      "image": "https://rivals.gs/img/layouts/museume01.webp",
+      "points": {
+        "A": "assets/maps/museum-of-contemplation-point-a.jpg",
+        "B": "assets/maps/museum-of-contemplation-point-b.jpg",
+        "C": "assets/maps/museum-of-contemplation-point-c.jpg"
+      },
+      "layoutSource": "https://rivals.gs/maps/museum-of-contemplation/"
     },
     {
       "id": "thebes",
       "name": "Thebes",
       "mode": "Convoy",
       "cover": "assets/maps/covers/thebes.jpg",
-      "image": "assets/maps/thebes.jpg"
+      "image": "assets/maps/thebes.jpg",
+      "points": {
+        "A": "assets/maps/thebes-point-a.jpg",
+        "B": "assets/maps/thebes-point-b.jpg",
+        "C": "assets/maps/thebes-point-c.jpg"
+      }
     },
     {
       "id": "shin-shibuya",
@@ -114,11 +152,13 @@
   "comingSoon": [
     "Domination"
   ],
-  "runtimeAssetStrategy": "Point A/B/C JPEGs are embedded in index.html for deployment-safe loading, with matching JPEG files retained under assets/maps/ as static fallbacks.",
+  "runtimeAssetStrategy": "Map covers and point A/B/C screenshots are bundled as JPEGs under assets/maps/; point JPEGs are also embedded in index.html for deployment-safe loading. Museum of Contemplation 2D overview uses the verified top-down WebP asset at rivals.gs.",
   "notes": {
     "lowerManhattan2D": "A verified full top-down 2D overview was not available for this build. The supplied Point A, Point B and Point C images are available as separate map views.",
     "lowerManhattanCoverSource": "https://rivalsheroes.com/maps/lower-manhattan",
     "mapPointAssignments": "Central Park uses the supplied Dracula A/B/C images; Hall of Djalia uses HALL OF DJALIA 1 and HALL 2/3; Symbiotic Surface uses Klyntar 1/2/3; Heart of Heaven uses Kunlun 1/2/3; Shin-Shibuya uses SHIN SHIBUYA 1/2 and SHIN 3; Lower Manhattan uses Lower Manhattan 1/2/3.",
-    "pointImageFormat": "All Convergence Point A/B/C images are optimized JPEG files and are embedded in index.html with static copies under assets/maps."
+    "pointImageFormat": "All 18 uploaded Convoy point screenshots are optimized JPEG files and are embedded in index.html with static copies under assets/maps/.",
+    "museumOfContemplation2D": "A verified top-down level-geometry plan is available from https://rivals.gs/maps/museum-of-contemplation/ and is loaded from https://rivals.gs/img/layouts/museume01.webp.",
+    "convoyPointAssignments": "Arakko 1/2/3, Midtown 1/2/3, Museum 1/2/3, Spider-Islands 1/2/3, Thebes 1/2/3 and Yggdrasil 1/2/3 are assigned in upload order to Points A/B/C."
   }
 }
