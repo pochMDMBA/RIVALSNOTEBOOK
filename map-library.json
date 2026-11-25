@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "maps": [
     {
       "id": "yggdrasil-path",
@@ -153,7 +153,7 @@
       "name": "Royal Palace",
       "mode": "Domination",
       "competitive": true,
-      "cover": "assets/maps/covers/domination-royal-palace.svg",
+      "cover": "assets/maps/covers/domination-royal-palace.jpg",
       "image": "",
       "viewType": "submap",
       "points": {
@@ -162,9 +162,9 @@
         "3": ""
       },
       "submapNames": {
-        "1": "Odin's Archive",
-        "2": "Bifrost Garden",
-        "3": "Throne Room"
+        "1": "Bifrost Garden",
+        "2": "Throne Room",
+        "3": "Odin's Archive"
       },
       "location": "Yggsgard",
       "layouts": {
@@ -178,7 +178,7 @@
       "name": "Birnin T'Challa",
       "mode": "Domination",
       "competitive": true,
-      "cover": "assets/maps/covers/domination-birnin-tchalla.svg",
+      "cover": "assets/maps/covers/domination-birnin-tchalla.jpg",
       "image": "",
       "viewType": "submap",
       "points": {
@@ -187,9 +187,9 @@
         "3": ""
       },
       "submapNames": {
-        "1": "Stellar Spaceport",
-        "2": "Imperial Institute of Science",
-        "3": "Warrior Falls"
+        "1": "Imperial Institute of Science",
+        "2": "Warrior Falls",
+        "3": "Stellar Spaceport"
       },
       "location": "Intergalactic Empire of Wakanda",
       "layouts": {
@@ -203,7 +203,7 @@
       "name": "Hell's Heaven",
       "mode": "Domination",
       "competitive": true,
-      "cover": "assets/maps/covers/domination-hells-heaven.svg",
+      "cover": "assets/maps/covers/domination-hells-heaven.jpg",
       "image": "",
       "viewType": "submap",
       "points": {
@@ -212,8 +212,8 @@
         "3": ""
       },
       "submapNames": {
-        "1": "Frozen Airfield",
-        "2": "Super-Soldier Factory",
+        "1": "Super-Soldier Factory",
+        "2": "Frozen Airfield",
         "3": "Eldritch Monument"
       },
       "location": "Hydra Charteris Base",
@@ -228,7 +228,7 @@
       "name": "Krakoa",
       "mode": "Domination",
       "competitive": true,
-      "cover": "assets/maps/covers/domination-krakoa.svg",
+      "cover": "assets/maps/covers/domination-krakoa.jpg",
       "image": "",
       "viewType": "submap",
       "points": {
@@ -253,7 +253,7 @@
       "name": "Celestial Husk",
       "mode": "Domination",
       "competitive": true,
-      "cover": "assets/maps/covers/domination-celestial-husk.svg",
+      "cover": "assets/maps/covers/domination-celestial-husk.jpg",
       "image": "",
       "viewType": "submap",
       "points": {
@@ -278,7 +278,7 @@
       "name": "God Quarry",
       "mode": "Domination",
       "competitive": true,
-      "cover": "assets/maps/covers/domination-god-quarry.svg",
+      "cover": "assets/maps/covers/domination-god-quarry.jpg",
       "image": "",
       "viewType": "submap",
       "points": {
@@ -287,9 +287,9 @@
         "3": ""
       },
       "submapNames": {
-        "1": "Halls of All-Knowing",
-        "2": "House of Ideas",
-        "3": "Confessional Eternity"
+        "1": "Confessional Eternity",
+        "2": "Halls of All-Knowing",
+        "3": "House of Ideas"
       },
       "layouts": {
         "1": "https://rivals.gs/img/layouts/godquarryc01.webp",
@@ -298,7 +298,7 @@
       }
     }
   ],
-  "runtimeAssetStrategy": "All map-card cover art is embedded in index.html as data URLs so cards do not rely on relative asset paths. Domination area screenshots are reserved for later uploads; each area has a separate direct HTTPS 2D floor-plan URL hosted by rivals.gs, so 2D views require access to that source.",
+  "runtimeAssetStrategy": "Map covers and tactical layers use separate, purpose-specific embedded image registries. Cover thumbnails are also retained as JPEG files under assets/maps/covers/. Domination 2D floor plans remain separate HTTPS layout images from rivals.gs; they are never resolved through the cover-image registry.",
   "notes": {
     "lowerManhattan2D": "A verified full top-down 2D overview was not available for this build. The supplied Point A, Point B and Point C images are available as separate map views.",
     "lowerManhattanCoverSource": "https://rivalsheroes.com/maps/lower-manhattan",
@@ -306,8 +306,9 @@
     "pointImageFormat": "All 18 uploaded Convoy point screenshots are optimized JPEG files and are embedded in index.html with static copies under assets/maps/.",
     "museumOfContemplation2D": "A verified top-down level-geometry plan is available from https://rivals.gs/maps/museum-of-contemplation/ and is loaded from https://rivals.gs/img/layouts/museume01.webp.",
     "convoyPointAssignments": "Arakko 1/2/3, Midtown 1/2/3, Museum 1/2/3, Spider-Islands 1/2/3, Thebes 1/2/3 and Yggdrasil 1/2/3 are assigned in upload order to Points A/B/C.",
-    "dominationPool": "Competitive Domination entries: Royal Palace, Birnin T’Challa, Hell’s Heaven, Krakoa, Celestial Husk and God Quarry. Each has three numbered area controls. Each number has a 2D layout button beneath it; numbered main-view screenshot slots remain available for user screenshots.",
-    "dominationSubmapNames": "Royal Palace: Odin’s Archive, Bifrost Garden, Throne Room; Birnin T’Challa: Stellar Spaceport, Imperial Institute of Science, Warrior Falls; Hell’s Heaven: Frozen Airfield, Super-Soldier Factory, Eldritch Monument; Krakoa: Cradle, The Grove, Carousel; Celestial Husk: Celestial Hand, Celestial Codex, Celestial Vault; God Quarry: Halls of All-Knowing, House of Ideas, Confessional Eternity.",
-    "domination2DLayouts": "The app references the published top-down image URLs on rivals.gs: asgardc01–03 (Royal Palace), wakandac01–03 (Birnin T’Challa), hydrac01–03 (Hell’s Heaven), krakoac01–03 (Krakoa), klyntarc01–03 (Celestial Husk), godquarryc01–03 (God Quarry). These are remote HTTPS images, not binaries bundled in the ZIP."
+    "dominationPool": "Competitive Domination entries: Royal Palace, Birnin T’Challa, Hell’s Heaven, Krakoa, Celestial Husk and God Quarry. Each has three numbered area controls and an independent 2D floor-plan view beneath each number.",
+    "dominationSubmapNames": "Royal Palace: 1 Bifrost Garden, 2 Throne Room, 3 Odin’s Archive; Birnin T’Challa: 1 Imperial Institute of Science, 2 Warrior Falls, 3 Stellar Spaceport; Hell’s Heaven: 1 Super-Soldier Factory, 2 Frozen Airfield, 3 Eldritch Monument; Krakoa: 1 Cradle, 2 The Grove, 3 Carousel; Celestial Husk: 1 Celestial Hand, 2 Celestial Codex, 3 Celestial Vault (order carried forward because guide is incomplete); God Quarry: 1 Confessional Eternity, 2 Halls of All-Knowing, 3 House of Ideas.",
+    "domination2DLayouts": "The app references distinct published top-down image URLs on rivals.gs: asgardc01–03, wakandac01–03, hydrac01–03, krakoac01–03, klyntarc01–03, godquarryc01–03. These layout images remain distinct from cover assets and are never looked up in the cover-image registry.",
+    "coverImageSources": "The six Competitive Domination cover JPEGs are clean crops of the thumbnail panes from the latest unannotated user-supplied screenshot of https://marvelrivals.gg/maps/. Each crop is bundled under assets/maps/covers/ and mirrored in the embedded cover registry."
   }
 }
