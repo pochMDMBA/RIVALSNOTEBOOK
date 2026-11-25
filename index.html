@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v13.19</title>
+<title>RIVALSNOTEBOOK · v13.26</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -3527,6 +3527,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       activeTool=tool;pendingTextPlacement=tool==='text';penModeActive=tool.startsWith('pen-');
       if(penModeActive)penStyle=tool.slice(4);
       board.classList.toggle('pen-active',penModeActive);
+      board.classList.toggle('text-tool-active',tool==='text');
       document.querySelectorAll('#rnPrimaryToolBar button,.board-shape-tools button').forEach(b=>{const primary=b.dataset.rnPrimaryTool||'';b.classList.toggle('active',(b.id==='boardSelectToolBtn'&&tool==='select')||(b.id==='boardTextToolBtn'&&tool==='text')||(primary==='pen'&&tool.startsWith('pen-')));});
       document.querySelectorAll('.board-pen-tool-row button').forEach(b=>b.classList.toggle('active',b.dataset.penTool===tool));
       syncToolSettingsVisibility();
@@ -4936,27 +4937,14 @@ window.RN_MUSEUM_COVER_DATA_URL=window.RN_POINT_MAP_IMAGES?.['museum-of-contempl
   const $=id=>document.getElementById(id);
   if(typeof state==='undefined')return;
   // Lightweight map metadata only. JPGs are fetched on demand through a deployment-aware asset resolver. Point layers live beside the established 2D JPEGs in assets/maps/ to avoid nested-folder deployment omissions.
-  const MAPS = [
-    {"id":"yggdrasil-path","name":"Yggdrasill Path","mode":"Convoy","cover":"assets/maps/covers/yggdrasil-path.jpg","image":"assets/maps/yggdrasil-path.jpg","points":{"A":"assets/maps/yggdrasil-path-point-a.jpg","B":"assets/maps/yggdrasil-path-point-b.jpg","C":"assets/maps/yggdrasil-path-point-c.jpg"}},
-    {"id":"spider-islands","name":"Spider-Islands","mode":"Convoy","cover":"assets/maps/covers/spider-islands.jpg","image":"assets/maps/spider-islands.jpg","points":{"A":"assets/maps/spider-islands-point-a.jpg","B":"assets/maps/spider-islands-point-b.jpg","C":"assets/maps/spider-islands-point-c.jpg"}},
-    {"id":"midtown","name":"Midtown","mode":"Convoy","cover":"assets/maps/covers/midtown.jpg","image":"assets/maps/midtown.jpg","points":{"A":"assets/maps/midtown-point-a.jpg","B":"assets/maps/midtown-point-b.jpg","C":"assets/maps/midtown-point-c.jpg"}},
-    {"id":"arakko","name":"Arakko","mode":"Convoy","cover":"assets/maps/covers/arakko.jpg","image":"assets/maps/arakko.jpg","points":{"A":"assets/maps/arakko-point-a.jpg","B":"assets/maps/arakko-point-b.jpg","C":"assets/maps/arakko-point-c.jpg"}},
-    {"id":"museum-of-contemplation","name":"Museum of Contemplation","mode":"Convoy","cover":"assets/maps/covers/museum-of-contemplation.jpg","image":"https://rivals.gs/img/layouts/museume01.webp","points":{"A":"assets/maps/museum-of-contemplation-point-a.jpg","B":"assets/maps/museum-of-contemplation-point-b.jpg","C":"assets/maps/museum-of-contemplation-point-c.jpg"}},
-    {"id":"thebes","name":"Thebes","mode":"Convoy","cover":"assets/maps/covers/thebes.jpg","image":"assets/maps/thebes.jpg","points":{"A":"assets/maps/thebes-point-a.jpg","B":"assets/maps/thebes-point-b.jpg","C":"assets/maps/thebes-point-c.jpg"}},
-    {"id":"shin-shibuya","name":"Shin-Shibuya","mode":"Convergence","cover":"assets/maps/covers/shin-shibuya.jpg","image":"assets/maps/shin-shibuya.jpg","points":{"A":"assets/maps/shin-shibuya-point-a.jpg","B":"assets/maps/shin-shibuya-point-b.jpg","C":"assets/maps/shin-shibuya-point-c.jpg"}},
-    {"id":"hall-of-djalia","name":"Hall of Djalia","mode":"Convergence","cover":"assets/maps/covers/hall-of-djalia.jpg","image":"assets/maps/hall-of-djalia.jpg","points":{"A":"assets/maps/hall-of-djalia-point-a.jpg","B":"assets/maps/hall-of-djalia-point-b.jpg","C":"assets/maps/hall-of-djalia-point-c.jpg"}},
-    {"id":"central-park","name":"Central Park","mode":"Convergence","cover":"assets/maps/covers/central-park.jpg","image":"assets/maps/central-park.jpg","points":{"A":"assets/maps/central-park-point-a.jpg","B":"assets/maps/central-park-point-b.jpg","C":"assets/maps/central-park-point-c.jpg"}},
-    {"id":"symbiotic-surface","name":"Symbiotic Surface","mode":"Convergence","cover":"assets/maps/covers/symbiotic-surface.jpg","image":"assets/maps/symbiotic-surface.jpg","points":{"A":"assets/maps/symbiotic-surface-point-a.jpg","B":"assets/maps/symbiotic-surface-point-b.jpg","C":"assets/maps/symbiotic-surface-point-c.jpg"}},
-    {"id":"heart-of-heaven","name":"Heart of Heaven","mode":"Convergence","cover":"assets/maps/covers/heart-of-heaven.jpg","image":"assets/maps/heart-of-heaven.jpg","points":{"A":"assets/maps/heart-of-heaven-point-a.jpg","B":"assets/maps/heart-of-heaven-point-b.jpg","C":"assets/maps/heart-of-heaven-point-c.jpg"}},
-    {"id":"lower-manhattan","name":"Lower Manhattan","mode":"Convergence","cover":"https://api.rivalsheroes.com/public/maps-rivalsapi/map_lower-manhattan_1778889484.webp","image":"","points":{"A":"assets/maps/lower-manhattan-point-a.jpg","B":"assets/maps/lower-manhattan-point-b.jpg","C":"assets/maps/lower-manhattan-point-c.jpg"},"coverFallback":"/assets/maps/lower-manhattan-point-a.jpg","layoutNote":"Full 2D overview pending; Points A, B and C are available."}
-  ];
+  const MAPS = [{"id":"yggdrasil-path","name":"Yggdrasill Path","mode":"Convoy","cover":"assets/maps/covers/yggdrasil-path.jpg","image":"assets/maps/yggdrasil-path.jpg","points":{"A":"assets/maps/yggdrasil-path-point-a.jpg","B":"assets/maps/yggdrasil-path-point-b.jpg","C":"assets/maps/yggdrasil-path-point-c.jpg"}},{"id":"spider-islands","name":"Spider-Islands","mode":"Convoy","cover":"assets/maps/covers/spider-islands.jpg","image":"assets/maps/spider-islands.jpg","points":{"A":"assets/maps/spider-islands-point-a.jpg","B":"assets/maps/spider-islands-point-b.jpg","C":"assets/maps/spider-islands-point-c.jpg"}},{"id":"midtown","name":"Midtown","mode":"Convoy","cover":"assets/maps/covers/midtown.jpg","image":"assets/maps/midtown.jpg","points":{"A":"assets/maps/midtown-point-a.jpg","B":"assets/maps/midtown-point-b.jpg","C":"assets/maps/midtown-point-c.jpg"}},{"id":"arakko","name":"Arakko","mode":"Convoy","cover":"assets/maps/covers/arakko.jpg","image":"assets/maps/arakko.jpg","points":{"A":"assets/maps/arakko-point-a.jpg","B":"assets/maps/arakko-point-b.jpg","C":"assets/maps/arakko-point-c.jpg"}},{"id":"museum-of-contemplation","name":"Museum of Contemplation","mode":"Convoy","cover":"assets/maps/covers/museum-of-contemplation.jpg","image":"https://rivals.gs/img/layouts/museume01.webp","points":{"A":"assets/maps/museum-of-contemplation-point-a.jpg","B":"assets/maps/museum-of-contemplation-point-b.jpg","C":"assets/maps/museum-of-contemplation-point-c.jpg"}},{"id":"thebes","name":"Thebes","mode":"Convoy","cover":"assets/maps/covers/thebes.jpg","image":"assets/maps/thebes.jpg","points":{"A":"assets/maps/thebes-point-a.jpg","B":"assets/maps/thebes-point-b.jpg","C":"assets/maps/thebes-point-c.jpg"}},{"id":"shin-shibuya","name":"Shin-Shibuya","mode":"Convergence","cover":"assets/maps/covers/shin-shibuya.jpg","image":"assets/maps/shin-shibuya.jpg","points":{"A":"assets/maps/shin-shibuya-point-a.jpg","B":"assets/maps/shin-shibuya-point-b.jpg","C":"assets/maps/shin-shibuya-point-c.jpg"}},{"id":"hall-of-djalia","name":"Hall of Djalia","mode":"Convergence","cover":"assets/maps/covers/hall-of-djalia.jpg","image":"assets/maps/hall-of-djalia.jpg","points":{"A":"assets/maps/hall-of-djalia-point-a.jpg","B":"assets/maps/hall-of-djalia-point-b.jpg","C":"assets/maps/hall-of-djalia-point-c.jpg"}},{"id":"central-park","name":"Central Park","mode":"Convergence","cover":"assets/maps/covers/central-park.jpg","image":"assets/maps/central-park.jpg","points":{"A":"assets/maps/central-park-point-a.jpg","B":"assets/maps/central-park-point-b.jpg","C":"assets/maps/central-park-point-c.jpg"}},{"id":"symbiotic-surface","name":"Symbiotic Surface","mode":"Convergence","cover":"assets/maps/covers/symbiotic-surface.jpg","image":"assets/maps/symbiotic-surface.jpg","points":{"A":"assets/maps/symbiotic-surface-point-a.jpg","B":"assets/maps/symbiotic-surface-point-b.jpg","C":"assets/maps/symbiotic-surface-point-c.jpg"}},{"id":"heart-of-heaven","name":"Heart of Heaven","mode":"Convergence","cover":"assets/maps/covers/heart-of-heaven.jpg","image":"assets/maps/heart-of-heaven.jpg","points":{"A":"assets/maps/heart-of-heaven-point-a.jpg","B":"assets/maps/heart-of-heaven-point-b.jpg","C":"assets/maps/heart-of-heaven-point-c.jpg"}},{"id":"lower-manhattan","name":"Lower Manhattan","mode":"Convergence","cover":"https://api.rivalsheroes.com/public/maps-rivalsapi/map_lower-manhattan_1778889484.webp","image":"","points":{"A":"assets/maps/lower-manhattan-point-a.jpg","B":"assets/maps/lower-manhattan-point-b.jpg","C":"assets/maps/lower-manhattan-point-c.jpg"},"coverFallback":"/assets/maps/lower-manhattan-point-a.jpg","layoutNote":"Full 2D overview pending; Points A, B and C are available."},{"id":"royal-palace","name":"Royal Palace","mode":"Domination","competitive":true,"cover":"assets/maps/covers/domination-royal-palace.svg","image":"","viewType":"submap","points":{"1":"","2":"","3":""},"submapNames":{"1":"Odin's Archive","2":"Bifrost Garden","3":"Throne Room"},"location":"Yggsgard"},{"id":"birnin-tchalla","name":"Birnin T'Challa","mode":"Domination","competitive":true,"cover":"assets/maps/covers/domination-birnin-tchalla.svg","image":"","viewType":"submap","points":{"1":"","2":"","3":""},"submapNames":{"1":"Stellar Spaceport","2":"Imperial Institute of Science","3":"Warrior Falls"},"location":"Intergalactic Empire of Wakanda"},{"id":"hells-heaven","name":"Hell's Heaven","mode":"Domination","competitive":true,"cover":"assets/maps/covers/domination-hells-heaven.svg","image":"","viewType":"submap","points":{"1":"","2":"","3":""},"submapNames":{"1":"Frozen Airfield","2":"Super-Soldier Factory","3":"Eldritch Monument"},"location":"Hydra Charteris Base"},{"id":"krakoa","name":"Krakoa","mode":"Domination","competitive":true,"cover":"assets/maps/covers/domination-krakoa.svg","image":"","viewType":"submap","points":{"1":"","2":"","3":""},"submapNames":{"1":"Cradle","2":"The Grove","3":"Carousel"},"location":"Hellfire Gala"},{"id":"celestial-husk","name":"Celestial Husk","mode":"Domination","competitive":true,"cover":"assets/maps/covers/domination-celestial-husk.svg","image":"","viewType":"submap","points":{"1":"","2":"","3":""},"submapNames":{"1":"Celestial Hand","2":"Celestial Codex","3":"Celestial Vault"},"location":"Klyntar"},{"id":"god-quarry","name":"God Quarry","mode":"Domination","competitive":true,"cover":"assets/maps/covers/domination-god-quarry.svg","image":"","viewType":"submap","points":{"1":"","2":"","3":""},"submapNames":{"1":"Confessional Eternity","2":"Halls of All-Knowing","3":"House of Ideas"}}];
   // Resolve map assets against the deployed app base first, then try root and common nested Vercel paths.
   const mapAssetCandidates=source=>{
     const raw=String(source||'').trim();if(!raw)return [];
     if(/^(?:https?:|data:|blob:)/i.test(raw))return [raw];
     const clean=raw.replace(/^\/+/, '').replace(/^\.\//,'');
     const candidates=[];
-    const add=value=>{try{const url=new URL(value,window.location.href);url.searchParams.set('rnmap','1311');if(!candidates.includes(url.href))candidates.push(url.href)}catch(e){}};
+    const add=value=>{try{const url=new URL(value,window.location.href);url.searchParams.set('rnmap','1326');if(!candidates.includes(url.href))candidates.push(url.href)}catch(e){}};
     // First try the path relative to the current app URL, then each parent directory.
     add(clean);add('./'+clean);
     let segments=String(window.location.pathname||'/').split('/').filter(Boolean);
@@ -4988,11 +4976,11 @@ window.RN_MUSEUM_COVER_DATA_URL=window.RN_POINT_MAP_IMAGES?.['museum-of-contempl
   if(!known.has(currentMapId))currentMapId='';
   let currentMapView=String(activeAtStart?.mapView||localStorage.getItem('rnPlaybookCurrentMapView')||'2d').toUpperCase();
   if(currentMapView==='2D')currentMapView='2d';
-  const validView=(m,v)=>v==='2d'?!!m?.image:!!m?.points?.[v];
-  if(!validView(known.get(currentMapId),currentMapView))currentMapView=known.get(currentMapId)?.points?.A?'A':'2d';
-  // V13.12 may have stored 2D as the default simply because an overview image exists.
-  // On a fresh workspace (not opening a saved play), prefer Point A when available.
-  if(!activeAtStart&&currentMapId&&currentMapView==='2d'&&known.get(currentMapId)?.points?.A)currentMapView='A';
+  const firstMapView=m=>Object.keys(m?.points||{})[0]||(m?.image?'2d':'2d');
+  const validView=(m,v)=>v==='2d'?!!m?.image:!!m&&Object.prototype.hasOwnProperty.call(m.points||{},String(v));
+  if(!validView(known.get(currentMapId),currentMapView))currentMapView=firstMapView(known.get(currentMapId));
+  // On a fresh workspace, start on the first available point/submap view. Existing saved views remain unchanged.
+  if(!activeAtStart&&currentMapId&&currentMapView==='2d'&&Object.keys(known.get(currentMapId)?.points||{}).length)currentMapView=firstMapView(known.get(currentMapId));
   const sidebar=document.querySelector('#playbookPage .playbook-tools');
   const stage= $('playBoardStage');
   const board=$('playBoard');
@@ -5009,12 +4997,8 @@ window.RN_MUSEUM_COVER_DATA_URL=window.RN_POINT_MAP_IMAGES?.['museum-of-contempl
       <span class="rn-map-current-mode" id="rnMapCurrentMode">Choose a map background</span>
     </button>
     <div class="rn-map-view-label">MAP VIEW</div>
-    <div class="rn-map-view-selector" id="rnMapViewSelector" role="group" aria-label="Map view">
-      <button type="button" data-map-view="2d" aria-pressed="true">2D</button>
-      <button type="button" data-map-view="A" aria-pressed="false">A</button>
-      <button type="button" data-map-view="B" aria-pressed="false">B</button>
-      <button type="button" data-map-view="C" aria-pressed="false">C</button>
-    </div>
+    <div class="rn-map-view-selector" id="rnMapViewSelector" role="group" aria-label="Map view"></div>
+    <div class="rn-map-view-name" id="rnMapViewName" hidden></div>
     <button type="button" class="rn-map-clear" id="rnMapClearBtn">REMOVE MAP</button>`;
   const insertBefore=sidebar.querySelector('.sidebar-play-panel')||sidebar.querySelector('.rn-toolkit')||null;
   sidebar.insertBefore(widget,insertBefore);
@@ -5025,15 +5009,15 @@ window.RN_MUSEUM_COVER_DATA_URL=window.RN_POINT_MAP_IMAGES?.['museum-of-contempl
   const makeCards=mode=>MAPS.filter(m=>m.mode===mode).map(m=>`
     <button type="button" class="rn-map-card${m.id===currentMapId?' selected':''}" data-map-id="${m.id}" aria-label="Load ${m.name}" aria-pressed="${m.id===currentMapId?'true':'false'}">
       <img data-map-source="${m.cover}" data-cover-fallback="${m.coverFallback||''}" alt="${m.name} cover" loading="lazy">
-      <span class="rn-map-card-copy"><strong>${m.name}</strong><span>${m.image?'2D + POINTS A–C':'POINTS A–C · 2D PENDING'}</span></span>
+      <span class="rn-map-card-copy"><strong>${m.name}</strong><span>${m.viewType==='submap'?'3 SUBMAPS · COMPETITIVE':(m.image?'2D + POINTS A–C':'POINTS A–C · 2D PENDING')}</span></span>
     </button>`).join('');
   overlay.innerHTML=`
     <section class="rn-map-library-dialog" role="dialog" aria-modal="true" aria-labelledby="rnMapLibraryTitle">
-      <header class="rn-map-library-head"><div><h2 id="rnMapLibraryTitle">Choose a tactical map</h2><p>Choose a 2D overview or a point-specific view. Each saved play remembers its map and selected view.</p></div><button type="button" class="rn-map-library-close" id="rnMapLibraryClose" aria-label="Close map library">×</button></header>
+      <header class="rn-map-library-head"><div><h2 id="rnMapLibraryTitle">Choose a tactical map</h2><p>Select a map cover to open its available views. Each saved play remembers its map and selected view.</p></div><button type="button" class="rn-map-library-close" id="rnMapLibraryClose" aria-label="Close map library">×</button></header>
       <div class="rn-map-library-scroll">
         <section class="rn-map-mode-section"><h3 class="rn-map-mode-heading">Convoy <small>6 maps</small></h3><div class="rn-map-card-grid">${makeCards('Convoy')}</div></section>
         <section class="rn-map-mode-section"><h3 class="rn-map-mode-heading">Convergence <small>6 maps</small></h3><div class="rn-map-card-grid">${makeCards('Convergence')}</div></section>
-        <div class="rn-map-coming-soon"><strong>Domination maps</strong> will be added when you upload that map set. The Domination cover cards shown in the reference screenshot are not added yet because their full tactical maps have not been supplied.</div>
+        <section class="rn-map-mode-section"><h3 class="rn-map-mode-heading">Domination <small>6 competitive maps</small></h3><div class="rn-map-card-grid">${makeCards('Domination')}</div></section>
       </div>
     </section>`;
   document.body.appendChild(overlay);
@@ -5051,7 +5035,17 @@ window.RN_MUSEUM_COVER_DATA_URL=window.RN_POINT_MAP_IMAGES?.['museum-of-contempl
     let notice=stage.querySelector(':scope > .rn-map-view-unavailable');
     if(!m){if(layer)layer.remove();if(notice)notice.remove();board.classList.remove('has-rn-map');return;}
     const source=currentMapView==='2d'?String(m.image||''):String(m.points?.[currentMapView]||'');
-    if(!source){if(layer)layer.remove();board.classList.add('has-rn-map');if(!notice){notice=document.createElement('div');notice.className='rn-map-view-unavailable';stage.appendChild(notice);}notice.textContent=`${m.name} 2D overview is not available yet. Choose Point A, Point B or Point C to load an available map section.`;return;}
+    if(!source){
+      if(layer)layer.remove();board.classList.add('has-rn-map');
+      if(!notice){notice=document.createElement('div');notice.className='rn-map-view-unavailable';stage.appendChild(notice);}
+      const submapName=m.submapNames?.[currentMapView];
+      notice.textContent=currentMapView==='2d'
+        ? `${m.name} 2D overview is not available yet. Choose an available map section.`
+        : m.viewType==='submap'
+          ? `${m.name}\nSUBMAP ${currentMapView}: ${submapName||'Name pending'}\nScreenshot placeholder. Add the image for this submap when ready.`
+          : `${m.name} Point ${currentMapView} screenshot is not available yet.`;
+      return;
+    }
     if(notice)notice.remove();
     layer=layer||ensureMapLayer();
     if(layer.dataset.rnMapSource!==source||layer.dataset.rnMapFailed==='true'){
@@ -5059,24 +5053,38 @@ window.RN_MUSEUM_COVER_DATA_URL=window.RN_POINT_MAP_IMAGES?.['museum-of-contempl
         board.classList.add('has-rn-map');
         let failed=stage.querySelector(':scope > .rn-map-view-unavailable');
         if(!failed){failed=document.createElement('div');failed.className='rn-map-view-unavailable';stage.appendChild(failed);}
-        failed.textContent=currentMapView==='2d'?`${m.name} 2D overview could not load. Check the remote layout source or choose Point A, B or C.`:`${m.name} Point ${currentMapView} could not load. Check that the JPG is included beside the other map images in assets/maps/.`;
+        failed.textContent=m.viewType==='submap'?`${m.name} · SUBMAP ${currentMapView}: ${m.submapNames?.[currentMapView]||'Name pending'}\nThe submap screenshot could not load. Check its image path.`:(currentMapView==='2d'?`${m.name} 2D overview could not load. Check the remote layout source or choose a point view.`:`${m.name} Point ${currentMapView} could not load. Check that the JPG is included beside the other map images in assets/maps/.`);
       });
     }
-    layer.alt=`${m.name} ${currentMapView==='2d'?'2D tactical layout':`Point ${currentMapView}`} view`;
+    layer.alt=`${m.name} ${currentMapView==='2d'?'2D tactical layout':(m.viewType==='submap'?`Submap ${currentMapView}: ${m.submapNames?.[currentMapView]||''}`:`Point ${currentMapView}`)} view`;
     board.classList.add('has-rn-map');
   }
   function updateMapWidget(){
     const m=known.get(currentMapId),cover=$('rnMapCurrentCover'),name=$('rnMapCurrentName'),mode=$('rnMapCurrentMode');
     if(m){
       cover.alt=`${m.name} cover`;cover.style.display='block';loadMapAsset(cover,m.cover,()=>{if(m.coverFallback)loadMapAsset(cover,m.coverFallback,()=>cover.style.display='none');else cover.style.display='none';});name.textContent=m.name;
-      mode.textContent=`${m.mode} · ${currentMapView==='2d'?'2D':`POINT ${currentMapView}`}${currentMapView==='2d'&&!m.image?' · PENDING':''}`;
+      const selectedName=m.submapNames?.[currentMapView];
+      mode.textContent=`${m.mode} · ${currentMapView==='2d'?'2D':(m.viewType==='submap'?`SUBMAP ${currentMapView}`:`POINT ${currentMapView}`)}${selectedName?` · ${selectedName}`:''}${currentMapView==='2d'&&!m.image?' · PENDING':''}`;
     }else{cover.removeAttribute('src');cover.alt='';cover.style.display='none';name.textContent='No map selected';mode.textContent='Choose a map background';}
     const selector=$('rnMapViewSelector');
-    selector?.querySelectorAll('[data-map-view]').forEach(b=>{
-      const view=b.dataset.mapView,available=!!m&&validView(m,view),active=currentMapView===view;
-      b.disabled=!available;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));
-      b.title=available?(view==='2d'?'Full 2D overview':`Point ${view}`):(view==='2d'?'2D overview not available for this map':`Point ${view} not available`);
-    });
+    const viewName=$('rnMapViewName');
+    if(selector){
+      selector.dataset.viewType=m?.viewType==='submap'?'submap':'point';
+      const views=[];
+      if(m?.image)views.push({key:'2d',label:'2D'});
+      Object.keys(m?.points||{}).forEach(key=>views.push({key,label:m?.viewType==='submap'?`SUBMAP ${key}`:key}));
+      selector.innerHTML=views.map(({key,label})=>`<button type="button" data-map-view="${key}" aria-pressed="${currentMapView===key?'true':'false'}">${label}</button>`).join('');
+      selector.querySelectorAll('[data-map-view]').forEach(b=>{
+        const view=b.dataset.mapView,available=!!m&&validView(m,view),active=currentMapView===view;
+        b.disabled=!available;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));
+        b.title=available?(view==='2d'?'Full 2D overview':(m?.viewType==='submap'?`Submap ${view}: ${m?.submapNames?.[view]||''}`:`Point ${view}`)):(view==='2d'?'2D overview not available for this map':`View ${view} not available`);
+      });
+    }
+    if(viewName){
+      const selectedName=m?.submapNames?.[currentMapView];
+      viewName.hidden=!(m?.viewType==='submap'&&selectedName);
+      viewName.textContent=selectedName?`SUBMAP ${currentMapView} · ${selectedName}`:'';
+    }
     overlay.querySelectorAll('[data-map-id]').forEach(b=>{const active=b.dataset.mapId===currentMapId;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});
   }
   function saveMapSelection(){
@@ -5095,15 +5103,15 @@ window.RN_MUSEUM_COVER_DATA_URL=window.RN_POINT_MAP_IMAGES?.['museum-of-contempl
     }finally{window.__rnEndBoardSetTransition?.();}
   }
   function selectMap(id){
-    // Every newly selected map starts at Point A when that point exists, even if it also has 2D.
+    // New Domination maps open on Submap 1. Existing modes retain their Point A default.
     window.__rnBeginBoardSetTransition?.();
     let m=null;
     try{
       currentMapId=known.has(id)?id:'';
-      m=known.get(currentMapId);currentMapView=m?.points?.A?'A':(m?.image?'2d':'2d');
+      m=known.get(currentMapId);currentMapView=m?.viewType==='submap'?firstMapView(m):(m?.points?.A?'A':(m?.image?'2d':'2d'));
       saveMapSelection();updateMapLayer();updateMapWidget();overlay.classList.remove('open');
     }finally{window.__rnEndBoardSetTransition?.();}
-    if(currentMapId)toast(`${m.name} loaded · ${currentMapView==='2d'?'2D':`Point ${currentMapView}`}`);
+    if(currentMapId)toast(`${m.name} loaded · ${currentMapView==='2d'?'2D':(m?.viewType==='submap'?`Submap ${currentMapView}`:`Point ${currentMapView}`)}`);
     else toast('Map background removed');
   }
   $('rnMapViewSelector')?.addEventListener('click',event=>{const button=event.target.closest('[data-map-view]');if(button&&!button.disabled)selectMapView(button.dataset.mapView);});
@@ -5124,18 +5132,18 @@ window.RN_MUSEUM_COVER_DATA_URL=window.RN_POINT_MAP_IMAGES?.['museum-of-contempl
     const play=getPlay();if(play){play.mapId=currentMapId;play.mapView=currentMapView;persist();}
   });
   $('loadPlayBtn')?.addEventListener('click',()=>{
-    const play=getPlay();currentMapId=known.has(play?.mapId)?play.mapId:'';currentMapView=play?.mapView||'2d';if(!validView(known.get(currentMapId),currentMapView))currentMapView=known.get(currentMapId)?.points?.A?'A':'2d';
+    const play=getPlay();currentMapId=known.has(play?.mapId)?play.mapId:'';currentMapView=play?.mapView||'2d';if(!validView(known.get(currentMapId),currentMapView))currentMapView=firstMapView(known.get(currentMapId));
     localStorage.setItem('rnPlaybookCurrentMapId',currentMapId);localStorage.setItem('rnPlaybookCurrentMapView',currentMapView);updateMapLayer();updateMapWidget();
   });
   $('newPlayBtn')?.addEventListener('click',()=>{
     currentMapId='';currentMapView='2d';localStorage.removeItem('rnPlaybookCurrentMapId');localStorage.removeItem('rnPlaybookCurrentMapView');updateMapLayer();updateMapWidget();
   });
   $('deletePlayBtn')?.addEventListener('click',()=>{
-    const play=getPlay();currentMapId=known.has(play?.mapId)?play.mapId:'';currentMapView=play?.mapView||'2d';if(!validView(known.get(currentMapId),currentMapView))currentMapView=known.get(currentMapId)?.points?.A?'A':'2d';
+    const play=getPlay();currentMapId=known.has(play?.mapId)?play.mapId:'';currentMapView=play?.mapView||'2d';if(!validView(known.get(currentMapId),currentMapView))currentMapView=firstMapView(known.get(currentMapId));
     localStorage.setItem('rnPlaybookCurrentMapId',currentMapId);localStorage.setItem('rnPlaybookCurrentMapView',currentMapView);updateMapLayer();updateMapWidget();
   });
   // When the user opens a previously active play after a page refresh, restore its map.
-  const restored=getPlay();if(known.has(restored?.mapId)){currentMapId=restored.mapId;currentMapView=restored.mapView||currentMapView;}if(!validView(known.get(currentMapId),currentMapView))currentMapView=known.get(currentMapId)?.points?.A?'A':'2d';
+  const restored=getPlay();if(known.has(restored?.mapId)){currentMapId=restored.mapId;currentMapView=restored.mapView||currentMapView;}if(!validView(known.get(currentMapId),currentMapView))currentMapView=firstMapView(known.get(currentMapId));
   updateMapLayer();updateMapWidget();
   window.RN_TACTICAL_MAPS=MAPS;
   window.__rnSetTacticalMap=selectMap;
@@ -7309,9 +7317,9 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
           const textNode=[...el.childNodes].find(node=>node.nodeType===Node.TEXT_NODE);
           if(textNode)textNode.textContent=markerText;else el.insertBefore(document.createTextNode(markerText),el.firstChild);
           el.style.boxSizing='border-box';el.style.display='grid';el.style.placeItems='center';el.style.padding='4px';el.style.borderRadius='50%';el.style.textAlign='center';el.style.whiteSpace='pre-wrap';el.style.overflowWrap='anywhere';
-          el.title='Double-click to edit marker text';el.setAttribute('aria-label',`Number marker: ${markerText}`);
+          el.title='Select the Text tool, then click to edit marker text';el.setAttribute('aria-label',`Number marker: ${markerText}`);
         }else{
-          el.title='Double-click to edit text';el.setAttribute('aria-label',`Text: ${String(item.text||'').slice(0,100)}`);
+          el.title='Select the Text tool, then click to edit';el.setAttribute('aria-label',`Text: ${String(item.text||'').slice(0,100)}`);
         }
       }
       return el;
@@ -8027,24 +8035,60 @@ body.playbook-mode #playBoard .board-item{cursor:grab;}
 </style>
 
 
-<script id="rn-v13-25-stable-board-select-all">
+<script id="rn-v13-26-text-edit-and-select-all">
 (()=>{
-  if(window.__rnV1325CtrlABound)return;
-  window.__rnV1325CtrlABound=true;
+  if(window.__rnV1326TextInteractionBound)return;
+  window.__rnV1326TextInteractionBound=true;
+  const isTextEditor=el=>!!el?.closest?.('.inline-board-text-editor,[contenteditable="true"],[contenteditable="plaintext-only"],[role="textbox"]');
+  const isFormEditor=el=>!!el?.closest?.('input,textarea,select');
+  const board=document.getElementById('playBoard');
+  if(board){
+    board.addEventListener('pointerdown',event=>{
+      if(event.button!==0||!document.body.classList.contains('playbook-mode'))return;
+      if(window.__rnGetBoardTool?.()!=='text')return;
+      const target=event.target instanceof Element?event.target:null;
+      if(!target||isTextEditor(target))return;
+      const itemEl=target.closest('.board-item.board-text,.board-item.board-number');
+      const id=itemEl?.dataset?.boardItem;
+      if(!id)return;
+      // Text-tool click edits the text instead of starting a board drag/selection gesture.
+      event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+      window.__rnEditBoardTextItem?.(id);
+    },true);
+  }
   window.addEventListener('keydown',event=>{
     if(!document.body.classList.contains('playbook-mode'))return;
     if(!(event.ctrlKey||event.metaKey))return;
     if(String(event.key||'').toLowerCase()!=='a'&&event.code!=='KeyA')return;
     const target=event.target instanceof Element?event.target:null;
-    // Keep native select-all for text editors and ordinary input controls.
-    if(target?.closest('input,textarea,select,[contenteditable],.inline-board-text-editor,[role="textbox"]'))return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
+    const active=document.activeElement instanceof Element?document.activeElement:null;
+    const editor=(isTextEditor(target)?target.closest('.inline-board-text-editor,[contenteditable="true"],[contenteditable="plaintext-only"],[role="textbox"]'):null)
+      ||(isTextEditor(active)?active.closest('.inline-board-text-editor,[contenteditable="true"],[contenteditable="plaintext-only"],[role="textbox"]'):null);
+    if(editor){
+      event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+      editor.focus({preventScroll:true});
+      const range=document.createRange();range.selectNodeContents(editor);
+      const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range);
+      return;
+    }
+    // Let the browser select native input/textarea contents, while preventing the board shortcut.
+    if(isFormEditor(target)||isFormEditor(active)){event.stopPropagation();event.stopImmediatePropagation();return;}
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
     const items=window.__rnGetBoardItems?.()||[];
     window.__rnSetBoardSelection?.(items.map(item=>item.id));
   },true);
 })();
 </script>
+
+<style id="rn-v13-26-domination-and-text-tool">
+body.playbook-mode .rn-map-view-selector[data-view-type="submap"]{grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:auto!important;}
+body.playbook-mode .rn-map-view-selector[data-view-type="submap"] button{grid-column:auto!important;grid-row:auto!important;min-height:34px!important;padding:5px 2px!important;font-size:7px!important;white-space:normal!important;}
+body.playbook-mode .rn-map-view-name{display:block!important;padding:5px 6px!important;border:1px solid #435b6c!important;border-radius:4px!important;background:#101d28!important;color:#e8d69a!important;font-size:8px!important;font-weight:900!important;line-height:1.35!important;letter-spacing:.035em!important;text-align:center!important;}
+body.playbook-mode .rn-map-view-name[hidden]{display:none!important;}
+body.playbook-mode #playBoardStage>.rn-map-view-unavailable{white-space:pre-line!important;}
+body.playbook-mode #playBoard.text-tool-active .board-item.board-text,
+body.playbook-mode #playBoard.text-tool-active .board-item.board-number{cursor:text!important;}
+</style>
+
 </body>
 </html>

@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current package: v13.24.** See `V13.24_RELEASE_NOTES.md` for the Museum of Contemplation cover replacement, matched text-box editing preview, and direct canvas zoom/pan controls. Earlier release notes are retained below for version history.
+**Current package: v13.26.** See `V13.26_RELEASE_NOTES.md` for competitive Domination submaps, selectable screenshot placeholders, Text-tool single-click editing, and editor-specific Ctrl+A. See `V13.25_RELEASE_NOTES.md` for hosted Museum cover fallback, restored marquee selection and middle-button pan, stable Ctrl+A, and textbox pointer-up persistence. Earlier release notes are retained below for version history.
 
 RIVALSNOTEBOOK is the renamed Marvel Rivals counter-pick, synergy, hero-group and tactical whiteboard app. This package adds a Vercel-ready static site and a Supabase backend layer for account sync, shared community votes, public Community Groups, and live collaborative Playbook notebooks.
 
