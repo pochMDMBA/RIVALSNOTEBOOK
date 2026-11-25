@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current package: v13.16.** See `V13.16_RELEASE_NOTES.md` for the smaller Playbook hero tokens, corrected pen-type icons, green preset color, freely resizable and fully styled text boxes, and the cleaner Recommended Synergies heading. Earlier release notes are retained below for version history.
+**Current package: v13.17.** See `V13.17_RELEASE_NOTES.md` for connected dashed-arrow arrowheads, the four-button Playbook toolbar without Eraser, matching pen-button styling, compact FONT SIZE controls, and reduced spacing above the drawing tools. Earlier release notes are retained below for version history.
 
 RIVALSNOTEBOOK is the renamed Marvel Rivals counter-pick, synergy, hero-group and tactical whiteboard app. This package adds a Vercel-ready static site and a Supabase backend layer for account sync, shared community votes, public Community Groups, and live collaborative Playbook notebooks.
 
@@ -269,3 +269,8 @@ See [V13.15 Release Notes](V13.15_RELEASE_NOTES.md) for bounded Save As controls
 ## V13.16
 
 See [V13.16 Release Notes](V13.16_RELEASE_NOTES.md) for smaller default hero/enemy tokens, accurate pen-type icons, a green preset swatch, text-box no-fill/no-border options, editable font size, free width/height resizing, and the transparent Recommended Synergies heading.
+
+
+## V13.17
+
+See [V13.17 Release Notes](V13.17_RELEASE_NOTES.md) for the arrowhead-base connector fix, removed Eraser tool, updated freehand button styling, non-overlapping text font-size controls, and tighter Playbook tool-header spacing.

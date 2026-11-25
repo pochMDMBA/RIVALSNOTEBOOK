@@ -3199,12 +3199,20 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
         const totalLen=pts.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pts[i].x,p.y-pts[i].y),0);
         const arrowSize=Math.min(Math.max(boardW*.04,strokeWidth*2.8),Math.max(strokeWidth*2,totalLen*.32));
         const shaftPts=pts.map(p=>({...p}));
-        if(isArrowPen&&shaftPts.length>1){const tip=shaftPts[shaftPts.length-1],prev=shaftPts[shaftPts.length-2],dx=tip.x-prev.x,dy=tip.y-prev.y,len=Math.hypot(dx,dy)||1;shaftPts[shaftPts.length-1]={x:tip.x-dx/len*arrowSize,y:tip.y-dy/len*arrowSize};}
+        let arrowBase=null;
+        if(isArrowPen&&shaftPts.length>1){const tip=shaftPts[shaftPts.length-1],prev=shaftPts[shaftPts.length-2],dx=tip.x-prev.x,dy=tip.y-prev.y,len=Math.hypot(dx,dy)||1;arrowBase={x:tip.x-dx/len*arrowSize,y:tip.y-dy/len*arrowSize};shaftPts[shaftPts.length-1]=arrowBase;}
         path.setAttribute('d',shaftPts.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' '));
         path.style.stroke=boardPaint(item.color);path.style.opacity='1';path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap='butt';path.style.strokeLinejoin='round';path.style.fill='none';
         path.style.strokeDasharray=String(item.penStyle||'').includes('dashed')?`${strokeWidth*1.6}px ${strokeWidth*1.05}px`:'none';
-        svg.querySelectorAll('.pen-arrow-head').forEach(n=>n.remove());
-        if(String(item.penStyle||'').includes('arrow')&&pts.length>1){
+        svg.querySelectorAll('.pen-arrow-head,.pen-arrow-shaft-connector').forEach(n=>n.remove());
+        if(isArrowPen&&pts.length>1&&arrowBase){
+          const prev=pts[pts.length-2];
+          const connector=document.createElementNS('http://www.w3.org/2000/svg','path');
+          connector.setAttribute('d',`M ${prev.x} ${prev.y} L ${arrowBase.x} ${arrowBase.y}`);
+          connector.setAttribute('class','pen-arrow-shaft-connector');
+          connector.style.fill='none';connector.style.stroke=boardPaint(item.color);connector.style.opacity='1';
+          connector.style.strokeWidth=`${strokeWidth}px`;connector.style.strokeLinecap='butt';connector.style.strokeLinejoin='round';connector.style.strokeDasharray='none';
+          svg.appendChild(connector);
           const d=penArrowHead(pts,arrowSize,Math.min(arrowSize*.72,Math.max(boardW*.018,strokeWidth*1.35)));
           const head=document.createElementNS('http://www.w3.org/2000/svg','path');head.setAttribute('d',d);head.setAttribute('class','pen-arrow-head');head.style.fill=boardPaint(item.color);head.style.opacity='1';head.style.stroke='none';svg.appendChild(head);
         }
@@ -3480,11 +3488,10 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       activeTool=tool;pendingTextPlacement=tool==='text';penModeActive=tool.startsWith('pen-');
       if(penModeActive)penStyle=tool.slice(4);
       board.classList.toggle('pen-active',penModeActive);
-      document.querySelectorAll('#rnPrimaryToolBar button,.board-shape-tools button').forEach(b=>{const primary=b.dataset.rnPrimaryTool||'';b.classList.toggle('active',(b.id==='boardSelectToolBtn'&&tool==='select')||(b.id==='boardTextToolBtn'&&tool==='text')||(primary==='pen'&&tool.startsWith('pen-'))||(primary==='eraser'&&tool==='eraser'));});
+      document.querySelectorAll('#rnPrimaryToolBar button,.board-shape-tools button').forEach(b=>{const primary=b.dataset.rnPrimaryTool||'';b.classList.toggle('active',(b.id==='boardSelectToolBtn'&&tool==='select')||(b.id==='boardTextToolBtn'&&tool==='text')||(primary==='pen'&&tool.startsWith('pen-')));});
       document.querySelectorAll('.board-pen-tool-row button').forEach(b=>b.classList.toggle('active',b.dataset.penTool===tool));
       syncToolSettingsVisibility();
       const mainPen=document.querySelector('[data-rn-primary-tool="pen"]');if(mainPen)mainPen.classList.toggle('active',tool.startsWith('pen-'));
-      const eraser=document.querySelector('[data-rn-primary-tool="eraser"]');if(eraser)eraser.classList.toggle('active',tool==='eraser');
       board.style.cursor=tool==='select'?'default':penModeActive?'crosshair':tool==='text'?'text':'default';
     };
     window.__rnSetBoardTool = tool => setTool(String(tool||'select'));
@@ -3590,10 +3597,11 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     const preview=document.createElementNS('http://www.w3.org/2000/svg','svg');
     const boardW=Math.max(1,stage.clientWidth),boardH=Math.max(1,stage.clientHeight);
     preview.setAttribute('viewBox',`0 0 ${boardW} ${boardH}`);preview.setAttribute('preserveAspectRatio','none');preview.classList.add('pen-preview');preview.id='penPreview';
-    preview.innerHTML='<path id="penPreviewPath" d=""/><path id="penPreviewHead" d=""/>';
+    preview.innerHTML='<path id="penPreviewPath" d=""/><path id="penPreviewConnector" d=""/><path id="penPreviewHead" d=""/>';
     const path=preview.querySelector('#penPreviewPath');
     const strokeWidth=boardW*(penStroke.width/100);
     if(path){path.style.stroke=boardPaint(penStroke.color);path.style.opacity=String(penStroke.opacity);path.style.strokeWidth=`${strokeWidth}px`;path.style.strokeLinecap='butt';path.style.strokeLinejoin='round';if(String(penStroke.style).includes('dashed'))path.style.strokeDasharray=`${strokeWidth*1.6}px ${strokeWidth*1.05}px`;}
+    const connector=preview.querySelector('#penPreviewConnector');if(connector){connector.style.fill='none';connector.style.stroke=boardPaint(penStroke.color);connector.style.opacity=String(penStroke.opacity);connector.style.strokeWidth=`${strokeWidth}px`;connector.style.strokeLinecap='butt';connector.style.strokeLinejoin='round';connector.style.strokeDasharray='none';}
     const head=preview.querySelector('#penPreviewHead');if(head){head.style.fill=boardPaint(penStroke.color);head.style.opacity=String(penStroke.opacity);head.style.stroke='none';}
     stage.appendChild(preview);board.setPointerCapture(e.pointerId);e.preventDefault();
   }
@@ -3604,9 +3612,11 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     const pixels=penStroke.points.map(p=>({x:p.x/100*boardW,y:p.y/100*boardH}));
     const strokeWidth=boardW*((penStroke.width||penThickness)/100),isArrow=String(penStroke.style).includes('arrow');
     const totalLen=pixels.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pixels[i].x,p.y-pixels[i].y),0);const arrowSize=Math.min(Math.max(boardW*.04,strokeWidth*2.8),Math.max(strokeWidth*2,totalLen*.32)),shaftPixels=pixels.map(p=>({...p}));
-    if(isArrow&&shaftPixels.length>1){const tip=shaftPixels[shaftPixels.length-1],prev=shaftPixels[shaftPixels.length-2],dx=tip.x-prev.x,dy=tip.y-prev.y,len=Math.hypot(dx,dy)||1;shaftPixels[shaftPixels.length-1]={x:tip.x-dx/len*arrowSize,y:tip.y-dy/len*arrowSize};}
+    let arrowBase=null;
+    if(isArrow&&shaftPixels.length>1){const tip=shaftPixels[shaftPixels.length-1],prev=shaftPixels[shaftPixels.length-2],dx=tip.x-prev.x,dy=tip.y-prev.y,len=Math.hypot(dx,dy)||1;arrowBase={x:tip.x-dx/len*arrowSize,y:tip.y-dy/len*arrowSize};shaftPixels[shaftPixels.length-1]=arrowBase;}
     const d=shaftPixels.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' ');
     const path=$('penPreviewPath');if(path)path.setAttribute('d',d);
+    const connector=$('penPreviewConnector');if(connector){const prev=pixels[pixels.length-2];connector.setAttribute('d',arrowBase&&prev?`M ${prev.x} ${prev.y} L ${arrowBase.x} ${arrowBase.y}`:'');}
     const head=$('penPreviewHead');if(head){head.setAttribute('d',isArrow?penArrowHead(pixels,arrowSize,Math.min(arrowSize*.72,Math.max(boardW*.018,strokeWidth*1.35))):'');}
   }
   function finishPen(){
@@ -3634,25 +3644,6 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     renderBoard();if(changed)persist();
   }
 
-  let eraserPointerId=null;
-  function eraseAt(clientX,clientY){
-    const hit=document.elementFromPoint(clientX,clientY)?.closest('.board-item');
-    if(!hit||!stage.contains(hit))return;
-    const id=hit.dataset.boardItem;
-    if(!id)return;
-    const target=state.playItems.find(item=>item.id===id);
-    // Eraser is intentionally limited to board geometry and freehand marks.
-    // It must never remove heroes, skill icons, pasted images or text callouts.
-    const erasableTypes=new Set(['shape','pen','arrow','wall','broken','pit','number']);
-    if(!target||!erasableTypes.has(target.type))return;
-    state.playItems=state.playItems.filter(item=>item.id!==id);
-    setSelection([...selectedIds].filter(v=>v!==id));
-    persist();
-  }
-  board.addEventListener('pointerdown',e=>{if(activeTool!=='eraser'||e.button!==0)return;eraserPointerId=e.pointerId;eraseAt(e.clientX,e.clientY);try{board.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();e.stopImmediatePropagation();},true);
-  board.addEventListener('pointermove',e=>{if(eraserPointerId!==e.pointerId)return;eraseAt(e.clientX,e.clientY);e.preventDefault();e.stopImmediatePropagation();},true);
-  const finishEraser=e=>{if(eraserPointerId!==e.pointerId)return;eraserPointerId=null;e.preventDefault();e.stopImmediatePropagation();};
-  board.addEventListener('pointerup',finishEraser,true);board.addEventListener('pointercancel',finishEraser,true);
   board.addEventListener('pointerdown',e=>{
     if(e.target.closest('.board-surface-zoom')){e.stopPropagation();return;}
     if(e.target.closest('.inline-board-text-editor'))return;
@@ -4330,7 +4321,6 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
  // Reuse existing buttons so their original behavior and handlers survive.
  primary.appendChild(selectBtn);emptySelectRow?.remove();
  const penBtn=addPrimary('rnPenPrimaryBtn','Freehand pen','<svg viewBox="0 0 24 24"><path d="M4 20l4.4-1 10.9-10.9a2.1 2.1 0 0 0-3-3L5.4 16z"/><path d="M13.5 6.5l4 4M4 20l4.4-1"/></svg>','pen');
- const eraserBtn=addPrimary('rnEraserPrimaryBtn','Eraser','<svg viewBox="0 0 24 24"><path d="M3 14.5 12.8 4.7a2 2 0 0 1 2.8 0l5.7 5.7a2 2 0 0 1 0 2.8L13 21H8z"/><path d="m8 9.5 7 7M13 21h8"/></svg>','eraser');
  primary.appendChild(textBtn);primary.appendChild(imageBtn);
  selectBtn.innerHTML='<svg viewBox="0 0 24 24"><path d="M5 3v17l4.6-4.3 3 5 2.3-1.3-3-5H19z"/></svg>';
  selectBtn.classList.add('rn-primary-tool');selectBtn.title='Select / move (default)';selectBtn.setAttribute('aria-label','Select / move');
@@ -4405,13 +4395,12 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
  if(stage&&!stage.dataset.rnPaletteDrop){stage.dataset.rnPaletteDrop='1';const canvas=stage.closest('#playBoard');canvas.addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('application/x-rn-board-tool')){e.preventDefault();e.dataTransfer.dropEffect='copy';canvas.classList.add('drop-ready');}},true);canvas.addEventListener('drop',e=>{const raw=e.dataTransfer.getData('application/x-rn-board-tool');if(!raw)return;try{const data=JSON.parse(raw),point=window.__rnBoardPoint?.(e)||{x:50,y:50};e.preventDefault();e.stopImmediatePropagation();canvas.classList.remove('drop-ready');if(data.kind==='shape')window.newBoardItem?.('shape',{shapeKind:data.shapeKind,color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});else window.newBoardItem?.(data.kind,{color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});}catch(err){console.warn(err);}},true);}
  // Primary tool actions; Select is the default active tool and uses a cursor glyph.
  penBtn.addEventListener('click',()=>window.__rnSetBoardTool?.('pen-solid'));
- eraserBtn.addEventListener('click',()=>window.__rnSetBoardTool?.('eraser'));
  const oldSelectHandler=selectBtn;oldSelectHandler.addEventListener('click',()=>{shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.remove('active'));settings.hidden=true;});
  textBtn.addEventListener('click',()=>{shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.remove('active'));});
  imageBtn.addEventListener('click',()=>{shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.remove('active'));});
  // Color/thickness controls are contextual to drawing and marker tools.
  const colorAndOpacityObserver=()=>{const mode=window.__rnGetBoardTool?.()||'select';settings.hidden=!(mode.startsWith('pen-')||mode==='shape');};
- const primaryButtons=[selectBtn,penBtn,eraserBtn,textBtn,imageBtn];
+ const primaryButtons=[selectBtn,penBtn,textBtn,imageBtn];
  primaryButtons.forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(colorAndOpacityObserver)));
  // Keep the active pen-type chip and primary Pen button in sync.
  document.querySelectorAll('.board-pen-tool-row button').forEach(b=>b.addEventListener('click',()=>{shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.remove('active'));penBtn.classList.add('active');settings.hidden=false;}));
@@ -4422,7 +4411,7 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
 <style id="rn-v5-editor-toolbar-css">
 body.playbook-mode .playbook-tools{overflow-y:auto!important;overflow-x:hidden!important;}
 .rn-toolkit{display:flex;flex-direction:column;gap:8px;padding:0 0 10px;border-bottom:1px solid #40515e;margin-bottom:8px}
-.rn-primary-tools{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.rn-primary-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .rn-primary-tool{height:42px;min-width:0;border:1px solid #476477;border-radius:6px;background:linear-gradient(155deg,#2e6682,#214b64);color:#eef8ff;display:grid;place-items:center;padding:7px;cursor:pointer;transition:transform .12s,border-color .12s,box-shadow .12s,background .12s}
 .rn-primary-tool svg{width:21px;height:21px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .rn-primary-tool:hover{transform:translateY(-1px);border-color:#8bd9eb;background:#326e8c}
@@ -4736,17 +4725,16 @@ body.groups-mode .group-manage-card.trading-card .group-actions .rn-publish-grou
   }
 
   // The Select cursor is the sole active tool on initial load and whenever Playbook is opened.
-  const select=$('boardSelectToolBtn'),pen=$('rnPenPrimaryBtn'),eraser=$('rnEraserPrimaryBtn'),text=$('boardTextToolBtn'),image=$('boardImageBtn');
+  const select=$('boardSelectToolBtn'),pen=$('rnPenPrimaryBtn'),text=$('boardTextToolBtn'),image=$('boardImageBtn');
   const syncToolHighlights=()=>{
     const tool=window.__rnGetBoardTool?.()||'select';
-    [select,pen,eraser,text,image].filter(Boolean).forEach(button=>button.classList.remove('active'));
+    [select,pen,text,image].filter(Boolean).forEach(button=>button.classList.remove('active'));
     document.querySelectorAll('.board-pen-tool-row button').forEach(button=>button.classList.remove('active'));
     if(tool==='select')select?.classList.add('active');
     if(tool.startsWith('pen-')){
       pen?.classList.add('active');
       document.querySelector(`.board-pen-tool-row [data-pen-tool="${tool}"]`)?.classList.add('active');
     }
-    if(tool==='eraser')eraser?.classList.add('active');
     if(tool==='text')text?.classList.add('active');
     if(tool==='image')image?.classList.add('active');
   };
@@ -7428,6 +7416,65 @@ body.playbook-mode .board-item.board-text{min-width:0!important;min-height:0!imp
 body.playbook-mode .inline-board-text-editor{resize:both!important;min-width:60px!important;min-height:36px!important;max-width:60%!important;max-height:80%!important;}
 /* Save As is compact within its action cell while Save and New remain full-size. */
 body.playbook-mode #rnSaveAsPlayBtn{justify-self:center!important;width:72%!important;min-width:0!important;max-width:72%!important;height:24px!important;min-height:24px!important;padding:3px 2px!important;font-size:7px!important;line-height:1!important;letter-spacing:.015em!important;}
+</style>
+
+
+<style id="rn-v13-17-arrow-toolbar-fixes">
+/* Keep the last segment visually connected to the arrowhead base, even when the shaft is dashed. */
+body.playbook-mode .board-pen .pen-arrow-shaft-connector{
+  fill:none!important;stroke:currentColor!important;stroke-dasharray:none!important;
+  stroke-linecap:butt!important;stroke-linejoin:round!important;pointer-events:none!important;
+}
+body.playbook-mode #playBoardStage>.pen-preview #penPreviewConnector{
+  fill:none!important;stroke-dasharray:none!important;stroke-linecap:butt!important;stroke-linejoin:round!important;pointer-events:none!important;
+}
+/* The font-size label sits above a full-width stepper; all controls remain inside the narrow sidebar. */
+body.playbook-mode #rnTextFontSizeControl{
+  box-sizing:border-box!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto auto!important;align-items:stretch!important;justify-content:stretch!important;
+  gap:5px!important;width:100%!important;min-width:0!important;max-width:100%!important;
+  margin:5px 0 0!important;padding:6px 7px!important;overflow:hidden!important;
+}
+body.playbook-mode #rnTextFontSizeControl[hidden]{display:none!important;}
+body.playbook-mode #rnTextFontSizeControl>label{
+  display:block!important;grid-row:1!important;flex:none!important;width:100%!important;min-width:0!important;
+  margin:0!important;font-size:8px!important;line-height:1.2!important;letter-spacing:.08em!important;white-space:nowrap!important;
+}
+body.playbook-mode #rnTextFontSizeControl .rn-text-size-stepper{
+  display:grid!important;grid-row:2!important;grid-template-columns:24px minmax(0,1fr) 24px 15px!important;
+  align-items:center!important;justify-content:stretch!important;gap:4px!important;width:100%!important;min-width:0!important;
+}
+body.playbook-mode #rnTextFontSizeControl .rn-text-size-stepper button{
+  display:grid!important;place-items:center!important;box-sizing:border-box!important;width:24px!important;min-width:24px!important;
+  max-width:24px!important;height:24px!important;min-height:24px!important;margin:0!important;padding:0!important;
+  border:1px solid #526d80!important;border-radius:4px!important;background:#263b4b!important;color:#eef7fb!important;
+  font-size:14px!important;font-weight:900!important;line-height:1!important;
+}
+body.playbook-mode #rnTextFontSizeControl .rn-text-size-stepper input[type="number"]{
+  display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;max-width:none!important;
+  height:24px!important;min-height:24px!important;margin:0!important;padding:2px 3px!important;
+  border:1px solid #526d80!important;border-radius:4px!important;background:#111d28!important;color:#f2f7fb!important;
+  text-align:center!important;font-size:10px!important;font-weight:900!important;appearance:textfield!important;-moz-appearance:textfield!important;
+}
+body.playbook-mode #rnTextFontSizeControl .rn-text-size-stepper>span{
+  display:block!important;width:15px!important;min-width:15px!important;text-align:center!important;
+  font-size:7px!important;font-weight:900!important;color:#91a9b9!important;
+}
+/* Bring the drawing buttons closer to the Tools heading and its subtitle. */
+body.playbook-mode .playbook-tools{gap:4px!important;}
+body.playbook-mode .playbook-tools>.group-page-heading{
+  flex:none!important;min-height:0!important;margin:0!important;padding:0 0 3px!important;
+  border:0!important;line-height:1.15!important;
+}
+body.playbook-mode .playbook-tools>.group-page-heading>div{min-width:0!important;}
+body.playbook-mode .playbook-tools>.group-page-heading .panel-title{margin:0!important;line-height:1.05!important;}
+body.playbook-mode .playbook-tools>.group-page-heading .panel-sub{margin:2px 0 0!important;line-height:1.15!important;}
+body.playbook-mode .rn-toolkit{gap:4px!important;margin:0 0 5px!important;padding:0 0 5px!important;}
+body.playbook-mode .rn-primary-tools{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important;}
+body.playbook-mode #rnPenPrimaryBtn:not(.active){
+  background:#263746!important;border-color:#3f5a6c!important;color:#dcebf5!important;box-shadow:none!important;
+}
+body.playbook-mode #rnPenPrimaryBtn:not(.active):hover{background:#315166!important;border-color:#6caac0!important;}
 </style>
 
 </body>
