@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v13.35</title>
+<title>RIVALSNOTEBOOK · v13.36</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -3200,8 +3200,8 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
         const isArrowPen=String(item.penStyle||'').includes('arrow');
         const totalLen=pts.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pts[i].x,p.y-pts[i].y),0);
         /* A long, slim arrowhead, sized in board pixels and kept proportional to the shaft. */
-        const arrowSize=Math.min(Math.max(boardW*.14,strokeWidth*4.5),Math.max(strokeWidth*5,totalLen*.66));
-        const arrowHalfWidth=Math.min(arrowSize*.29,Math.max(boardW*.018,strokeWidth*.9));
+        const arrowSize=Math.min(totalLen*.35,strokeWidth*7);
+        const arrowHalfWidth=arrowSize*.30;
         const arrowGeometry=isArrowPen?penArrowGeometry(pts,arrowSize,arrowHalfWidth):null;
         const shaftPts=arrowGeometry?arrowGeometry.shaftPoints:pts;
         path.setAttribute('d',shaftPts.map((p,i)=>`${i?'L':'M'}${p.x} ${p.y}`).join(' '));
@@ -3705,8 +3705,8 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     if(String(style).includes('arrow')){
       const strokeWidth=boardW*(Math.max(.05,Math.min(12,Number(width)||.05))/100);
       const totalLen=pixels.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pixels[i].x,p.y-pixels[i].y),0);
-      const arrowSize=Math.min(Math.max(boardW*.14,strokeWidth*4.5),Math.max(strokeWidth*5,totalLen*.66));
-      const arrowHalfWidth=Math.min(arrowSize*.29,Math.max(boardW*.018,strokeWidth*.9));
+      const arrowSize=Math.min(totalLen*.35,strokeWidth*7);
+      const arrowHalfWidth=arrowSize*.30;
       const geometry=penArrowGeometry(pixels,arrowSize,arrowHalfWidth);
       if(geometry)bounds.push(geometry.baseLeft,geometry.baseRight);
     }
