@@ -484,7 +484,7 @@
       if (!host) continue;
 
       const parent = document.createElement('article');
-      parent.className = 'rn-reddit-post rn-synergy-suggestion-post';
+      parent.className = 'combo-card synergy-match-card rn-reddit-post rn-synergy-suggestion-post';
       parent.dataset.suggestionHero = suggestion;
 
       const header = document.createElement('div');
