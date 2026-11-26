@@ -21,6 +21,7 @@
   let groupChannel = null;
   let knownVotes = new Map();
   let myVotes = new Set();
+  let myVoteDirections = new Map();
   let communityGroups = [];
   let myCommunityGroupVotes = new Set();
   let groupView = 'mine';
@@ -353,6 +354,7 @@
     previousSessionUserId = nextUserId;
     currentUser = nextUser;
     updateAccountButton(); refreshAuthModal();
+    window.dispatchEvent(new CustomEvent('rn-account-state-changed', {detail:{signedIn:!!currentUser}}));
     if (!currentUser || !sb) {
       if (notebookChannel && sb) { await sb.removeChannel(notebookChannel); notebookChannel = null; }
       activeNotebook = null;
@@ -411,68 +413,173 @@
   function applyVoteTotals() {
     (state.counterTips || []).forEach(item => {
       const key = voteKey('counter_tip', item.id);
-      item.votes = knownVotes.get(key) || 0; item.myVote = myVotes.has(key);
+      item.votes = knownVotes.get(key) || 0;
+      item.myVoteDirection = myVoteDirections.get(key) || 0;
+      item.myVote = item.myVoteDirection !== 0;
     });
     (state.combos || []).forEach(item => {
       const key = voteKey('synergy', item.id);
-      item.votes = knownVotes.get(key) || 0; item.myVote = myVotes.has(key);
+      item.votes = knownVotes.get(key) || 0;
+      item.myVoteDirection = myVoteDirections.get(key) || 0;
+      item.myVote = item.myVoteDirection !== 0;
     });
     (state.groupRules || []).forEach(rule => {
-      rule.votesByPair ||= {}; rule.myVotesByPair ||= {};
+      rule.votesByPair ||= {};
+      rule.myVotesByPair ||= {};
+      rule.voteDirectionsByPair ||= {};
       const sources = groupMembers(rule.sourceType, rule.sourceValue);
       const targets = groupMembers(rule.targetType, rule.targetValue);
       sources.forEach(source => targets.forEach(target => {
-        const pair = `${source}|||${target}`, id = `${rule.id}::${pair}`, key = voteKey('group_counter', id);
+        const pair = `${source}|||${target}`;
+        const id = `${rule.id}::${pair}`;
+        const key = voteKey('group_counter', id);
+        const direction = myVoteDirections.get(key) || 0;
         rule.votesByPair[pair] = knownVotes.get(key) || 0;
-        if (myVotes.has(key)) rule.myVotesByPair[pair] = true; else delete rule.myVotesByPair[pair];
+        if (direction) {
+          rule.myVotesByPair[pair] = true;
+          rule.voteDirectionsByPair[pair] = direction;
+        } else {
+          delete rule.myVotesByPair[pair];
+          delete rule.voteDirectionsByPair[pair];
+        }
       }));
     });
     (state.comboRules || []).forEach(rule => {
-      rule.votesByPair ||= {}; rule.myVotesByPair ||= {};
+      rule.votesByPair ||= {};
+      rule.myVotesByPair ||= {};
+      rule.voteDirectionsByPair ||= {};
       const sources = groupMembers(rule.sourceType, rule.sourceValue);
       const targets = groupMembers(rule.targetType, rule.targetValue);
       sources.forEach(source => targets.forEach(target => {
-        const pair = `${source}|||${target}`, id = `${rule.id}::${pair}`, key = voteKey('group_synergy', id);
+        const pair = [source, target].sort((a,b)=>String(a).localeCompare(String(b))).join('|||');
+        const id = `${rule.id}::${pair}`;
+        const key = voteKey('group_synergy', id);
+        const direction = myVoteDirections.get(key) || 0;
         rule.votesByPair[pair] = knownVotes.get(key) || 0;
-        if (myVotes.has(key)) rule.myVotesByPair[pair] = true; else delete rule.myVotesByPair[pair];
+        if (direction) {
+          rule.myVotesByPair[pair] = true;
+          rule.voteDirectionsByPair[pair] = direction;
+        } else {
+          delete rule.myVotesByPair[pair];
+          delete rule.voteDirectionsByPair[pair];
+        }
       }));
     });
   }
+
   async function refreshCommunityVotes(shouldRender = true) {
     if (!sb) return;
     const totals = await sb.from('community_vote_totals').select('content_type,content_id,vote_count');
     if (totals.error) { console.warn('Community vote totals:', totals.error); return; }
-    knownVotes = new Map((totals.data || []).map(row => [voteKey(row.content_type, row.content_id), Number(row.vote_count) || 0]));
+    knownVotes = new Map((totals.data || []).map(row => [
+      voteKey(row.content_type, row.content_id),
+      Number(row.vote_count) || 0
+    ]));
     myVotes = new Set();
+    myVoteDirections = new Map();
     if (currentUser) {
-      const own = await sb.from('community_votes').select('content_type,content_id').eq('user_id', currentUser.id);
-      if (!own.error) (own.data || []).forEach(row => myVotes.add(voteKey(row.content_type, row.content_id)));
+      let own = await sb.from('community_votes')
+        .select('content_type,content_id,vote_value')
+        .eq('user_id', currentUser.id);
+      if (own.error && /vote_value|column .* does not exist|schema cache/i.test(String(own.error.message || ''))) {
+        // Compatibility before the supplied migration is applied: existing records
+        // are all treated as upvotes, and the user can still remove an old upvote.
+        own = await sb.from('community_votes')
+          .select('content_type,content_id')
+          .eq('user_id', currentUser.id);
+        if (!own.error) (own.data || []).forEach(row => {
+          const key = voteKey(row.content_type, row.content_id);
+          myVotes.add(key);
+          myVoteDirections.set(key, 1);
+        });
+      } else if (!own.error) {
+        (own.data || []).forEach(row => {
+          const key = voteKey(row.content_type, row.content_id);
+          const direction = Number(row.vote_value) === -1 ? -1 : 1;
+          myVotes.add(key);
+          myVoteDirections.set(key, direction);
+        });
+      } else {
+        console.warn('Community vote ownership:', own.error);
+      }
     }
     applyVoteTotals();
     if (shouldRender) render();
   }
-  async function toggleCommunityVote(type, id) {
+
+  async function toggleCommunityVote(type, id, requestedDirection = 1) {
     if (!requireAccount('vote in the community')) return;
-    const key = voteKey(type, id);
+    const direction = Number(requestedDirection) === -1 ? -1 : 1;
     const { data: existing, error: readError } = await sb.from('community_votes')
-      .select('id').eq('content_type', type).eq('content_id', String(id)).eq('user_id', currentUser.id).maybeSingle();
-    if (readError) { toast(`Could not check vote: ${databaseErrorHelp(readError)}`); return; }
-    let result;
-    if (existing) result = await sb.from('community_votes').delete().eq('id', existing.id);
-    else result = await sb.from('community_votes').insert({content_type:type, content_id:String(id), user_id:currentUser.id});
-    if (result.error) { toast(`Vote failed: ${databaseErrorHelp(result.error)}`); return; }
+      .select('id,vote_value')
+      .eq('content_type', type)
+      .eq('content_id', String(id))
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    if (readError && /vote_value|column .* does not exist|schema cache/i.test(String(readError.message || ''))) {
+      if (direction === -1) {
+        toast('Downvotes require the community voting migration. Run supabase/migrations/20261126_community_vote_directions.sql in Supabase SQL Editor.');
+        return;
+      }
+      const legacy = await sb.from('community_votes')
+        .select('id')
+        .eq('content_type', type)
+        .eq('content_id', String(id))
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+      if (legacy.error) { toast(`Could not check vote: ${databaseErrorHelp(legacy.error)}`); return; }
+      const result = legacy.data
+        ? await sb.from('community_votes').delete().eq('id', legacy.data.id)
+        : await sb.from('community_votes').insert({content_type:type, content_id:String(id), user_id:currentUser.id});
+      if (result.error) { toast(`Vote failed: ${databaseErrorHelp(result.error)}`); return; }
+    } else {
+      if (readError) { toast(`Could not check vote: ${databaseErrorHelp(readError)}`); return; }
+      let result;
+      if (existing && Number(existing.vote_value) === direction) {
+        result = await sb.from('community_votes').delete().eq('id', existing.id);
+      } else if (existing) {
+        result = await sb.from('community_votes').update({vote_value:direction}).eq('id', existing.id);
+      } else {
+        result = await sb.from('community_votes').insert({
+          content_type:type,
+          content_id:String(id),
+          user_id:currentUser.id,
+          vote_value:direction
+        });
+      }
+      if (result.error) {
+        if (/vote_value|column .* does not exist|schema cache/i.test(String(result.error.message || ''))) {
+          toast('Run supabase/migrations/20261126_community_vote_directions.sql in Supabase SQL Editor to enable downvotes.');
+        } else toast(`Vote failed: ${databaseErrorHelp(result.error)}`);
+        return;
+      }
+    }
     await refreshCommunityVotes(false);
     render();
   }
 
-  // Replace browser-local counters with account-backed community votes.
+  window.__rnIsSignedIn = () => !!currentUser;
+  window.__rnRequireCommunityAccount = actionText => requireAccount(actionText || 'vote in the community');
+  window.__rnShowCommunityAuth = actionText => {
+    showModal('rnAuthModal');
+    message(`Sign in or create an account to ${actionText || 'vote in the community'}.`);
+    return false;
+  };
+  window.__rnVoteCommunity = (type, id, direction) => toggleCommunityVote(type, id, direction);
+
+  // Replace browser-local counters with account-backed directional community votes.
   window.voteItem = async function(kind, id) {
     const list = kind === 'counter' ? state.counterTips : state.combos;
     if (!list?.some(item => item.id === id)) return;
-    await toggleCommunityVote(kind === 'counter' ? 'counter_tip' : 'synergy', id);
+    await toggleCommunityVote(kind === 'counter' ? 'counter_tip' : 'synergy', id, 1);
   };
-  window.voteGroupPair = async function(ruleId, key) { await toggleCommunityVote('group_counter', `${ruleId}::${key}`); };
-  window.voteComboPair = async function(ruleId, key) { await toggleCommunityVote('group_synergy', `${ruleId}::${key}`); };
+  window.voteGroupPair = async function(ruleId, key) {
+    await toggleCommunityVote('group_counter', `${ruleId}::${key}`, 1);
+  };
+  window.voteComboPair = async function(ruleId, key) {
+    await toggleCommunityVote('group_synergy', `${ruleId}::${key}`, 1);
+  };
 
   // Public group directory and private-to-public publishing.
   function installGroupSwitch() {
