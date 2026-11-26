@@ -869,46 +869,42 @@ function renderCounterResults(){
  const compareCounterCards=(a,b)=>b.points-a.points||b.totalVotes-a.totalVotes||b.weight-a.weight||b.targets.length-a.targets.length||a.name.localeCompare(b.name);
  for(const entries of byRole.values())entries.sort(compareCounterCards);
  
- const collapsed=new Set(Array.isArray(state.collapsedCounterHeroes)?state.collapsedCounterHeroes:[]);
+ 
  const renderCard=c=>{
-   const h=hero(c.name),isCollapsed=collapsed.has(c.name),reasonCount=c.arr.length,topTip=c.arr[0]||{};
-   const initials=String(c.name||'?').split(/\\s+/).map(w=>w[0]).slice(0,2).join('');
-   const avatar=h?.img?`<img src="${escapeHtml(h.img)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()">`:''; 
+   const h=hero(c.name),topTip=c.arr[0]||{},reasonCount=c.arr.length;
+   const initials=String(c.name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('');
+   const avatar=h&&h.img?"<img src='"+escapeHtml(h.img)+"' alt='' loading='lazy' onerror=\"this.parentElement.classList.add('broken');this.remove()\">":"";
    const sourceText=topTip.source||'Community contributor';
-   const sourceMarkup=topTip.sourceUrl?`<a href="${escapeHtml(topTip.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(sourceText)} ↗</a>`:`<span>${escapeHtml(sourceText)}</span>`;
+   const sourceMarkup=topTip.sourceUrl?"<a href='"+escapeHtml(topTip.sourceUrl)+"' target='_blank' rel='noopener noreferrer'>"+escapeHtml(sourceText)+" ↗</a>":"<span>"+escapeHtml(sourceText)+"</span>";
+   const threadKey='counter:'+c.name+':'+c.targets.slice().sort().join('|');
+   const comments=communityCommentCount(threadKey);
    const vote=topTip.generated
-     ?`<button class="vote-btn rn-post-vote ${topTip.myVote?'voted':''}" data-vote-groupcounter="${escapeHtml(topTip.groupRuleId)}" data-pair-key="${escapeHtml(topTip.pairKey)}" title="${topTip.myVote?'Remove your upvote':'Upvote this best counter matchup'}">▲ ${Number(topTip.votes)||0} <span>UPVOTES</span></button>`
-     :`<button class="vote-btn rn-post-vote ${topTip.myVote?'voted':''}" data-vote-counter="${escapeHtml(topTip.id)}" title="${topTip.myVote?'Remove your upvote':'Upvote this best counter matchup'}">▲ ${Number(topTip.votes)||0} <span>UPVOTES</span></button>`;
+     ?"<button class='vote-btn rn-post-vote "+(topTip.myVote?'voted':'')+"' data-vote-groupcounter='"+escapeHtml(topTip.groupRuleId)+"' data-pair-key='"+escapeHtml(topTip.pairKey)+"' title='"+(topTip.myVote?'Remove your upvote':'Upvote this counter')+"'>▲ "+(Number(topTip.votes)||0)+"</button>"
+     :"<button class='vote-btn rn-post-vote "+(topTip.myVote?'voted':'')+"' data-vote-counter='"+escapeHtml(topTip.id)+"' title='"+(topTip.myVote?'Remove your upvote':'Upvote this counter')+"'>▲ "+(Number(topTip.votes)||0)+"</button>";
    const tier=TIER[topTip.tier]||TIER.moderate;
    const targetChips=c.targets.map(name=>{
-     const targetHero=hero(name),targetInitials=String(name||'?').split(/\\s+/).map(w=>w[0]).slice(0,2).join('');
-     return `<span class="rn-post-target-chip"><span class="rn-post-target-avatar">${targetHero?.img?`<img src="${escapeHtml(targetHero.img)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()">`:''}<span>${escapeHtml(targetInitials)}</span></span><span>${escapeHtml(name)}</span></span>`;
+     const targetHero=hero(name),targetInitials=String(name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('');
+     const targetImg=targetHero&&targetHero.img?"<img src='"+escapeHtml(targetHero.img)+"' alt='' loading='lazy' onerror=\"this.parentElement.classList.add('broken');this.remove()\">":"";
+     return "<span class='rn-post-target-chip'><span class='rn-post-target-avatar'>"+targetImg+"<span>"+escapeHtml(targetInitials)+"</span></span><span>"+escapeHtml(name)+"</span></span>";
    }).join('');
-   return `<article class="pick-card counter-suggestion rn-reddit-post counter-post ${isCollapsed?'counter-collapsed':''}" data-counter-suggestion="${escapeHtml(c.name)}">
-     <div class="rn-post-header">
-       <div class="rn-post-avatar">${avatar}<span class="rn-post-avatar-fallback">${escapeHtml(initials)}</span></div>
-       <div class="rn-post-header-copy">
-         <div class="rn-post-byline"><strong>r/counterpicks</strong><span class="rn-post-dot">•</span><span>submitted by</span>${sourceMarkup}</div>
-         <div class="rn-post-title">${escapeHtml(c.name)}</div>
-         <div class="rn-post-subtitle">${escapeHtml(h?.role==='Strategist'?'Support':h?.role||'Hero')} · BEST HERO COUNTER</div>
-       </div>
-     </div>
-     <div class="rn-post-actions">
-       ${vote}
-       <button type="button" class="rn-post-comment-toggle counter-collapse-toggle" data-toggle-counter-card="${escapeHtml(c.name)}" aria-expanded="${!isCollapsed}" title="${isCollapsed?'Show':'Hide'} matchup comments">□ ${reasonCount} COMMENT${reasonCount===1?'':'S'}</button>
-       <span class="rn-post-rating ${tier.cls}">${escapeHtml(tier.label)}</span>
-       <span class="rn-post-points"><strong>${c.points}</strong><span>PTS</span></span>
-     </div>
-     <div class="rn-post-targets">
-       <div class="rn-post-section-label">COUNTERS YOUR SELECTED ENEMIES</div>
-       <div class="rn-post-target-list">${targetChips}</div>
-     </div>
-     <div class="counter-card-body" ${isCollapsed?'hidden':''}>
-       <div class="rn-post-comments-heading">${reasonCount} matchup comment${reasonCount===1?'':'s'}</div>
-       <div class="reason-list">${c.arr.map((t,i)=>reasonHtml(t,i===0)).join('')}</div>
-     </div>
-     <div class="counter-collapsed-summary" ${isCollapsed?'':'hidden'}>${reasonCount} matchup comment${reasonCount===1?'':'s'} hidden. Expand to review.</div>
-   </article>`;
+   const bestDetail=topTip?"<div class='rn-counter-best-detail'>"+reasonHtml(topTip,true)+"</div>":"";
+   const otherMatchups=c.arr.slice(1);
+   const more=otherMatchups.length?"<details class='rn-counter-more-matchups'><summary>"+otherMatchups.length+" MORE MATCHUP"+(otherMatchups.length===1?'':'S')+"</summary><div class='reason-list'>"+otherMatchups.map(t=>reasonHtml(t)).join('')+"</div></details>":"";
+   return "<article class='pick-card counter-suggestion rn-reddit-post counter-post' data-counter-suggestion='"+escapeHtml(c.name)+"'>"+
+     "<div class='rn-post-header'>"+
+       "<div class='rn-post-avatar'>"+avatar+"<span class='rn-post-avatar-fallback'>"+escapeHtml(initials)+"</span></div>"+
+       "<div class='rn-post-header-copy'><div class='rn-post-byline'><span>submitted by</span>"+sourceMarkup+"</div><div class='rn-post-title'>"+escapeHtml(c.name)+"</div></div>"+
+     "</div>"+
+     "<div class='rn-post-targets'><div class='rn-post-section-label'>AGAINST</div><div class='rn-post-target-list'>"+targetChips+"</div></div>"+
+     "<div class='rn-post-actions'>"+
+       vote+
+       "<button type='button' class='rn-post-comment-toggle' data-community-comment-toggle='"+escapeHtml(threadKey)+"' aria-expanded='"+(state.openCommunityCommentThreads||[]).includes(threadKey)+"' title='Open the discussion'>◯ "+comments+" COMMENTS</button>"+
+       "<span class='rn-post-rating "+tier.cls+"'>"+escapeHtml(tier.label)+"</span>"+
+       "<span class='rn-post-points'><strong>"+c.points+"</strong><span>PTS</span></span>"+
+     "</div>"+
+     "<div class='counter-card-body'><div class='rn-post-section-label'>MATCHUP DETAILS</div>"+bestDetail+more+"</div>"+
+     communityCommentPanelHtml(threadKey)+
+   "</article>";
  };
  const hasMore=roles.some(role=>byRole.get(role).length>5);
  const columns=roles.map(role=>{
@@ -1155,45 +1151,40 @@ initData();bindPlaybook();render();renderPlaybook();
   // Synergy cards use the same character portraits/visual hierarchy as counter recommendations.
   
   
+  
   comboCardHtml = function(c){
-    const aIn=state.ally.includes(c.a),bIn=state.ally.includes(c.b);
-    const status=aIn&&bIn?'TEAM PAIR ACTIVE':aIn?`SUGGEST ADD · ${c.b.toUpperCase()}`:bIn?`SUGGEST ADD · ${c.a.toUpperCase()}`:'MATCH';
     const aHero=hero(c.a),bHero=hero(c.b);
-    const heroTile=(name,inTeam)=>{
-      const h=hero(name);
-      return `<div class="synergy-hero-tile ${inTeam?'in-team':'suggested'}"><div class="synergy-portrait"><img loading="lazy" src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(name)}" onerror="this.parentElement.classList.add('broken');this.remove()"><span>${escapeHtml(name.split(/\\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><div class="synergy-hero-name">${escapeHtml(name)}</div><div class="synergy-hero-role">${escapeHtml(h?.role==='Strategist'?'Support':h?.role||'Hero')}</div><div class="synergy-state">${inTeam?'IN TEAM':'SUGGESTED'}</div></div>`;
+    const status=state.ally.includes(c.a)&&state.ally.includes(c.b)?'TEAM PAIR ACTIVE':'SUGGESTED PAIR';
+    const avatar=(name,h)=>{
+      const img=h&&h.img?"<img src='"+escapeHtml(h.img)+"' alt='' loading='lazy' onerror=\"this.parentElement.classList.add('broken');this.remove()\">":"";
+      const initials=String(name||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('');
+      return "<span class='rn-post-pair-avatar'>"+img+"<span>"+escapeHtml(initials)+"</span></span>";
     };
-    const avatar=(name,h)=>`<span class="rn-post-pair-avatar">${h?.img?`<img src="${escapeHtml(h.img)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()">`:''}<span>${escapeHtml(String(name||'?').split(/\\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></span>`;
     const sourceText=c.source||'Community contributor';
-    const sourceMarkup=c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(sourceText)} ↗</a>`:`<span>${escapeHtml(sourceText)}</span>`;
+    const sourceMarkup=c.sourceUrl?"<a href='"+escapeHtml(c.sourceUrl)+"' target='_blank' rel='noopener noreferrer'>"+escapeHtml(sourceText)+" ↗</a>":"<span>"+escapeHtml(sourceText)+"</span>";
+    const threadKey='synergy:'+c.id;
+    const comments=communityCommentCount(threadKey);
     const vote=c.generated
-      ?`<button class="vote-btn rn-post-vote ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}" title="${c.myVote?'Remove your upvote':'Upvote this synergy'}">▲ ${Number(c.votes)||0} <span>UPVOTES</span></button>`
-      :`<button class="vote-btn rn-post-vote ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}" title="${c.myVote?'Remove your upvote':'Upvote this synergy'}">▲ ${Number(c.votes)||0} <span>UPVOTES</span></button>`;
-    const edit=c.generated?`<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>`:`<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;
-    const category=c.official?'<span class="combo-official rn-post-rating-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag rn-post-rating-community">COMMUNITY SYNERGY</span>';
-    const points=synergyPoints(c),commentCount=String(c.reason||'').trim()?1:0;
-    const icon=typeof iconSvg==='function'?iconSvg(c.icon||'sparkles'):'✦';
-    return `<article class="combo-card synergy-match-card rn-reddit-post synergy-post">
-      <div class="rn-post-header">
-        <div class="rn-post-avatar-pair">${avatar(c.a,aHero)}<span class="rn-post-pair-plus">+</span>${avatar(c.b,bHero)}</div>
-        <div class="rn-post-header-copy">
-          <div class="rn-post-byline"><strong>r/synergies</strong><span class="rn-post-dot">•</span><span>submitted by</span>${sourceMarkup}</div>
-          <div class="rn-post-title">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div>
-          <div class="rn-post-subtitle">${escapeHtml(status)}</div>
-        </div>
-        <div class="rn-post-kind-icon" title="Synergy type">${icon}</div>
-      </div>
-      <div class="rn-post-actions">
-        ${vote}
-        <button type="button" class="rn-post-comment-toggle" data-toggle-synergy-comment aria-expanded="true" title="Show or hide the synergy explanation">▤ ${commentCount} COMMENT${commentCount===1?'':'S'}</button>
-        <span class="rn-post-category-edit">${category}${edit}${c.generated?'<span class="group-result-tag">GROUP RULE</span>':''}</span>
-        <span class="rn-post-points"><strong>${points}</strong><span>PTS</span></span>
-      </div>
-      <div class="synergy-hero-pair">${heroTile(c.a,aIn)}<div class="synergy-plus">+</div>${heroTile(c.b,bIn)}</div>
-      <div class="combo-status">${status}</div>
-      <div class="rn-post-comment-body"><div class="rn-post-comments-heading">Community explanation</div><div class="combo-reason">${escapeHtml(c.reason)}</div></div>
-      <div class="combo-foot"><div class="reason-actions">${typeof pocketAction==='function'?pocketAction(c.pocketPlayId):''}</div></div>
-    </article>`;
+      ?"<button class='vote-btn rn-post-vote "+(c.myVote?'voted':'')+"' data-vote-combo-rule='"+escapeHtml(c.ruleId)+"' data-pair-key='"+escapeHtml(c.pairKey)+"' title='"+(c.myVote?'Remove your upvote':'Upvote this synergy')+"'>▲ "+(Number(c.votes)||0)+"</button>"
+      :"<button class='vote-btn rn-post-vote "+(c.myVote?'voted':'')+"' data-vote-combo='"+escapeHtml(c.id)+"' title='"+(c.myVote?'Remove your upvote':'Upvote this synergy')+"'>▲ "+(Number(c.votes)||0)+"</button>";
+    const edit=c.generated?"<button class='edit-btn' data-edit-combo-rule='"+escapeHtml(c.ruleId)+"'>EDIT RULE</button>":"<button class='edit-btn' data-edit-combo='"+escapeHtml(c.id)+"'>EDIT</button>";
+    const category=c.official?"<span class='combo-official rn-post-rating-official'>OFFICIAL TEAM-UP</span>":"<span class='tiny-tag rn-post-rating-community'>COMMUNITY SYNERGY</span>";
+    const points=synergyPoints(c);
+    const pocketFooter="<div class='combo-foot'><div class='reason-actions'>"+(typeof pocketAction==='function'?pocketAction(c.pocketPlayId):'')+"</div></div>";
+    return "<article class='combo-card synergy-match-card rn-reddit-post synergy-post'>"+
+      "<div class='rn-post-header'>"+
+        "<div class='rn-post-avatar-pair'>"+avatar(c.a,aHero)+"<span class='rn-post-pair-plus'>+</span>"+avatar(c.b,bHero)+"</div>"+
+        "<div class='rn-post-header-copy'><div class='rn-post-byline'><span>submitted by</span>"+sourceMarkup+"</div><div class='rn-post-title'>"+escapeHtml(c.a)+" + "+escapeHtml(c.b)+"</div><div class='rn-post-subtitle'>"+escapeHtml(status)+"</div></div>"+
+      "</div>"+
+      "<div class='rn-post-description'><div class='rn-post-section-label'>COMMUNITY DESCRIPTION</div><div class='combo-reason'>"+escapeHtml(c.reason)+"</div></div>"+
+      "<div class='rn-post-actions'>"+
+        vote+
+        "<button type='button' class='rn-post-comment-toggle' data-community-comment-toggle='"+escapeHtml(threadKey)+"' aria-expanded='"+(state.openCommunityCommentThreads||[]).includes(threadKey)+"' title='Open the discussion'>◯ "+comments+" COMMENTS</button>"+
+        "<span class='rn-post-category-edit'>"+category+edit+(c.generated?"<span class='group-result-tag'>GROUP RULE</span>":"")+"</span>"+
+        "<span class='rn-post-points'><strong>"+points+"</strong><span>PTS</span></span>"+
+      "</div>"+
+      communityCommentPanelHtml(threadKey)+pocketFooter+
+    "</article>";
   };
 
   function expandComboRulesForSuggestions(team){
@@ -8955,3 +8946,48 @@ body.playbook-mode #playBoardStage>.board-item.board-number.rn-number-compact .r
   });
 })();
 </script>
+
+<style id="rn-v13-41-compact-posts-and-real-comments">
+#counterPage .rn-reddit-post,#synergiesPage .rn-reddit-post{padding:8px!important;border-radius:8px!important;box-shadow:0 2px 8px #0002!important}
+#counterPage .rn-post-header,#synergiesPage .rn-post-header{gap:8px!important;margin-bottom:5px!important;align-items:center!important}
+#counterPage .rn-post-avatar{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;flex-basis:36px!important}
+#counterPage .rn-post-byline,#synergiesPage .rn-post-byline{margin:0 0 2px!important;font-size:8px!important}
+#counterPage .rn-post-title,#synergiesPage .rn-post-title{font-size:13px!important;line-height:1.2!important}
+#counterPage .rn-post-subtitle{display:none!important}
+#counterPage .rn-post-targets{margin:6px 0!important}
+#counterPage .rn-post-section-label,#synergiesPage .rn-post-section-label{margin:0 0 4px!important;font-size:7px!important}
+#counterPage .rn-post-target-chip{font-size:8px!important;padding:2px 6px 2px 2px!important}
+#counterPage .rn-post-target-avatar{width:20px!important;height:20px!important;min-width:20px!important;flex-basis:20px!important}
+#counterPage .rn-post-actions,#synergiesPage .rn-post-actions{gap:5px!important;padding:5px 0!important;margin:5px 0!important;border-top:1px solid #344451!important;border-bottom:1px solid #344451!important}
+#counterPage .rn-post-vote,#counterPage .rn-post-comment-toggle,#synergiesPage .rn-post-vote,#synergiesPage .rn-post-comment-toggle{min-height:24px!important;padding:3px 7px!important;font-size:8px!important}
+#counterPage .rn-post-rating,#synergiesPage .rn-post-rating{min-height:23px!important;padding:3px 7px!important;font-size:7px!important}
+#counterPage .rn-post-points,#synergiesPage .rn-post-points{padding:3px 7px!important}
+#counterPage .rn-post-points strong,#synergiesPage .rn-post-points strong{font-size:11px!important}
+#counterPage .counter-card-body{margin-top:5px!important}
+#counterPage .rn-counter-best-detail .reason{margin:0!important;padding:6px!important}
+#counterPage .rn-counter-more-matchups{margin-top:5px!important;border:1px solid #364b59!important;border-radius:6px!important;background:#1d2b35!important}
+#counterPage .rn-counter-more-matchups>summary{padding:6px 8px!important;color:#bdd0dd!important;font-size:8px!important;font-weight:850!important;cursor:pointer!important}
+#counterPage .rn-counter-more-matchups .reason-list{padding:0 6px 6px!important}
+#synergiesPage .synergy-post .rn-post-description{margin:3px 0 0!important;padding:0!important}
+#synergiesPage .synergy-post .rn-post-description .combo-reason{margin:0!important;padding:0!important;color:#d6e0e8!important;font-size:9px!important;line-height:1.4!important}
+#synergiesPage .synergy-post .rn-post-actions{margin-top:6px!important}
+#synergiesPage .synergy-post .rn-post-category-edit{gap:4px!important}
+#synergiesPage .synergy-post .rn-post-category-edit .edit-btn{min-height:23px!important;padding:3px 7px!important;font-size:7px!important}
+.rn-community-comment-panel{min-width:0!important;margin:7px 0 2px!important;padding:8px!important;border:1px solid #394e5c!important;border-radius:7px!important;background:#172631!important}
+.rn-community-comment-panel[hidden]{display:none!important}
+.rn-community-comment-list{display:grid!important;gap:6px!important;margin-bottom:8px!important}
+.rn-comment-empty{padding:5px 2px!important;color:#8fa2b0!important;font-size:8px!important}
+.rn-user-comment{padding:6px 7px!important;border:1px solid #334957!important;border-radius:5px!important;background:#21323d!important;min-width:0!important}
+.rn-user-comment-meta{display:flex!important;align-items:center!important;gap:7px!important;font-size:8px!important}
+.rn-user-comment-meta strong{color:#c8e3ef!important;font-weight:900!important}
+.rn-user-comment-meta time{color:#8297a5!important;font-size:7px!important}
+.rn-user-comment p{margin:4px 0 0!important;color:#dbe4eb!important;font-size:9px!important;line-height:1.4!important;overflow-wrap:anywhere!important;white-space:pre-wrap!important}
+.rn-community-comment-form{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:6px!important;min-width:0!important}
+.rn-community-comment-form .rn-comment-author{grid-column:1/-1!important;width:100%!important;min-width:0!important;height:26px!important;padding:4px 7px!important;border:1px solid #3d5361!important;border-radius:5px!important;background:#1d2d38!important;color:#e8f0f5!important;font-size:8px!important}
+.rn-community-comment-form textarea{grid-column:1/-1!important;width:100%!important;min-width:0!important;min-height:55px!important;resize:vertical!important;padding:6px 7px!important;border:1px solid #3d5361!important;border-radius:5px!important;background:#1d2d38!important;color:#e8f0f5!important;font:9px/1.4 inherit!important}
+.rn-community-comment-form textarea::placeholder,.rn-community-comment-form input::placeholder{color:#8499a7!important}
+.rn-comment-form-foot{grid-column:1/-1!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important}
+.rn-comment-form-foot>span{color:#8196a4!important;font-size:7px!important}
+.rn-comment-form-foot .btn{min-height:25px!important;padding:4px 9px!important;font-size:8px!important}
+@media(max-width:600px){#counterPage .rn-reddit-post,#synergiesPage .rn-reddit-post{padding:7px!important}#counterPage .rn-post-actions,#synergiesPage .rn-post-actions{gap:4px!important}#counterPage .rn-post-rating,#synergiesPage .rn-post-rating{white-space:normal!important}}
+</style>
