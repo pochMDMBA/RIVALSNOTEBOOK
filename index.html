@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v13.29</title>
+<title>RIVALSNOTEBOOK · v13.30</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -5027,7 +5027,7 @@ window.RN_MAP_COVER_IMAGES={"arakko.jpg":"data:image/jpeg;base64,/9j/4AAQSkZJRgA
     </button>`).join('');
   overlay.innerHTML=`
     <section class="rn-map-library-dialog" role="dialog" aria-modal="true" aria-labelledby="rnMapLibraryTitle">
-      <header class="rn-map-library-head"><div><h2 id="rnMapLibraryTitle">Choose a tactical map</h2><p>Select a map cover to open its available views. Each saved play remembers its map and selected view.</p></div><button type="button" class="rn-map-library-close" id="rnMapLibraryClose" aria-label="Close map library">×</button></header>
+      <header class="rn-map-library-head"><div><h2 id="rnMapLibraryTitle">Choose a tactical map</h2><p>Select a map cover to open its available views. Each saved play is tied to one map and keeps that map’s complete view set.</p></div><button type="button" class="rn-map-library-close" id="rnMapLibraryClose" aria-label="Close map library">×</button></header>
       <div class="rn-map-library-scroll">
         <section class="rn-map-mode-section"><h3 class="rn-map-mode-heading">Convoy <small>6 maps</small></h3><div class="rn-map-card-grid">${makeCards('Convoy')}</div></section>
         <section class="rn-map-mode-section"><h3 class="rn-map-mode-heading">Convergence <small>6 maps</small></h3><div class="rn-map-card-grid">${makeCards('Convergence')}</div></section>
@@ -5122,12 +5122,49 @@ window.RN_MAP_COVER_IMAGES={"arakko.jpg":"data:image/jpeg;base64,/9j/4AAQSkZJRgA
       saveMapSelection();updateMapLayer();updateMapWidget();
     }finally{window.__rnEndBoardSetTransition?.();}
   }
-  function selectMap(id){
+  async function selectMap(id){
+    // A Saved Play is one map set only. Switching to another map starts a separate play;
+    // the previous play is captured and remains saved under its original map.
+    const nextMapId=known.has(id)?id:'';
+    const active=getPlay();
+    const activeMapId=String(active?.mapId||currentMapId||'');
+    if(active&&nextMapId!==activeMapId){
+      const nextMap=known.get(nextMapId);
+      const answer=await window.__rnOpenPlayDialog?.({
+        title:'Start a new play?',
+        message:`Saved plays can contain only one map and its complete view set. Your current play, “${active.name}”, will remain saved on ${known.get(activeMapId)?.name||'its current map'}. Start a new play${nextMap?` on ${nextMap.name}`:' without a map'}?`,
+        confirmText:'START NEW'
+      });
+      if(!answer?.ok)return;
+      // Commit any open inline textbox, then snapshot the old map set while the old play is active.
+      const editor=document.querySelector('.inline-board-text-editor');
+      if(editor?.isConnected)editor.blur();
+      try{persist();}catch(error){console.warn('Could not save the outgoing map set before changing maps',error);}
+      window.__rnBeginBoardSetTransition?.();
+      state.activePlayId=null;state.playName='Untitled Play';state.playItems=[];
+      state.selectedBoardItem=null;state.selectedBoardItems=[];
+      $('playName').value=state.playName;
+      // Do not revive an unrelated abandoned draft as the newly started play.
+      window.__rnClearDraftBoardSetsForMap?.(nextMapId);
+      let m=null;
+      try{
+        currentMapId=nextMapId;
+        m=known.get(currentMapId);
+        currentMapView=m?.viewType==='submap'?firstMapView(m):(m?.points?.A?'A':(m?.image?'2d':'2d'));
+        saveMapSelection();updateMapLayer();updateMapWidget();overlay.classList.remove('open');
+      }finally{window.__rnEndBoardSetTransition?.();}
+      if(typeof renderPlaybook==='function')renderPlaybook();
+      try{persist();}catch(error){console.warn('Could not initialise the new map play',error);}
+      window.__rnRefreshSavedPlayPicker?.();
+      if(currentMapId)toast(`New play started · ${m.name} · ${m.viewType==='submap'?submapNameForView(m,currentMapView):(currentMapView==='2d'?'2D':`Point ${currentMapView}`)}`);
+      else toast('New blank play started');
+      return;
+    }
     // New Domination maps open on Submap 1. Existing modes retain their Point A default.
     window.__rnBeginBoardSetTransition?.();
     let m=null;
     try{
-      currentMapId=known.has(id)?id:'';
+      currentMapId=nextMapId;
       m=known.get(currentMapId);currentMapView=m?.viewType==='submap'?firstMapView(m):(m?.points?.A?'A':(m?.image?'2d':'2d'));
       saveMapSelection();updateMapLayer();updateMapWidget();overlay.classList.remove('open');
     }finally{window.__rnEndBoardSetTransition?.();}
@@ -6691,8 +6728,14 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
   const $=id=>document.getElementById(id);
   const clone=value=>JSON.parse(JSON.stringify(value||[]));
   const currentMap=()=>String(window.__rnGetTacticalMap?.()||'');
-  const currentView=()=>{const v=String(window.__rnGetTacticalMapView?.()||'2d');return v.toLowerCase()==='2d'?'2d':v.toUpperCase();};
-  const boardKey=(mapId,view)=>`${mapId||'__blank__'}::${view||'2d'}`;
+  const normalizeBoardView=view=>{
+    const raw=String(view||'2d').trim();
+    if(raw.toLowerCase()==='2d')return '2d';
+    const submap2D=/^([1-3])-2d$/i.exec(raw);if(submap2D)return `${submap2D[1]}-2d`;
+    return raw.toUpperCase();
+  };
+  const currentView=()=>normalizeBoardView(window.__rnGetTacticalMapView?.()||'2d');
+  const boardKey=(mapId,view)=>`${mapId||'__blank__'}::${normalizeBoardView(view)}`;
   const activePlay=()=> (state.plays||[]).find(play=>String(play.id)===String(state.activePlayId))||null;
   const normalizeItems=list=>typeof normalizePlayItems==='function'?normalizePlayItems(list||[]):clone(list||[]);
   let changingBoardSet=false;
@@ -6701,6 +6744,33 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
   const readDrafts=()=>{try{const saved=JSON.parse(localStorage.getItem(draftKey)||'{}');return saved&&typeof saved==='object'?saved:{}}catch(_){return {}}};
   let drafts=readDrafts();
   const writeDrafts=()=>{try{localStorage.setItem(draftKey,JSON.stringify(drafts));}catch(error){console.warn('Could not persist Playbook draft boards',error);}};
+  // A map change confirmed as NEW starts with a clean draft for that destination map only.
+  window.__rnClearDraftBoardSetsForMap=mapId=>{
+    const prefix=`${mapId||'__blank__'}::`;
+    Object.keys(drafts).forEach(key=>{if(key.startsWith(prefix))delete drafts[key];});
+    writeDrafts();
+  };
+  const mapPrefix=mapId=>`${mapId||'__blank__'}::`;
+  const keepOnlyMapBoards=(boards,mapId)=>{
+    const prefix=mapPrefix(mapId),result={};
+    Object.entries(boards||{}).forEach(([key,value])=>{
+      if(!key.startsWith(prefix)||!Array.isArray(value))return;
+      const view=normalizeBoardView(key.slice(prefix.length));
+      result[`${prefix}${view}`]=value;
+    });
+    return result;
+  };
+  // Canonicalise existing draft keys too, so old `1-2D` boards reopen as `1-2d`.
+  drafts=(()=>{
+    const result={};
+    Object.entries(drafts).forEach(([key,value])=>{
+      const split=key.lastIndexOf('::');
+      if(split<0||!Array.isArray(value))return;
+      result[`${key.slice(0,split+2)}${normalizeBoardView(key.slice(split+2))}`]=value;
+    });
+    return result;
+  })();
+  writeDrafts();
   // Migrate prior draft sets while removing only exact duplicate copies of the view
   // that was active when the previous version last saved. Distinct view content survives.
   if(!Object.keys(drafts).length&&!activePlay()){
@@ -6712,11 +6782,18 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
       });
       const savedMap=localStorage.getItem('rnPlaybookCurrentMapId')||currentMap();
       const rawView=localStorage.getItem('rnPlaybookCurrentMapView')||currentView();
-      const savedView=String(rawView).toLowerCase()==='2d'?'2d':String(rawView).toUpperCase();
+      const savedView=normalizeBoardView(rawView);
       const previousActiveKey=boardKey(savedMap,savedView);
-      const previousActive=Array.isArray(legacy[previousActiveKey])?legacy[previousActiveKey]:null;
+      const canonicalLegacy={};
       Object.entries(legacy).forEach(([key,items])=>{
-        if(!Array.isArray(items)||!/(::(?:A|B|C|2d))$/.test(key))return;
+        if(!Array.isArray(items))return;
+        const split=key.lastIndexOf('::');if(split<0)return;
+        const view=normalizeBoardView(key.slice(split+2));
+        canonicalLegacy[`${key.slice(0,split+2)}${view}`]=items;
+      });
+      const previousActive=Array.isArray(canonicalLegacy[previousActiveKey])?canonicalLegacy[previousActiveKey]:null;
+      Object.entries(canonicalLegacy).forEach(([key,items])=>{
+        if(!/(::(?:A|B|C|2d|[1-3](?:-2d)?))$/i.test(key))return;
         const isAccidentalDuplicate=key!==previousActiveKey&&previousActive&&JSON.stringify(items)===JSON.stringify(previousActive);
         drafts[key]=isAccidentalDuplicate?[]:normalizeItems(items);
       });
@@ -6732,10 +6809,12 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
   }
 
   function migrateSavedPlayBoardSets(play){
-    if(!play||Number(play.rnBoardSetVersion)>=2)return;
-    play.mapBoards=play.mapBoards&&typeof play.mapBoards==='object'?play.mapBoards:{};
-    const savedView=String(play.mapView||currentView()).toLowerCase()==='2d'?'2d':String(play.mapView||currentView()).toUpperCase();
-    const canonicalKey=boardKey(play.mapId||currentMap(),savedView);
+    if(!play)return;
+    const owningMapId=String(play.mapId||currentMap());
+    play.mapBoards=keepOnlyMapBoards(play.mapBoards,owningMapId);
+    if(Number(play.rnBoardSetVersion)>=2)return;
+    const savedView=normalizeBoardView(play.mapView||currentView());
+    const canonicalKey=boardKey(owningMapId,savedView);
     if(!Object.keys(play.mapBoards).length){
       play.mapBoards[canonicalKey]=clone(play.items||state.playItems||[]);
     }else{
@@ -6756,10 +6835,15 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
     const items=clone(state.playItems||[]);
     const play=activePlay();
     if(play){
+      const owningMapId=String(play.mapId||currentMap());
+      if(owningMapId!==currentMap()){
+        console.warn('Blocked a cross-map save. Start a new play before changing maps.');
+        return;
+      }
       migrateSavedPlayBoardSets(play);
-      play.mapBoards=play.mapBoards&&typeof play.mapBoards==='object'?play.mapBoards:{};
+      play.mapBoards=keepOnlyMapBoards(play.mapBoards,owningMapId);
       play.mapBoards[key]=items;
-      play.mapId=currentMap();play.mapView=currentView();
+      play.mapId=owningMapId;play.mapView=currentView();
       play.items=items; // compatibility with older clients and the existing active-play loader
     }else{drafts[key]=items;writeDrafts();}
   }
@@ -6784,7 +6868,7 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
     const play=activePlay();
     if(play){
       migrateSavedPlayBoardSets(play);
-      play.mapBoards=play.mapBoards&&typeof play.mapBoards==='object'?play.mapBoards:{};
+      play.mapBoards=keepOnlyMapBoards(play.mapBoards,play.mapId||currentMap());
       const keys=Object.keys(play.mapBoards);
       // Migrate a pre-v13.12 saved play into the map/view it already remembers.
       if(!keys.length){
@@ -6822,7 +6906,7 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
     const play=activePlay(),key=boardKey(currentMap(),currentView());
     if(play){
       migrateSavedPlayBoardSets(play);
-      play.mapBoards=play.mapBoards&&typeof play.mapBoards==='object'?play.mapBoards:{};
+      play.mapBoards=keepOnlyMapBoards(play.mapBoards,play.mapId||currentMap());
       if(!Object.keys(play.mapBoards).length){
         const legacyKey=boardKey(play.mapId||currentMap(),play.mapView||currentView());
         play.mapBoards[legacyKey]=clone(play.items||state.playItems||[]);
@@ -6859,10 +6943,16 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
     const pendingDrafts=clone(drafts);
     queueMicrotask(()=>{
       const play=activePlay();if(!play)return;
-      play.mapBoards=play.mapBoards&&typeof play.mapBoards==='object'?play.mapBoards:{};
-      Object.entries(pendingDrafts).forEach(([key,items])=>{if(!Object.prototype.hasOwnProperty.call(play.mapBoards,key))play.mapBoards[key]=normalizeItems(items);});
+      const owningMapId=String(play.mapId||currentMap());play.mapId=owningMapId;
+      const prefix=mapPrefix(owningMapId);
+      play.mapBoards=keepOnlyMapBoards(play.mapBoards,owningMapId);
+      Object.entries(pendingDrafts).forEach(([key,items])=>{
+        if(key.startsWith(prefix)&&!Object.prototype.hasOwnProperty.call(play.mapBoards,key))play.mapBoards[key]=normalizeItems(items);
+      });
+      play.mapView=currentView();
       captureCurrentBoardSet();
-      drafts={};writeDrafts();
+      Object.keys(drafts).forEach(key=>{if(key.startsWith(prefix))delete drafts[key];});
+      writeDrafts();
       basePersist.call(window);refreshSavedPlayPicker();
     });
   },true);
@@ -7068,15 +7158,27 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
   function getMapForPlay(play){return (window.RN_TACTICAL_MAPS||[]).find(map=>map.id===play?.mapId)||null;}
   function viewSetForPlay(play){
     const prefix=`${play?.mapId||'__blank__'}::`;
-    const values=Object.keys(play?.mapBoards||{}).filter(key=>key.startsWith(prefix)).map(key=>key.slice(prefix.length));
-    const order=['A','B','C','2d'];
+    const values=Object.keys(play?.mapBoards||{}).filter(key=>key.startsWith(prefix)).map(key=>{
+      const raw=key.slice(prefix.length);return /^([1-3])-2d$/i.test(raw)?raw.toLowerCase():raw.toUpperCase()==='2D'?'2d':raw.toUpperCase();
+    });
+    const map=getMapForPlay(play);
+    const order=map?.viewType==='submap'?['1','1-2d','2','2-2d','3','3-2d']:['A','B','C','2d'];
     return order.filter(view=>values.includes(view));
   }
   function thumbMarkup(map){
-    // Saved-play thumbnails bypass loadMapAsset(), so use the embedded Museum cover
-    // fallback directly instead of a deployment-relative path.
-    const coverSrc=map?.id==='museum-of-contemplation'?(window.RN_MUSEUM_COVER_DATA_URL||map.cover):map?.cover;
-    return `<span class="rn-saved-play-thumb">${coverSrc?`<img src="${escapeText(coverSrc)}" alt="" loading="lazy">`:''}</span>`;
+    // Saved-play thumbnails must use the same embedded cover registry as the map library.
+    // Raw relative assets/maps/covers paths can resolve against the wrong Vercel route.
+    const resolveEmbedded=path=>{
+      const clean=String(path||'').split(/[?#]/)[0],key=clean.split('/').pop().toLowerCase();
+      return window.RN_MAP_COVER_IMAGES?.[key]
+        || (key==='museum-of-contemplation.jpg'?window.RN_MUSEUM_COVER_DATA_URL:'')
+        || window.RN_POINT_MAP_IMAGES?.[key]
+        || '';
+    };
+    const coverPath=String(map?.cover||'');
+    const coverSrc=resolveEmbedded(coverPath)||coverPath||resolveEmbedded(map?.coverFallback)||map?.coverFallback||'';
+    const fallbackSrc=resolveEmbedded(map?.coverFallback)||map?.coverFallback||'';
+    return `<span class="rn-saved-play-thumb">${coverSrc?`<img src="${escapeText(coverSrc)}" data-rn-fallback-src="${escapeText(fallbackSrc)}" alt="" loading="lazy" decoding="async">`:''}</span>`;
   }
   function refreshSavedPlayPicker(){
     if(!picker||!menu||!nativeSelect)return;
@@ -7089,7 +7191,11 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
       const summary=map?`${map.name} · ${views.join(' / ')||String(play.mapView||'2d').toUpperCase()}`:'No map · Checkered workspace';
       return `<button type="button" class="rn-saved-play-option" data-saved-play-id="${escapeText(play.id)}">${thumbMarkup(map)}<span class="rn-saved-play-copy"><strong>${escapeText(play.name)}</strong><small>${escapeText(summary)}</small></span></button>`;
     }).join(''):'<div class="rn-saved-play-empty">No saved plays yet. Save a play to see its map cover here.</div>';
-    menu.querySelectorAll('.rn-saved-play-thumb img').forEach(image=>image.addEventListener('error',()=>image.remove(),{once:true}));
+    menu.querySelectorAll('.rn-saved-play-thumb img').forEach(image=>image.addEventListener('error',()=>{
+      const fallback=image.dataset.rnFallbackSrc||'';
+      if(fallback&&image.src!==fallback){image.removeAttribute('data-rn-fallback-src');image.src=fallback;return;}
+      image.remove();
+    }));
   }
   if(savedField&&nativeSelect&&!savedField.querySelector('.rn-saved-play-picker')){
     savedField.classList.add('rn-saved-play-field');nativeSelect.classList.add('rn-native-saved-play-select');
@@ -7248,7 +7354,7 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
     if(answer.ok)replayButton(button,false);
   },true);
 
-  // Save As creates a separate play and carries across all known map/view board sets.
+  // Save As creates a separate play and carries across only the current map’s view set.
   $('rnSaveAsPlayBtn')?.addEventListener('click',async()=>{
     const existing=(state.plays||[]).find(p=>String(p.id)===String(state.activePlayId));
     const defaultName=`${String(existing?.name||$('playName')?.value||'Untitled Play').trim()} Copy`.slice(0,70);
@@ -7262,13 +7368,17 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
     copy.name=name;copy.updatedAt=new Date().toISOString();
     const mapId=String(window.__rnGetTacticalMap?.()||copy.mapId||'');
     const view=String(window.__rnGetTacticalMapView?.()||copy.mapView||'2d');
-    const key=`${mapId||'__blank__'}::${view.toLowerCase()==='2d'?'2d':view.toUpperCase()}`;
+    const canonicalView=/^([1-3])-2d$/i.test(view)?view.toLowerCase():view.toLowerCase()==='2d'?'2d':view.toUpperCase();
+    const key=`${mapId||'__blank__'}::${canonicalView}`;
+    const prefix=`${mapId||'__blank__'}::`;
     copy.mapId=mapId;copy.mapView=view;copy.rnBoardSetVersion=2;
-    copy.mapBoards=copy.mapBoards&&typeof copy.mapBoards==='object'?copy.mapBoards:{};
-    // Include unsaved draft view sets where no active play existed yet.
+    copy.mapBoards=Object.fromEntries(Object.entries(copy.mapBoards||{}).filter(([boardKey,items])=>boardKey.startsWith(prefix)&&Array.isArray(items)));
+    // Include only the unsaved view boards that belong to this exact map set.
     try{
       const raw=JSON.parse(localStorage.getItem('rnPlaybookDraftBoardsV1313b')||'{}');
-      Object.entries(raw||{}).forEach(([draftKey,items])=>{if(!Object.prototype.hasOwnProperty.call(copy.mapBoards,draftKey))copy.mapBoards[draftKey]=deep(items||[]);});
+      Object.entries(raw||{}).forEach(([draftKey,items])=>{
+        if(draftKey.startsWith(prefix)&&!Object.prototype.hasOwnProperty.call(copy.mapBoards,draftKey))copy.mapBoards[draftKey]=deep(items||[]);
+      });
     }catch(_){}
     const currentItems=deep(state.playItems||[]);
     copy.mapBoards[key]=currentItems;copy.items=currentItems;
@@ -8153,49 +8263,74 @@ body.playbook-mode .rn-map-view-selector[data-view-type="submap"] .rn-map-view-c
 </style>
 
 
-<script id="rn-v13-28-reliable-textbox-doubleclick">
+<script id="rn-v13-30-map-set-exclusive-and-text-edit">
 (()=>{
-  if(window.__rnV1328ReliableTextDoubleClick)return;
-  window.__rnV1328ReliableTextDoubleClick=true;
-  const isEditableTarget=target=>!!target?.closest?.('.inline-board-text-editor,[contenteditable="true"],[contenteditable="plaintext-only"],[role="textbox"]');
+  if(window.__rnV1330TextAndMapSetBound)return;
+  window.__rnV1330TextAndMapSetBound=true;
+  const isEditableTarget=target=>!!target?.closest?.('.inline-board-text-editor,[contenteditable="true"],[contenteditable="plaintext-only"],[role="textbox"],input,textarea,select');
+  const targetBoardItem=event=>{
+    const path=typeof event.composedPath==='function'?event.composedPath():[];
+    for(const node of path){
+      if(node instanceof Element){
+        if(node.matches('.inline-board-text-editor,[contenteditable="true"],[contenteditable="plaintext-only"],[role="textbox"]'))return null;
+        if(node.matches('.board-item[data-board-item]'))return node;
+      }
+    }
+    const target=event.target instanceof Element?event.target:null;
+    if(!target||isEditableTarget(target))return null;
+    return target.closest('.board-item[data-board-item]');
+  };
   const editFromTarget=event=>{
     if(!document.body.classList.contains('playbook-mode'))return false;
-    const target=event.target instanceof Element?event.target:null;
-    if(!target||isEditableTarget(target))return false;
-    const itemEl=target.closest('[data-board-item]');
+    const itemEl=targetBoardItem(event);
     const id=itemEl?.dataset?.boardItem;
     if(!id)return false;
-    const items=window.__rnGetBoardItems?.()||[];
-    const item=items.find(candidate=>String(candidate?.id)===String(id));
+    const item=(window.__rnGetBoardItems?.()||[]).find(candidate=>String(candidate?.id)===String(id));
     if(!item||!['text','number'].includes(item.type))return false;
-    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
-    const current=document.querySelector('.inline-board-text-editor');
-    if(current?.isConnected){
-      if(String(current.dataset.boardItem||'')===String(id)){current.focus();return true;}
-      current.blur();
+    const active=document.querySelector('.inline-board-text-editor');
+    if(active?.isConnected){
+      if(String(active.dataset.boardItem||'')===String(id)){active.focus({preventScroll:true});return true;}
+      active.blur();
     }
-    window.__rnEditBoardTextItem?.(id);
-    return true;
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+    const editor=window.__rnEditBoardTextItem?.(id);
+    if(editor){
+      editor.dataset.boardItem=String(id);
+      editor.contentEditable='true';
+      editor.setAttribute('role','textbox');
+      editor.focus({preventScroll:true});
+    }
+    return !!editor;
   };
-  const board=document.getElementById('playBoard');
-  // PointerEvent.detail reports the second click before Select/Move can start a drag.
-  // This reliably opens the editor even when legacy board listeners consume dblclick.
-  document.addEventListener('pointerdown',event=>{
-    if(event.button!==0||event.detail<2)return;
+  // Window capture runs before document/board selection and drag handlers.
+  window.addEventListener('pointerdown',event=>{
+    if(event.button!==0||Number(event.detail||0)<2)return;
     editFromTarget(event);
   },true);
-  // Keep a native dblclick fallback for mouse/touchpad implementations with different detail handling.
-  document.addEventListener('dblclick',event=>{editFromTarget(event);},true);
-  // Keyboard users can press Enter on a selected text item to edit it as well.
+  window.addEventListener('dblclick',event=>{editFromTarget(event);},true);
+  // Text-tool single-click editing remains available; Select/Move uses double-click.
+  const board=document.getElementById('playBoard');
+  board?.addEventListener('pointerdown',event=>{
+    if(event.button!==0||window.__rnGetBoardTool?.()!=='text')return;
+    const itemEl=targetBoardItem(event);const id=itemEl?.dataset?.boardItem;
+    const item=(window.__rnGetBoardItems?.()||[]).find(candidate=>String(candidate?.id)===String(id));
+    if(!item||!['text','number'].includes(item.type))return;
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+    const editor=window.__rnEditBoardTextItem?.(id);
+    if(editor){editor.dataset.boardItem=String(id);editor.contentEditable='true';editor.focus({preventScroll:true});}
+  },true);
   board?.addEventListener('keydown',event=>{
     if(event.key!=='Enter'||event.altKey||event.ctrlKey||event.metaKey)return;
-    const target=event.target instanceof Element?event.target:null;
-    const itemEl=target?.closest?.('[data-board-item]');
-    const id=itemEl?.dataset?.boardItem;if(!id||isEditableTarget(target))return;
+    const itemEl=(event.target instanceof Element?event.target:null)?.closest?.('.board-item[data-board-item]');
+    const id=itemEl?.dataset?.boardItem;if(!id||isEditableTarget(event.target))return;
     const item=(window.__rnGetBoardItems?.()||[]).find(candidate=>String(candidate?.id)===String(id));
     if(!item||!['text','number'].includes(item.type))return;
     event.preventDefault();event.stopPropagation();window.__rnEditBoardTextItem?.(id);
   },true);
+  // Make committed labels advertise the edit gesture and remain selectable as text.
+  const style=document.createElement('style');style.id='rn-v13-30-textbox-edit-affordance';
+  style.textContent='body.playbook-mode #playBoard .rn-editable-text-box,body.playbook-mode #playBoard .rn-editable-number-marker{cursor:text!important;user-select:text!important;-webkit-user-select:text!important;} body.playbook-mode #playBoard .inline-board-text-editor{cursor:text!important;user-select:text!important;-webkit-user-select:text!important;}';
+  document.head.appendChild(style);
 })();
 </script>
 
