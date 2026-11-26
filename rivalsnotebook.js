@@ -795,13 +795,20 @@
 })();
 
 
-/* Load the v13.34 Playbook interaction upgrades after the inline notebook UI is ready. */
+/* Load Playbook patches in dependency order after the inline notebook UI is ready. */
 (() => {
   if (window.__rnV1334PatchLoader) return;
   window.__rnV1334PatchLoader = true;
-  const script = document.createElement('script');
-  script.src = './rn-v1334-playbook-upgrades.js?v=1334';
-  script.async = false;
-  script.onerror = () => console.error('RIVALSNOTEBOOK v13.34 Playbook upgrades could not be loaded.');
-  document.head.appendChild(script);
+  const v1334 = document.createElement('script');
+  v1334.src = './rn-v1334-playbook-upgrades.js?v=1334';
+  v1334.async = false;
+  v1334.onerror = () => console.error('RIVALSNOTEBOOK v13.34 Playbook upgrades could not be loaded.');
+  v1334.onload = () => {
+    const v1335 = document.createElement('script');
+    v1335.src = './rn-v1335-regression-fixes.js?v=1335';
+    v1335.async = false;
+    v1335.onerror = () => console.error('RIVALSNOTEBOOK v13.35 regression fixes could not be loaded.');
+    document.head.appendChild(v1335);
+  };
+  document.head.appendChild(v1334);
 })();
