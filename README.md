@@ -44,6 +44,12 @@ Follow these steps in order. Do not skip the project-match check.
 
 Do not create these tables manually in the Table Editor with a different structure. The app's policies, triggers, grants and collaboration RPC function are also required. A schema-cache reload alone cannot create a missing database table.
 
+## 1B. Enable account-based upvotes and downvotes (v13.37)
+
+After deploying v13.37, open the SQL Editor in the same Supabase project used by `config.js` and run the complete `supabase/migrations/20261126_community_vote_directions.sql` file. This adds an account-owned vote direction, permits net scores below zero, and updates the public score trigger. Existing community votes are preserved as upvotes. New installations already receive the updated structure from `supabase/schema.sql`.
+
+The migration is required for downvotes. Until it is applied, existing upvotes continue to work, while a downvote action asks you to apply the migration.
+
 ## 2. Connect the app to Supabase
 
 Edit `config.js` and fill the values:
