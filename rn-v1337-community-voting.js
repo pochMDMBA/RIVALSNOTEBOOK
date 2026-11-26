@@ -186,11 +186,22 @@
       const actions = card.querySelector(':scope > .rn-post-actions');
       if (actions) {
         const headerCopy = card.querySelector('.rn-post-header-copy');
+        let titleRow = headerCopy?.querySelector('.rn-counter-title-row');
+        if (headerCopy && !titleRow) {
+          titleRow = document.createElement('div');
+          titleRow.className = 'rn-counter-title-row';
+          const title = headerCopy.querySelector('.rn-post-title');
+          if (title) {
+            title.before(titleRow);
+            titleRow.appendChild(title);
+          } else headerCopy.appendChild(titleRow);
+        }
         let meta = headerCopy?.querySelector('.rn-counter-header-meta');
-        if (headerCopy && !meta) {
+        if (titleRow && meta && !titleRow.contains(meta)) titleRow.appendChild(meta);
+        if (titleRow && !meta) {
           meta = document.createElement('div');
           meta.className = 'rn-counter-header-meta';
-          headerCopy.appendChild(meta);
+          titleRow.appendChild(meta);
         }
         const tier = actions.querySelector('.rn-post-rating');
         const points = actions.querySelector('.rn-post-points');
@@ -233,7 +244,9 @@
       #synergiesPage .rn-post-community-attribution a:hover{text-decoration:underline!important}
       #synergiesPage .rn-synergy-community-actions{margin-top:6px!important}
       #synergiesPage .rn-post-actions{margin:5px 0!important}
-      #counterPage .rn-counter-header-meta{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:6px!important;margin-top:3px!important;min-width:0!important}
+      #counterPage .rn-counter-title-row{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:7px!important;min-width:0!important}
+      #counterPage .rn-counter-title-row .rn-post-title{flex:0 1 auto!important}
+      #counterPage .rn-counter-header-meta{display:inline-flex!important;align-items:center!important;flex-wrap:wrap!important;gap:6px!important;margin:0!important;min-width:0!important}
       #counterPage .rn-counter-header-meta .rn-post-points{margin:0!important}
       #counterPage .rn-counter-header-meta .rn-post-rating{min-height:22px!important;padding:3px 7px!important}
       #counterPage .rn-counter-more-matchups{display:block!important}
