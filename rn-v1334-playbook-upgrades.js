@@ -823,6 +823,10 @@
         font-size:var(--rn-number-font-size,15px)!important;
         border-width:var(--rn-number-border-size,2px)!important;
       }
+      /* The sibling drag handle below is the only resize control for compact number markers. */
+      body.playbook-mode #playBoardStage > .board-item.board-number.rn-number-compact > .resize-handle{
+        display:none!important;pointer-events:none!important;
+      }
       body.playbook-mode #playBoardStage > .rn-number-resize-handle{
         position:absolute!important;z-index:900!important;display:flex!important;align-items:center!important;justify-content:center!important;
         box-sizing:border-box!important;width:14px!important;height:14px!important;min-width:14px!important;min-height:14px!important;
@@ -993,11 +997,11 @@
 
       Object.keys(drafts).forEach(key => { if (key.startsWith(prefix)) delete drafts[key]; });
       try { localStorage.setItem(draftStorageKey, JSON.stringify(drafts)); } catch (_) {}
-      window.__rnRefreshSavedPlayPicker?.();
-      return draft;
+      window.__rnRefreshSavedPlayPicker?.();      return draft;
     }
 
-    async function showPocketPlayInPlaybook(play) {      const currentMap = String(window.__rnGetTacticalMap?.() || '');
+    async function showPocketPlayInPlaybook(play) {
+      const currentMap = String(window.__rnGetTacticalMap?.() || '');
       const targetMap = String(play.mapId || currentMap || '');
       const targetView = play.mapId ? normalView(play.mapView || '2d') : normalView(window.__rnGetTacticalMapView?.() || '2d');
 
