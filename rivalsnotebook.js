@@ -915,6 +915,13 @@
     v1335.src = './rn-v1335-regression-fixes.js?v=1335';
     v1335.async = false;
     v1335.onerror = () => console.error('RIVALSNOTEBOOK v13.35 regression fixes could not be loaded.');
+    v1335.onload = () => {
+      const v1337 = document.createElement('script');
+      v1337.src = './rn-v1337-community-voting.js?v=1337';
+      v1337.async = false;
+      v1337.onerror = () => console.error('RIVALSNOTEBOOK v13.37 community voting UI could not be loaded.');
+      document.head.appendChild(v1337);
+    };
     document.head.appendChild(v1335);
   };
   document.head.appendChild(v1334);
