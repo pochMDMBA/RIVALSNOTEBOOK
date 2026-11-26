@@ -261,6 +261,7 @@
           else reason.appendChild(attribution);
         }
         appendMatchupCommunityActions(reason, voteStack, threadKey);
+        if (actions && !actions.children.length) actions.remove();
         return template.innerHTML;
       };
       wrapped.__rnV1337 = true;
