@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v13.39</title>
+<title>RIVALSNOTEBOOK · v13.40</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -769,12 +769,12 @@ function selectorLabel(type,value){if(type==='hero')return value;const g=state.g
 function expandGroupRules(enemyNames=state.enemy){const out=[];for(const rule of state.groupRules){const sourceMembers=groupMembers(rule.sourceType,rule.sourceValue),targetMembers=groupMembers(rule.targetType,rule.targetValue);for(const counterHero of sourceMembers){for(const against of targetMembers){const key=pairKey(counterHero,against);if(!enemyNames.includes(against)||counterHero===against||rule.excludedPairs.includes(key))continue;out.push({id:`group:${rule.id}:${encodeURIComponent(counterHero)}:${encodeURIComponent(against)}`,groupRuleId:rule.id,pairKey:key,generated:true,against,hero:counterHero,tier:rule.tier,reason:rule.reason,votes:Number(rule.votesByPair[key])||0,myVote:!!rule.myVotesByPair[key],source:`Group rule · ${selectorLabel(rule.sourceType,rule.sourceValue)} → ${selectorLabel(rule.targetType,rule.targetValue)}`,sourceUrl:'',pocketPlayId:String((rule.pocketPlayByPair&&rule.pocketPlayByPair[key])||rule.pocketPlayId||'')})}}}return out}
 function expandComboRules(team=state.ally){const picks=new Set(team),out=[];if(!picks.size)return out;for(const rule of state.comboRules){const seen=new Set(),left=groupMembers(rule.sourceType,rule.sourceValue),right=groupMembers(rule.targetType,rule.targetValue);for(const a of left){for(const b of right){const key=pairComboKey(a,b);if(a===b||seen.has(key)||(!picks.has(a)&&!picks.has(b)))continue;seen.add(key);out.push({id:`group-synergy:${rule.id}:${encodeURIComponent(a)}:${encodeURIComponent(b)}`,ruleId:rule.id,pairKey:key,generated:true,a,b,reason:rule.reason,official:rule.official,votes:Number(rule.votesByPair[key])||0,myVote:!!rule.myVotesByPair[key],source:`Group synergy · ${selectorLabel(rule.sourceType,rule.sourceValue)} + ${selectorLabel(rule.targetType,rule.targetValue)}`,sourceUrl:rule.sourceUrl||'',icon:rule.icon||'sparkles',pocketPlayId:String((rule.pocketPlayByPair&&rule.pocketPlayByPair[key])||rule.pocketPlayId||'')})}}}return out}
 
-function reasonHtml(t){
+function reasonHtml(t,hideVote=false){
  const targetHero=hero(t.against),initials=String(t.against||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('');
  const target=`<span class="reason-vs">VS</span><span class="reason-target-hero"><span class="reason-target-icon">${targetHero?.img?`<img src="${escapeHtml(targetHero.img)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()">`:''}<span class="reason-icon-fallback">${escapeHtml(initials)}</span></span><span class="reason-target-name">${escapeHtml(t.against)}</span></span>${t.generated?`<span class="group-result-tag">GROUP RULE</span>`:''}`;
  const vote=t.generated?`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-groupcounter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="${t.myVote?'Remove your upvote':'Upvote this individual matchup'}">▲ ${t.votes}</button>`:`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-counter="${escapeHtml(t.id)}" title="${t.myVote?'Remove your upvote':'Upvote this reason'}">▲ ${t.votes}</button>`;
  const edit=t.generated?`<button class="edit-btn" data-edit-generated-counter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="Edit only this hero matchup">EDIT</button>`:`<button class="edit-btn" data-edit-counter="${escapeHtml(t.id)}">EDIT</button>`;
- return `<div class="reason"><div class="reason-top"><span class="reason-target">${target}</span><div class="reason-actions"><span class="tier-badge ${TIER[t.tier].cls}">${TIER[t.tier].label} · ${TIER[t.tier].weight.toFixed(1)}x</span><span class="reason-points">${counterPoints(t)} pts</span>${pocketAction(t.pocketPlayId)}${vote}</div></div><div class="reason-text">${escapeHtml(t.reason)}</div><div class="reason-bottom-actions">${edit}</div>${t.source?`<div class="tip-foot">${t.sourceUrl?`<a href="${escapeHtml(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t.source)} ↗</a>`:escapeHtml(t.source)}</div>`:''}</div>`;
+ return `<div class="reason"><div class="reason-top"><span class="reason-target">${target}</span><div class="reason-actions"><span class="tier-badge ${TIER[t.tier].cls}">${TIER[t.tier].label} · ${TIER[t.tier].weight.toFixed(1)}x</span><span class="reason-points">${counterPoints(t)} pts</span>${pocketAction(t.pocketPlayId)}${hideVote?'':vote}</div></div><div class="reason-text">${escapeHtml(t.reason)}</div><div class="reason-bottom-actions">${edit}</div>${t.source?`<div class="tip-foot">${t.sourceUrl?`<a href="${escapeHtml(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t.source)} ↗</a>`:escapeHtml(t.source)}</div>`:''}</div>`;
 }
 function roleColumnForRole(role){
  const normalized=String(role||'').toLowerCase();
@@ -802,19 +802,46 @@ function renderCounterResults(){
  for(const card of cards)byRole.get(roleColumnForHero(card.name)).push(card);
  const compareCounterCards=(a,b)=>b.points-a.points||b.totalVotes-a.totalVotes||b.weight-a.weight||b.targets.length-a.targets.length||a.name.localeCompare(b.name);
  for(const entries of byRole.values())entries.sort(compareCounterCards);
+ 
  const collapsed=new Set(Array.isArray(state.collapsedCounterHeroes)?state.collapsedCounterHeroes:[]);
  const renderCard=c=>{
-   const h=hero(c.name),isCollapsed=collapsed.has(c.name),reasonCount=c.arr.length;
-   return `<article class="pick-card counter-suggestion ${isCollapsed?'counter-collapsed':''}" data-counter-suggestion="${escapeHtml(c.name)}">
-     <div class="pick-avatar"><div class="pick-portrait"><img src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(c.name)}" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="pick-fallback">${escapeHtml(c.name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div></div>
-     <div class="pick-main">
-       <div class="pick-main-head">
-         <div class="pick-identity"><div class="pick-name">${escapeHtml(c.name)}</div><div class="pick-role">${escapeHtml(c.h?.role==='Strategist'?'Support':h?.role||'Hero')} · ${reasonCount} applicable matchup${reasonCount===1?'':'s'}</div></div>
-         <div class="pick-head-actions"><div class="pick-score"><strong>${c.points}</strong><span>PTS</span></div><button type="button" class="counter-collapse-toggle" data-toggle-counter-card="${escapeHtml(c.name)}" aria-expanded="${!isCollapsed}" title="${isCollapsed?'Expand':'Collapse'} ${escapeHtml(c.name)} suggestion">${isCollapsed?'＋ SHOW':'− HIDE'}</button></div>
+   const h=hero(c.name),isCollapsed=collapsed.has(c.name),reasonCount=c.arr.length,topTip=c.arr[0]||{};
+   const initials=String(c.name||'?').split(/\\s+/).map(w=>w[0]).slice(0,2).join('');
+   const avatar=h?.img?`<img src="${escapeHtml(h.img)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()">`:''; 
+   const sourceText=topTip.source||'Community contributor';
+   const sourceMarkup=topTip.sourceUrl?`<a href="${escapeHtml(topTip.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(sourceText)} ↗</a>`:`<span>${escapeHtml(sourceText)}</span>`;
+   const vote=topTip.generated
+     ?`<button class="vote-btn rn-post-vote ${topTip.myVote?'voted':''}" data-vote-groupcounter="${escapeHtml(topTip.groupRuleId)}" data-pair-key="${escapeHtml(topTip.pairKey)}" title="${topTip.myVote?'Remove your upvote':'Upvote this best counter matchup'}">▲ ${Number(topTip.votes)||0} <span>UPVOTES</span></button>`
+     :`<button class="vote-btn rn-post-vote ${topTip.myVote?'voted':''}" data-vote-counter="${escapeHtml(topTip.id)}" title="${topTip.myVote?'Remove your upvote':'Upvote this best counter matchup'}">▲ ${Number(topTip.votes)||0} <span>UPVOTES</span></button>`;
+   const tier=TIER[topTip.tier]||TIER.moderate;
+   const targetChips=c.targets.map(name=>{
+     const targetHero=hero(name),targetInitials=String(name||'?').split(/\\s+/).map(w=>w[0]).slice(0,2).join('');
+     return `<span class="rn-post-target-chip"><span class="rn-post-target-avatar">${targetHero?.img?`<img src="${escapeHtml(targetHero.img)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()">`:''}<span>${escapeHtml(targetInitials)}</span></span><span>${escapeHtml(name)}</span></span>`;
+   }).join('');
+   return `<article class="pick-card counter-suggestion rn-reddit-post counter-post ${isCollapsed?'counter-collapsed':''}" data-counter-suggestion="${escapeHtml(c.name)}">
+     <div class="rn-post-header">
+       <div class="rn-post-avatar">${avatar}<span class="rn-post-avatar-fallback">${escapeHtml(initials)}</span></div>
+       <div class="rn-post-header-copy">
+         <div class="rn-post-byline"><strong>r/counterpicks</strong><span class="rn-post-dot">•</span><span>submitted by</span>${sourceMarkup}</div>
+         <div class="rn-post-title">${escapeHtml(c.name)}</div>
+         <div class="rn-post-subtitle">${escapeHtml(h?.role==='Strategist'?'Support':h?.role||'Hero')} · BEST HERO COUNTER</div>
        </div>
-       <div class="counter-card-body" ${isCollapsed?'hidden':''}><div class="reason-list">${c.arr.map(reasonHtml).join('')}</div></div>
-       <div class="counter-collapsed-summary" ${isCollapsed?'':'hidden'}>${reasonCount} matchup reason${reasonCount===1?'':'s'} hidden. Expand to review.</div>
      </div>
+     <div class="rn-post-actions">
+       ${vote}
+       <button type="button" class="rn-post-comment-toggle counter-collapse-toggle" data-toggle-counter-card="${escapeHtml(c.name)}" aria-expanded="${!isCollapsed}" title="${isCollapsed?'Show':'Hide'} matchup comments">□ ${reasonCount} COMMENT${reasonCount===1?'':'S'}</button>
+       <span class="rn-post-rating ${tier.cls}">${escapeHtml(tier.label)}</span>
+       <span class="rn-post-points"><strong>${c.points}</strong><span>PTS</span></span>
+     </div>
+     <div class="rn-post-targets">
+       <div class="rn-post-section-label">COUNTERS YOUR SELECTED ENEMIES</div>
+       <div class="rn-post-target-list">${targetChips}</div>
+     </div>
+     <div class="counter-card-body" ${isCollapsed?'hidden':''}>
+       <div class="rn-post-comments-heading">${reasonCount} matchup comment${reasonCount===1?'':'s'}</div>
+       <div class="reason-list">${c.arr.map((t,i)=>reasonHtml(t,i===0)).join('')}</div>
+     </div>
+     <div class="counter-collapsed-summary" ${isCollapsed?'':'hidden'}>${reasonCount} matchup comment${reasonCount===1?'':'s'} hidden. Expand to review.</div>
    </article>`;
  };
  const hasMore=roles.some(role=>byRole.get(role).length>5);
@@ -1061,18 +1088,46 @@ initData();bindPlaybook();render();renderPlaybook();
 
   // Synergy cards use the same character portraits/visual hierarchy as counter recommendations.
   
+  
   comboCardHtml = function(c){
     const aIn=state.ally.includes(c.a),bIn=state.ally.includes(c.b);
     const status=aIn&&bIn?'TEAM PAIR ACTIVE':aIn?`SUGGEST ADD · ${c.b.toUpperCase()}`:bIn?`SUGGEST ADD · ${c.a.toUpperCase()}`:'MATCH';
+    const aHero=hero(c.a),bHero=hero(c.b);
     const heroTile=(name,inTeam)=>{
       const h=hero(name);
-      return `<div class="synergy-hero-tile ${inTeam?'in-team':'suggested'}"><div class="synergy-portrait"><img loading="lazy" src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(name)}" onerror="this.parentElement.classList.add('broken');this.remove()"><span>${escapeHtml(name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><div class="synergy-hero-name">${escapeHtml(name)}</div><div class="synergy-hero-role">${escapeHtml(h?.role==='Strategist'?'Support':h?.role||'Hero')}</div><div class="synergy-state">${inTeam?'IN TEAM':'SUGGESTED'}</div></div>`;
+      return `<div class="synergy-hero-tile ${inTeam?'in-team':'suggested'}"><div class="synergy-portrait"><img loading="lazy" src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(name)}" onerror="this.parentElement.classList.add('broken');this.remove()"><span>${escapeHtml(name.split(/\\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><div class="synergy-hero-name">${escapeHtml(name)}</div><div class="synergy-hero-role">${escapeHtml(h?.role==='Strategist'?'Support':h?.role||'Hero')}</div><div class="synergy-state">${inTeam?'IN TEAM':'SUGGESTED'}</div></div>`;
     };
-    const vote=c.generated?`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}" title="Upvote this matchup">▲ ${Number(c.votes)||0}</button>`:`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}" title="Upvote this synergy">▲ ${Number(c.votes)||0}</button>`;
+    const avatar=(name,h)=>`<span class="rn-post-pair-avatar">${h?.img?`<img src="${escapeHtml(h.img)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()">`:''}<span>${escapeHtml(String(name||'?').split(/\\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></span>`;
+    const sourceText=c.source||'Community contributor';
+    const sourceMarkup=c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(sourceText)} ↗</a>`:`<span>${escapeHtml(sourceText)}</span>`;
+    const vote=c.generated
+      ?`<button class="vote-btn rn-post-vote ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}" title="${c.myVote?'Remove your upvote':'Upvote this synergy'}">▲ ${Number(c.votes)||0} <span>UPVOTES</span></button>`
+      :`<button class="vote-btn rn-post-vote ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}" title="${c.myVote?'Remove your upvote':'Upvote this synergy'}">▲ ${Number(c.votes)||0} <span>UPVOTES</span></button>`;
     const edit=c.generated?`<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>`:`<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;
+    const category=c.official?'<span class="combo-official rn-post-rating-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag rn-post-rating-community">COMMUNITY SYNERGY</span>';
+    const points=synergyPoints(c),commentCount=String(c.reason||'').trim()?1:0;
     const icon=typeof iconSvg==='function'?iconSvg(c.icon||'sparkles'):'✦';
-    const category=c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>';
-    return `<article class="combo-card synergy-match-card"><div class="combo-head">${vote}<div class="combo-icon">${icon}</div><div class="combo-title-wrap"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="synergy-hero-pair">${heroTile(c.a,aIn)}<div class="synergy-plus">+</div>${heroTile(c.b,bIn)}</div><div class="combo-status">${status}</div><div class="synergy-tag-row">${category}${edit}${c.generated?'<span class="group-result-tag">GROUP RULE</span>':''}</div><div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${typeof pocketAction==='function'?pocketAction(c.pocketPlayId):''}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`;
+    return `<article class="combo-card synergy-match-card rn-reddit-post synergy-post">
+      <div class="rn-post-header">
+        <div class="rn-post-avatar-pair">${avatar(c.a,aHero)}<span class="rn-post-pair-plus">+</span>${avatar(c.b,bHero)}</div>
+        <div class="rn-post-header-copy">
+          <div class="rn-post-byline"><strong>r/synergies</strong><span class="rn-post-dot">•</span><span>submitted by</span>${sourceMarkup}</div>
+          <div class="rn-post-title">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div>
+          <div class="rn-post-subtitle">${escapeHtml(status)}</div>
+        </div>
+        <div class="rn-post-kind-icon" title="Synergy type">${icon}</div>
+      </div>
+      <div class="rn-post-actions">
+        ${vote}
+        <button type="button" class="rn-post-comment-toggle" data-toggle-synergy-comment aria-expanded="true" title="Show or hide the synergy explanation">▤ ${commentCount} COMMENT${commentCount===1?'':'S'}</button>
+        <span class="rn-post-category-edit">${category}${edit}${c.generated?'<span class="group-result-tag">GROUP RULE</span>':''}</span>
+        <span class="rn-post-points"><strong>${points}</strong><span>PTS</span></span>
+      </div>
+      <div class="synergy-hero-pair">${heroTile(c.a,aIn)}<div class="synergy-plus">+</div>${heroTile(c.b,bIn)}</div>
+      <div class="combo-status">${status}</div>
+      <div class="rn-post-comment-body"><div class="rn-post-comments-heading">Community explanation</div><div class="combo-reason">${escapeHtml(c.reason)}</div></div>
+      <div class="combo-foot"><div class="reason-actions">${typeof pocketAction==='function'?pocketAction(c.pocketPlayId):''}</div></div>
+    </article>`;
   };
 
   function expandComboRulesForSuggestions(team){
@@ -8710,3 +8765,127 @@ body.playbook-mode #playBoardStage>.board-item.board-number.rn-number-compact .r
 }
 body.playbook-mode #playBoardStage>.board-item.board-number.rn-number-compact .resize-handle::after{display:none!important;}
 </style>
+
+<style id="rn-v13-40-reddit-post-layout">
+/* Shared Reddit-inspired post frame for Counterpicks and Synergies. */
+#counterPage .rn-reddit-post,#synergiesPage .rn-reddit-post{
+  display:block!important;box-sizing:border-box!important;min-width:0!important;
+  padding:11px!important;border:1px solid #46515d!important;border-radius:10px!important;
+  background:linear-gradient(145deg,#1d2832,#17212a)!important;
+  color:#edf2f7!important;box-shadow:0 3px 11px #0003!important;
+}
+#counterPage .rn-post-header,#synergiesPage .rn-post-header{
+  display:flex!important;align-items:flex-start!important;gap:10px!important;
+  min-width:0!important;margin:0 0 8px!important;
+}
+.rn-post-avatar,.rn-post-pair-avatar{
+  position:relative!important;display:grid!important;place-items:center!important;flex:0 0 42px!important;
+  width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;
+  overflow:hidden!important;border:1px solid #60717f!important;border-radius:50%!important;
+  background:#263642!important;color:#eaf3f8!important;font-size:10px!important;font-weight:900!important;
+}
+.rn-post-avatar img,.rn-post-pair-avatar img{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+  object-fit:cover!important;object-position:center!important;z-index:1!important;
+}
+.rn-post-avatar-fallback,.rn-post-pair-avatar>span{position:relative!important;z-index:0!important}
+.rn-post-avatar:has(img:not([src=""])) .rn-post-avatar-fallback,
+.rn-post-pair-avatar:has(img:not([src=""]))>span{display:none!important}
+.rn-post-avatar.broken .rn-post-avatar-fallback,.rn-post-pair-avatar.broken>span{display:grid!important}
+.rn-post-avatar-pair{display:flex!important;align-items:center!important;gap:2px!important;flex:0 0 auto!important;min-width:0!important;padding:0 2px!important}
+.rn-post-pair-avatar{width:31px!important;height:31px!important;min-width:31px!important;min-height:31px!important;flex:0 0 31px!important}
+.rn-post-pair-plus{font-size:10px!important;font-weight:950!important;color:#d9c779!important}
+.rn-post-header-copy{min-width:0!important;flex:1 1 auto!important}
+.rn-post-byline{
+  display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:4px!important;
+  margin:0 0 4px!important;color:#aebbc7!important;font-size:9px!important;line-height:1.3!important;
+}
+.rn-post-byline strong{color:#9cc8e4!important;font-size:10px!important;font-weight:900!important}
+.rn-post-byline a{color:#b9d9ec!important;text-decoration:none!important;overflow-wrap:anywhere!important}
+.rn-post-byline a:hover{text-decoration:underline!important}
+.rn-post-dot{color:#8997a4!important;padding:0 1px!important}
+.rn-post-title{font-size:15px!important;line-height:1.25!important;font-weight:900!important;letter-spacing:-.015em!important;overflow-wrap:anywhere!important}
+.rn-post-subtitle{font-size:8px!important;line-height:1.25!important;color:#9eacb9!important;font-weight:850!important;letter-spacing:.06em!important;margin-top:3px!important}
+.rn-post-kind-icon{display:grid!important;place-items:center!important;flex:0 0 26px!important;width:26px!important;height:26px!important;color:#c5e2ed!important;opacity:.85!important}
+.rn-post-kind-icon svg{width:100%!important;height:100%!important}
+.rn-post-actions{
+  display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:6px!important;
+  min-width:0!important;padding:7px 0!important;margin:7px 0!important;
+  border-top:1px solid #344451!important;border-bottom:1px solid #344451!important;
+}
+.rn-post-vote,.rn-post-comment-toggle{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:5px!important;
+  min-height:27px!important;padding:4px 9px!important;border:1px solid #405260!important;border-radius:999px!important;
+  background:#2b3944!important;color:#eaf2f7!important;font-size:9px!important;font-weight:850!important;
+  white-space:nowrap!important;cursor:pointer!important;
+}
+.rn-post-vote span{font-size:7px!important;letter-spacing:.07em!important;opacity:.8!important}
+.rn-post-vote.voted{background:#27526b!important;border-color:#68b6dc!important;color:#fff!important}
+.rn-post-vote:hover,.rn-post-comment-toggle:hover{border-color:#91b1c4!important;background:#344956!important}
+.rn-post-comment-toggle{color:#d3dce4!important}
+.rn-post-rating{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-height:25px!important;padding:4px 8px!important;border:1px solid #526171!important;border-radius:999px!important;
+  font-size:8px!important;font-weight:950!important;letter-spacing:.035em!important;white-space:nowrap!important;
+}
+.rn-post-rating.tier-hard{background:#56383a!important;border-color:#a75d5f!important;color:#ffd7d4!important}
+.rn-post-rating.tier-moderate{background:#55492e!important;border-color:#a58a4d!important;color:#f7e4ad!important}
+.rn-post-rating.tier-soft{background:#304654!important;border-color:#557e94!important;color:#cce8f5!important}
+.rn-post-rating-official{background:#51462b!important;border-color:#a58a4d!important;color:#ffebad!important}
+.rn-post-rating-community{background:#25433d!important;border-color:#4b8976!important;color:#bce9dc!important}
+.rn-post-points{display:inline-flex!important;align-items:baseline!important;gap:4px!important;margin-left:auto!important;padding:4px 8px!important;border-radius:6px!important;background:#3b3e32!important;color:#f5df8b!important;white-space:nowrap!important}
+.rn-post-points strong{font-size:12px!important;font-weight:950!important}
+.rn-post-points span{font-size:7px!important;font-weight:950!important;letter-spacing:.08em!important}
+.rn-post-targets{min-width:0!important;margin:7px 0 9px!important}
+.rn-post-section-label,.rn-post-comments-heading{margin:0 0 5px!important;color:#99aab8!important;font-size:8px!important;font-weight:950!important;letter-spacing:.09em!important}
+.rn-post-target-list{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:5px!important;min-width:0!important}
+.rn-post-target-chip{display:inline-flex!important;align-items:center!important;gap:5px!important;min-width:0!important;padding:3px 7px 3px 3px!important;border:1px solid #435563!important;border-radius:999px!important;background:#263540!important;color:#e4edf3!important;font-size:9px!important;font-weight:800!important}
+.rn-post-target-avatar{position:relative!important;display:grid!important;place-items:center!important;flex:0 0 23px!important;width:23px!important;height:23px!important;overflow:hidden!important;border-radius:50%!important;background:#394b58!important;color:#edf3f7!important;font-size:7px!important;font-weight:900!important}
+.rn-post-target-avatar img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;z-index:1!important}
+.rn-post-target-avatar>span{position:relative!important;z-index:0!important}
+.rn-post-target-avatar:has(img:not([src=""]))>span{display:none!important}
+.rn-post-target-avatar.broken>span{display:grid!important}
+#counterPage .rn-post-comments-heading{margin-top:8px!important}
+#counterPage .rn-matchup-comment{margin-top:6px!important;padding:8px!important;border:1px solid #354754!important;border-radius:7px!important;background:#202f3a!important}
+#counterPage .rn-matchup-comment .reason-top{gap:6px!important}
+#counterPage .rn-matchup-comment .reason-target{min-width:0!important}
+#counterPage .rn-matchup-comment .reason-text{font-size:9px!important;line-height:1.45!important;color:#d6e0e8!important}
+#counterPage .rn-matchup-comment .reason-bottom-actions{margin-top:6px!important}
+#counterPage .rn-matchup-comment .tip-foot{font-size:7px!important}
+#counterPage .counter-collapsed-summary{padding:8px!important;margin-top:5px!important;border:1px dashed #536675!important;border-radius:6px!important;color:#afbec9!important;font-size:9px!important}
+#synergiesPage .synergy-post .synergy-hero-pair{margin:8px 0!important}
+#synergiesPage .synergy-post .combo-status{margin:6px 0!important}
+#synergiesPage .synergy-post .rn-post-category-edit{display:inline-flex!important;align-items:center!important;flex-wrap:wrap!important;gap:5px!important}
+#synergiesPage .synergy-post .rn-post-category-edit .edit-btn{min-height:25px!important;padding:4px 8px!important}
+#synergiesPage .synergy-post .rn-post-comment-body{margin:7px 0!important;padding:8px 9px!important;border:1px solid #354754!important;border-radius:7px!important;background:#202f3a!important}
+#synergiesPage .synergy-post .rn-post-comment-body[hidden]{display:none!important}
+#synergiesPage .synergy-post .combo-reason{margin:0!important;font-size:10px!important;line-height:1.45!important;color:#d6e0e8!important}
+#synergiesPage .synergy-post .combo-foot{display:flex!important;justify-content:flex-start!important;align-items:center!important;margin-top:7px!important}
+#synergiesPage .synergy-post .reason-actions{display:flex!important;align-items:center!important;gap:5px!important}
+@media(max-width:600px){
+  #counterPage .rn-reddit-post,#synergiesPage .rn-reddit-post{padding:9px!important}
+  .rn-post-header{gap:8px!important}
+  .rn-post-avatar{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;flex-basis:38px!important}
+  .rn-post-title{font-size:13px!important}
+  .rn-post-actions{gap:5px!important}
+  .rn-post-points{margin-left:auto!important}
+}
+</style>
+<script id="rn-v13-40-synergy-comment-toggle">
+(()=>{
+  if(window.__rnV1340SynergyCommentToggle)return;
+  window.__rnV1340SynergyCommentToggle=true;
+  document.addEventListener('click',event=>{
+    const target=event.target instanceof Element?event.target:null;
+    const button=target?.closest('[data-toggle-synergy-comment]');
+    if(!button)return;
+    const card=button.closest('.synergy-post');
+    const body=card?.querySelector('.rn-post-comment-body');
+    if(!body)return;
+    const expanded=button.getAttribute('aria-expanded')==='true';
+    body.hidden=expanded;
+    button.setAttribute('aria-expanded',String(!expanded));
+    button.title=expanded?'Show the synergy explanation':'Hide the synergy explanation';
+  });
+})();
+</script>
