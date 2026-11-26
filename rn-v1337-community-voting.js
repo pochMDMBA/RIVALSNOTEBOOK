@@ -532,7 +532,6 @@
         if (description) {
           description.querySelector('.rn-post-section-label')?.remove();
           description.classList.add('rn-synergy-entry-description');
-          entry.appendChild(description);
         }
 
         const communityRow = card.querySelector('.rn-synergy-community-actions');
@@ -548,6 +547,7 @@
         }
 
         entry.appendChild(entryHeader);
+        if (description) entry.appendChild(description);
         if (communityRow) entry.appendChild(communityRow);
 
         const panel = communityRow?.nextElementSibling?.matches?.('[data-community-comment-panel]')
