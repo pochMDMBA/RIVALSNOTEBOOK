@@ -425,7 +425,7 @@ function canonicalHeroName(name){const value=String(name||'');return value==='De
 function hero(name){const canonical=canonicalHeroName(name);return HEROES.find(h=>h.name===canonical)||HEROES.find(h=>h.name===name)}
 function ordered(list){return list.map(hero).filter(Boolean)}
 function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),1800)}
-function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify({counterTips:state.counterTips,combos:state.combos,groups:state.groups,groupRules:state.groupRules,comboRules:state.comboRules,plays:state.plays,activePlayId:state.activePlayId,playName:state.playName,playItems:state.playItems,pendingPocketLink:state.pendingPocketLink||null}))}catch(e){}}
+function persist(){try{localStorage.setItem(STORE_KEY,JSON.stringify({counterTips:state.counterTips,combos:state.combos,groups:state.groups,groupRules:state.groupRules,comboRules:state.comboRules,plays:state.plays,activePlayId:state.activePlayId,playName:state.playName,playItems:state.playItems,pendingPocketLink:state.pendingPocketLink||null,communityComments:state.communityComments||{}}))}catch(e){}}
 function normalizeCommunityComments(raw){
  const out={};
  if(!raw||typeof raw!=='object'||Array.isArray(raw))return out;
