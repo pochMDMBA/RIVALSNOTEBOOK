@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v13.30</title>
+<title>RIVALSNOTEBOOK · v13.31</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -3090,10 +3090,10 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   let hideAbilityLabels = localStorage.getItem('mrPlaybookHideAbilityLabels') === '1';
   let penModeActive = false, penStyle = 'solid', activeTool = 'select', pendingTextPlacement = false, penStroke = null;
   const storedNumber=(key,fallback)=>{const raw=localStorage.getItem(key);if(raw===null)return fallback;const value=Number(raw);return Number.isFinite(value)?value:fallback;};
-  let penThickness = Math.max(.05,Math.min(12,storedNumber('mrPlaybookPenThicknessV2',.3)));
+  let penThickness = Math.max(.05,Math.min(12,storedNumber('mrPlaybookPenThicknessV2',2.4)));
   let penColor = localStorage.getItem('rnPlaybookPenColor') || 'yellow';
   let penOpacity = Math.max(0,Math.min(1,storedNumber('rnPlaybookOpacity',1)));
-  const shapeStyleDefaults={fillOpacity:Math.max(0,Math.min(1,storedNumber('rnPlaybookFillOpacity',.17))),borderOpacity:Math.max(0,Math.min(1,storedNumber('rnPlaybookBorderOpacity',1))),borderWidth:Math.max(.05,Math.min(12,storedNumber('rnPlaybookShapeBorderWidth',2)))};
+  const shapeStyleDefaults={fillOpacity:Math.max(0,Math.min(1,storedNumber('rnPlaybookFillOpacity',1))),borderOpacity:Math.max(0,Math.min(1,storedNumber('rnPlaybookBorderOpacity',1))),borderWidth:Math.max(.05,Math.min(12,storedNumber('rnPlaybookShapeBorderWidth',2.4)))};
   const boardPaint = c => {const v=String(c||'yellow');return /^#[0-9a-f]{6}$/i.test(v)?v:({white:'#f4f7fb',black:'#101820',red:'#ef665c',yellow:'#f1d76b',green:'#79d89e',blue:'#68bdf2'}[v]||'#f1d76b');};
   let hideHeroLabels = localStorage.getItem('mrPlaybookHideHeroLabels') === '1';
   let imageInsertCenter = null;
@@ -3327,6 +3327,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   }
   window.__rnSyncToolSettingsVisibility=syncToolSettingsVisibility;
   window.__rnSetBoardShapeDefaults=values=>{if(!values||typeof values!=='object')return;if(Number.isFinite(Number(values.fillOpacity)))shapeStyleDefaults.fillOpacity=Math.max(0,Math.min(1,Number(values.fillOpacity)));if(Number.isFinite(Number(values.borderOpacity)))shapeStyleDefaults.borderOpacity=Math.max(0,Math.min(1,Number(values.borderOpacity)));if(Number.isFinite(Number(values.borderWidth)))shapeStyleDefaults.borderWidth=Math.max(.05,Math.min(12,Number(values.borderWidth)));};
+  window.__rnSetBoardPenThickness=value=>{const v=Math.max(.05,Math.min(12,Number(value)||2.4));penThickness=v;localStorage.setItem('mrPlaybookPenThicknessV2',String(v));localStorage.setItem('rnPlaybookShapeBorderWidth',String(v));const input=$('boardPenThickness'),output=$('boardPenThicknessValue');if(input)input.value=String(v);if(output)output.textContent=v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'');window.__rnSetBoardShapeDefaults?.({borderWidth:v});return v;};
   function clampRenderedItem(item, el) {
     // Preserve the exact stored position on every map. No hidden safe-area or edge clamp is applied.
     if(!item||!el)return;
@@ -3534,6 +3535,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       const mainPen=document.querySelector('[data-rn-primary-tool="pen"]');if(mainPen)mainPen.classList.toggle('active',tool.startsWith('pen-'));
       board.style.cursor=tool==='select'?'default':penModeActive?'crosshair':tool==='text'?'text':'default';
     };
+    window.__rnResetBoardPenStyleDefault=()=>{if(penModeActive)setTool('pen-solid');else penStyle='solid';};
     window.__rnSetBoardTool = tool => setTool(String(tool||'select'));
     window.__rnGetBoardTool = () => activeTool;
     window.__rnSetBoardStyle = (color,opacity) => { if(color)penColor=String(color); if(Number.isFinite(Number(opacity)))penOpacity=Math.max(0,Math.min(1,Number(opacity))); };
@@ -4408,30 +4410,31 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
  if(originalHeading)originalHeading.remove();
  // A compact primary row mirrors the supplied toolbar reference.
  const kit=document.createElement('section');kit.className='rn-toolkit';kit.innerHTML=`
+   <button class="rn-tool-defaults" type="button" id="rnToolDefaultsBtn">DEFAULTS</button>
    <div class="rn-primary-tools" id="rnPrimaryToolBar" role="toolbar" aria-label="Whiteboard tools"></div>
    <div class="rn-tool-settings" id="rnToolSettings" hidden>
      <div class="rn-setting-row rn-type-row"><span class="rn-setting-label">TYPE</span><div class="rn-type-slot"></div></div>
      <div class="rn-setting-row rn-color-row"><span class="rn-setting-label">COLOR</span><div class="rn-color-swatches" id="rnColorSwatches"></div></div>
      <div class="rn-setting-row rn-opacity-row" id="rnToolOpacityRow"><span class="rn-setting-label">OPACITY</span><output id="rnToolOpacityValue">100%</output><input id="rnToolOpacity" type="range" min="0" max="100" step="1" value="100"></div>
-     <div class="rn-setting-row rn-opacity-row" id="rnToolFillOpacityRow" hidden><span class="rn-setting-label">FILL OPACITY</span><output id="rnToolFillOpacityValue">17%</output><input id="rnToolFillOpacity" type="range" min="0" max="100" step="1" value="17"></div>
+     <div class="rn-setting-row rn-opacity-row" id="rnToolFillOpacityRow" hidden><span class="rn-setting-label">FILL OPACITY</span><output id="rnToolFillOpacityValue">100%</output><input id="rnToolFillOpacity" type="range" min="0" max="100" step="1" value="100"></div>
      <div class="rn-setting-row rn-opacity-row" id="rnToolBorderOpacityRow" hidden><span class="rn-setting-label">BORDER OPACITY</span><output id="rnToolBorderOpacityValue">100%</output><input id="rnToolBorderOpacity" type="range" min="0" max="100" step="1" value="100"></div>
      <div class="rn-setting-row rn-thickness-row" id="rnToolThicknessRow"><span class="rn-setting-label">THICKNESS</span><div class="rn-thickness-slot"></div></div>
      <div class="rn-text-style-controls" id="rnTextStyleControls" hidden>
        <div class="rn-text-style-control rn-text-style-fill" title="Text box fill">
          <span>FILL</span>
-         <input id="rnTextFillColor" type="color" value="#253845" aria-label="Text box fill color">
+         <input id="rnTextFillColor" type="color" value="#505050" aria-label="Text box fill color">
          <button type="button" class="rn-text-action-btn rn-text-icon-btn" id="rnTextNoFillBtn" aria-pressed="false" title="Toggle no fill" aria-label="No fill"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.5" y="3.5" width="17" height="17" rx="2" fill="#fff" stroke="#dce7ef"/><path d="M5 19 19 5" fill="none" stroke="#e14d58" stroke-width="2.8" stroke-linecap="round"/></svg></button>
          <input id="rnTextNoFill" class="rn-text-state-input" type="checkbox" tabindex="-1" aria-hidden="true">
        </div>
        <div class="rn-text-style-control rn-text-style-border" title="Text box border">
          <span>BORDER</span>
-         <input id="rnTextBorderColor" type="color" value="#73c9c4" aria-label="Text box border color">
-         <button type="button" class="rn-text-action-btn rn-text-icon-btn rn-borderless-icon" id="rnTextNoBorderBtn" aria-pressed="false" title="Toggle no border" aria-label="No border"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#eaf2f7" stroke-width="2"/><path d="M5 19 19 5" fill="none" stroke="#e14d58" stroke-width="2.8" stroke-linecap="round"/></svg></button>
+         <input id="rnTextBorderColor" type="color" value="#505050" aria-label="Text box border color">
+         <button type="button" class="rn-text-action-btn rn-text-icon-btn rn-borderless-icon" id="rnTextNoBorderBtn" aria-pressed="true" title="Toggle no border" aria-label="No border"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#eaf2f7" stroke-width="2"/><path d="M5 19 19 5" fill="none" stroke="#e14d58" stroke-width="2.8" stroke-linecap="round"/></svg></button>
          <input id="rnTextNoBorder" class="rn-text-state-input" type="checkbox" tabindex="-1" aria-hidden="true">
        </div>
        <div class="rn-text-style-control rn-text-style-font" title="Text color and weight">
          <span>TEXT</span>
-         <input id="rnTextFontColor" type="color" value="#f2f7fa" aria-label="Text color">
+         <input id="rnTextFontColor" type="color" value="#ffc800" aria-label="Text color">
          <button type="button" class="rn-text-action-btn rn-text-bold-btn" id="rnTextBoldBtn" aria-pressed="false" title="Toggle bold text">B</button>
        </div>
      </div>
@@ -4452,6 +4455,35 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
  imageBtn.innerHTML='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m4 18 6-6 3.5 3.5 2.5-2.5 4 5"/></svg>';imageBtn.classList.add('rn-primary-tool');
  const legacyPenRow=penRow;
  const settings=kit.querySelector('#rnToolSettings');
+ const stage=$('playBoardStage');
+ function findVacantBoardSpot(type='shape',shapeKind='rectangle'){
+   if(!stage)return null;
+   const sw=Math.max(1,stage.clientWidth),sh=Math.max(1,stage.clientHeight),margin=14,gap=14;
+   const dims={area:[14,12],circle:[9,14],rectangle:[11,13],triangle:[11,14],'triangle-down':[11,14],diamond:[9,14],cone:[10,14],star:[9,14],line:[14,4],pin:[9,14],warning:[10,14],flag:[9,14],anchor:[9,14],target:[10,14]};
+   let wp=11,hp=13;
+   if(type==='shape'){[wp,hp]=dims[shapeKind]||[11,13];}
+   else if(type==='wall'){wp=15;hp=5;}
+   else if(type==='arrow'){wp=15;hp=6;}
+   else if(type==='number'){wp=5.5;hp=9;}
+   const w=Math.max(34,sw*wp/100),h=Math.max(30,sh*hp/100);
+   const occupied=[...stage.querySelectorAll('.board-item[data-board-item]')].map(el=>{
+     const left=Number(el.offsetLeft)||0,top=Number(el.offsetTop)||0;
+     const width=Math.max(1,Number(el.offsetWidth)||w),height=Math.max(1,Number(el.offsetHeight)||h);
+     return {left:left-gap,top:top-gap,right:left+width+gap,bottom:top+height+gap};
+   });
+   const minX=margin+w/2,maxX=sw-margin-w/2,minY=margin+h/2,maxY=sh-margin-h/2;
+   if(maxX<minX||maxY<minY)return null;
+   const candidates=[];
+   const stepX=Math.max(22,Math.min(44,w*.32)),stepY=Math.max(22,Math.min(44,h*.32));
+   for(let y=minY;y<=maxY;y+=stepY){for(let x=minX;x<=maxX;x+=stepX)candidates.push({x,y});}
+   candidates.sort((a,b)=>Math.hypot(a.x-sw/2,a.y-sh/2)-Math.hypot(b.x-sw/2,b.y-sh/2));
+   for(const point of candidates){
+     const box={left:point.x-w/2,top:point.y-h/2,right:point.x+w/2,bottom:point.y+h/2};
+     const collision=occupied.some(area=>box.left<area.right&&box.right>area.left&&box.top<area.bottom&&box.bottom>area.top);
+     if(!collision)return {x:point.x/sw*100,y:point.y/sh*100};
+   }
+   return null;
+ }
  if(legacyPenRow){legacyPenRow.classList.add('rn-type-buttons');kit.querySelector('.rn-type-slot').appendChild(legacyPenRow);}
  if(thickness){kit.querySelector('.rn-thickness-slot').appendChild(thickness);}
  const swatches=kit.querySelector('#rnColorSwatches');
@@ -4460,9 +4492,9 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
  const storedOpacity=localStorage.getItem('rnPlaybookOpacity');
  let currentOpacity=storedOpacity===null?1:Math.max(0,Math.min(1,Number(storedOpacity)||0));
  const storedFill=localStorage.getItem('rnPlaybookFillOpacity'),storedBorder=localStorage.getItem('rnPlaybookBorderOpacity');
- let currentFillOpacity=storedFill===null?.17:Math.max(0,Math.min(1,Number(storedFill)||0));
+ let currentFillOpacity=storedFill===null?1:Math.max(0,Math.min(1,Number(storedFill)||0));
  let currentBorderOpacity=storedBorder===null?1:Math.max(0,Math.min(1,Number(storedBorder)||0));
- const textStyleDefaults={fillColor:localStorage.getItem('rnPlaybookTextFillColor')||'#253845',borderColor:localStorage.getItem('rnPlaybookTextBorderColor')||'#73c9c4',textColor:localStorage.getItem('rnPlaybookTextColor')||'#f2f7fa',noFill:localStorage.getItem('rnPlaybookTextNoFill')==='1',noBorder:localStorage.getItem('rnPlaybookTextNoBorder')==='1',bold:localStorage.getItem('rnPlaybookTextBold')==='1',fontSize:Math.max(6,Math.min(48,Number(localStorage.getItem('rnPlaybookTextFontSize'))||12))};
+ const textStyleDefaults={fillColor:localStorage.getItem('rnPlaybookTextFillColor')||'#505050',borderColor:localStorage.getItem('rnPlaybookTextBorderColor')||'#505050',textColor:localStorage.getItem('rnPlaybookTextColor')||'#ffc800',noFill:localStorage.getItem('rnPlaybookTextNoFill')==='1',noBorder:localStorage.getItem('rnPlaybookTextNoBorder')===null?true:localStorage.getItem('rnPlaybookTextNoBorder')==='1',bold:localStorage.getItem('rnPlaybookTextBold')==='1',fontSize:Math.max(6,Math.min(48,Number(localStorage.getItem('rnPlaybookTextFontSize'))||12))};
  window.__rnGetTextStyleDefaults=()=>({...textStyleDefaults});
  window.__rnSetTextStyleDefault=(key,value)=>{if(Object.prototype.hasOwnProperty.call(textStyleDefaults,key))textStyleDefaults[key]=value;};
  const textStyleControls=[['fillColor','rnTextFillColor','rnPlaybookTextFillColor'],['borderColor','rnTextBorderColor','rnPlaybookTextBorderColor'],['textColor','rnTextFontColor','rnPlaybookTextColor']];
@@ -4480,6 +4512,25 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
  fillOpacity.addEventListener('input',()=>{currentFillOpacity=Number(fillOpacity.value)/100;fillOpacityValue.textContent=`${fillOpacity.value}%`;localStorage.setItem('rnPlaybookFillOpacity',String(currentFillOpacity));window.__rnSetBoardShapeDefaults?.({fillOpacity:currentFillOpacity});const selected=(state.playItems||[]).filter(item=>state.selectedBoardItems?.includes(item.id)&&item.type==='shape');selected.forEach(item=>item.fillOpacity=currentFillOpacity);if(selected.length){window.__rnRenderBoard?.();persist();}});
  const borderOpacity=kit.querySelector('#rnToolBorderOpacity'),borderOpacityValue=kit.querySelector('#rnToolBorderOpacityValue');borderOpacity.value=String(Math.round(currentBorderOpacity*100));borderOpacityValue.textContent=`${borderOpacity.value}%`;
  borderOpacity.addEventListener('input',()=>{currentBorderOpacity=Number(borderOpacity.value)/100;borderOpacityValue.textContent=`${borderOpacity.value}%`;localStorage.setItem('rnPlaybookBorderOpacity',String(currentBorderOpacity));window.__rnSetBoardShapeDefaults?.({borderOpacity:currentBorderOpacity});const selected=(state.playItems||[]).filter(item=>state.selectedBoardItems?.includes(item.id)&&item.type==='shape');selected.forEach(item=>item.borderOpacity=currentBorderOpacity);if(selected.length){window.__rnRenderBoard?.();persist();}});
+ const defaultsBtn=kit.querySelector('#rnToolDefaultsBtn');
+ defaultsBtn?.addEventListener('click',()=>{
+   currentColor='yellow';currentOpacity=1;currentFillOpacity=1;currentBorderOpacity=1;
+   localStorage.setItem('rnPlaybookPenColor','yellow');localStorage.setItem('rnPlaybookOpacity','1');
+   localStorage.setItem('rnPlaybookFillOpacity','1');localStorage.setItem('rnPlaybookBorderOpacity','1');
+   localStorage.setItem('rnPlaybookShapeBorderWidth','2.4');localStorage.setItem('mrPlaybookPenThicknessV2','2.4');
+   window.__rnSetBoardStyle?.('yellow',1);window.__rnSetBoardShapeDefaults?.({fillOpacity:1,borderOpacity:1,borderWidth:2.4});window.__rnSetBoardPenThickness?.(2.4);window.__rnResetBoardPenStyleDefault?.();
+   swatches.querySelectorAll('[data-color]').forEach(button=>button.classList.toggle('active',button.dataset.color==='yellow'));
+   custom.classList.remove('active');custom.querySelector('input').value='#f1d76b';
+   opacity.value='100';opacityValue.textContent='100%';fillOpacity.value='100';fillOpacityValue.textContent='100%';borderOpacity.value='100';borderOpacityValue.textContent='100%';
+   textStyleDefaults.fillColor='#505050';textStyleDefaults.borderColor='#505050';textStyleDefaults.textColor='#ffc800';
+   textStyleDefaults.noFill=false;textStyleDefaults.noBorder=true;textStyleDefaults.bold=false;textStyleDefaults.fontSize=12;
+   localStorage.setItem('rnPlaybookTextFillColor','#505050');localStorage.setItem('rnPlaybookTextBorderColor','#505050');localStorage.setItem('rnPlaybookTextColor','#ffc800');
+   localStorage.setItem('rnPlaybookTextNoFill','0');localStorage.setItem('rnPlaybookTextNoBorder','1');localStorage.setItem('rnPlaybookTextBold','0');localStorage.setItem('rnPlaybookTextFontSize','12');
+   kit.querySelector('#rnTextFillColor').value='#505050';kit.querySelector('#rnTextBorderColor').value='#505050';kit.querySelector('#rnTextFontColor').value='#ffc800';
+   const noFill=kit.querySelector('#rnTextNoFill'),noBorder=kit.querySelector('#rnTextNoBorder'),font=kit.querySelector('#rnTextFontSize');
+   if(noFill)noFill.checked=false;if(noBorder)noBorder.checked=true;if(font)font.value='12';
+   kit.querySelector('#rnTextNoFillBtn')?.setAttribute('aria-pressed','false');kit.querySelector('#rnTextNoBorderBtn')?.setAttribute('aria-pressed','true');kit.querySelector('#rnTextBoldBtn')?.setAttribute('aria-pressed','false');
+ });
  if(window.__rnSetBoardStyle)window.__rnSetBoardStyle(currentColor,currentOpacity);
  window.__rnSetBoardShapeDefaults?.({fillOpacity:currentFillOpacity,borderOpacity:currentBorderOpacity,borderWidth:Number(localStorage.getItem('rnPlaybookShapeBorderWidth'))||2});
  setColor(currentColor);
@@ -4506,18 +4557,17 @@ body.playbook-mode .board-item.pocket-note::first-line{font-weight:900;color:#ff
   ['triangle','Triangle',icon('<path d="M12 2 22 21H2Z"/>')],
   ['line','Line',icon('<path d="M3 12h18"/>')]
  ];
- entries.forEach(([kind,title,svg])=>{const b=document.createElement('button');b.type='button';b.className='rn-shape-tool';b.dataset.shapeKind=kind;b.title=title;b.setAttribute('aria-label',title);b.draggable=true;b.innerHTML=svg;b.addEventListener('click',()=>{window.__rnSetBoardTool?.('shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));const dims={area:[14,12],circle:[9,14],rectangle:[11,13],triangle:[11,14],'triangle-down':[11,14],diamond:[9,14],cone:[10,14],star:[9,14],line:[14,4],pin:[9,14],warning:[10,14],flag:[9,14],anchor:[9,14],target:[10,14]};window.newBoardItem?.('shape',{shapeKind:kind,w:dims[kind]?.[0],h:dims[kind]?.[1],color:currentColor,opacity:currentOpacity,__center:{x:50,y:50}});settings.hidden=false;});b.addEventListener('dragstart',e=>{window.__rnSetBoardTool?.('shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));settings.hidden=false;const payload={kind:'shape',shapeKind:kind,color:currentColor,opacity:currentOpacity};e.dataTransfer.setData('application/x-rn-board-tool',JSON.stringify(payload));e.dataTransfer.setData('text/plain',JSON.stringify(payload));e.dataTransfer.effectAllowed='copy';b.classList.add('dragging');});b.addEventListener('dragend',()=>b.classList.remove('dragging'));shapePalette.appendChild(b);});
+ entries.forEach(([kind,title,svg])=>{const b=document.createElement('button');b.type='button';b.className='rn-shape-tool';b.dataset.shapeKind=kind;b.title=title;b.setAttribute('aria-label',title);b.draggable=true;b.innerHTML=svg;b.addEventListener('click',()=>{const center=findVacantBoardSpot('shape',kind);if(!center){toast('No unoccupied space is available on this board. Move or remove an object first.');return;}window.__rnSetBoardTool?.('shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));const dims={area:[14,12],circle:[9,14],rectangle:[11,13],triangle:[11,14],'triangle-down':[11,14],diamond:[9,14],cone:[10,14],star:[9,14],line:[14,4],pin:[9,14],warning:[10,14],flag:[9,14],anchor:[9,14],target:[10,14]};window.newBoardItem?.('shape',{shapeKind:kind,w:dims[kind]?.[0],h:dims[kind]?.[1],color:currentColor,opacity:currentOpacity,__center:center});settings.hidden=false;});b.addEventListener('dragstart',e=>{window.__rnSetBoardTool?.('shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));settings.hidden=false;const payload={kind:'shape',shapeKind:kind,color:currentColor,opacity:currentOpacity};e.dataTransfer.setData('application/x-rn-board-tool',JSON.stringify(payload));e.dataTransfer.setData('text/plain',JSON.stringify(payload));e.dataTransfer.effectAllowed='copy';b.classList.add('dragging');});b.addEventListener('dragend',()=>b.classList.remove('dragging'));shapePalette.appendChild(b);});
  shapePalette.parentNode.insertBefore(shapeHeading,shapePalette);
  // Re-home legacy wall/number/arrow actions into the palette as compact draggable controls.
- const numberMarkerStyle=()=>{const d=window.__rnGetTextStyleDefaults?.()||{};return {fillColor:d.fillColor||'#253845',borderColor:d.borderColor||'#73c9c4',textColor:d.textColor||'#f2f7fa',noFill:!!d.noFill,noBorder:!!d.noBorder,bold:!!d.bold,fontSize:Number(d.fontSize)||12,fillOpacity:.94,borderOpacity:1,borderWidth:1,w:5.5,h:9};};
+ const numberMarkerStyle=()=>{const d=window.__rnGetTextStyleDefaults?.()||{fillColor:'#505050',borderColor:'#505050',textColor:'#ffc800',noBorder:true};return {fillColor:d.fillColor||'#505050',borderColor:d.borderColor||'#505050',textColor:d.textColor||'#ffc800',noFill:!!d.noFill,noBorder:!!d.noBorder,bold:!!d.bold,fontSize:Number(d.fontSize)||12,fillOpacity:.94,borderOpacity:1,borderWidth:1,w:5.5,h:9};};
  const openNumberMarkerEditor=item=>{if(item?.id)requestAnimationFrame(()=>window.__rnEditBoardTextItem?.(item.id));};
- const addSpecial=(kind,title,svg,shapeKind=null)=>{const b=document.createElement('button');b.type='button';b.className='rn-shape-tool';b.title=title;b.setAttribute('aria-label',title);b.draggable=true;b.innerHTML=svg;b.addEventListener('click',()=>{const isNumber=kind==='number';window.__rnSetBoardTool?.(isNumber?'text':'shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));const item=window.newBoardItem?.(kind,{...(shapeKind?{shapeKind}:{}),...(isNumber?numberMarkerStyle():{}),color:currentColor,opacity:currentOpacity,__center:{x:50,y:50}});settings.hidden=false;if(isNumber)openNumberMarkerEditor(item);});b.addEventListener('dragstart',e=>{const isNumber=kind==='number';window.__rnSetBoardTool?.(isNumber?'text':'shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));settings.hidden=false;const payload={kind,...(shapeKind?{shapeKind}:{}),...(isNumber?numberMarkerStyle():{}),color:currentColor,opacity:currentOpacity};e.dataTransfer.setData('application/x-rn-board-tool',JSON.stringify(payload));e.dataTransfer.effectAllowed='copy';});shapePalette.appendChild(b);};
+ const addSpecial=(kind,title,svg,shapeKind=null)=>{const b=document.createElement('button');b.type='button';b.className='rn-shape-tool';b.title=title;b.setAttribute('aria-label',title);b.draggable=true;b.innerHTML=svg;b.addEventListener('click',()=>{const center=findVacantBoardSpot(kind,shapeKind);if(!center){toast('No unoccupied space is available on this board. Move or remove an object first.');return;}const isNumber=kind==='number';window.__rnSetBoardTool?.(isNumber?'text':'shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));const item=window.newBoardItem?.(kind,{...(shapeKind?{shapeKind}:{}),...(isNumber?numberMarkerStyle():{}),color:currentColor,opacity:currentOpacity,__center:center});settings.hidden=false;if(isNumber)openNumberMarkerEditor(item);});b.addEventListener('dragstart',e=>{const isNumber=kind==='number';window.__rnSetBoardTool?.(isNumber?'text':'shape');shapePalette.querySelectorAll('.rn-shape-tool').forEach(x=>x.classList.toggle('active',x===b));settings.hidden=false;const payload={kind,...(shapeKind?{shapeKind}:{}),...(isNumber?numberMarkerStyle():{}),color:currentColor,opacity:currentOpacity};e.dataTransfer.setData('application/x-rn-board-tool',JSON.stringify(payload));e.dataTransfer.effectAllowed='copy';});shapePalette.appendChild(b);};
  addSpecial('wall','Wall',icon('<path d="M2 5h20v14H2zM2 10h20M8 5v5m8 0v9"/>'));
  addSpecial('number','Number marker',icon('<circle cx="12" cy="12" r="10"/><path d="M10 8h3v8m-4 0h6"/>'));
  addSpecial('arrow','Arrow',icon('<path d="M3 12h17m-7-7 7 7-7 7"/>'));
  // The old PIT / HAZARD action has been removed; existing saved pit objects remain readable.
  // The canvas accepts shape drags at the exact pointer position; click actions still auto-place at centre.
- const stage=$('playBoardStage');
  if(stage&&!stage.dataset.rnPaletteDrop){stage.dataset.rnPaletteDrop='1';const canvas=stage.closest('#playBoard');canvas.addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('application/x-rn-board-tool')){e.preventDefault();e.dataTransfer.dropEffect='copy';canvas.classList.add('drop-ready');}},true);canvas.addEventListener('drop',e=>{const raw=e.dataTransfer.getData('application/x-rn-board-tool');if(!raw)return;try{const data=JSON.parse(raw),point=window.__rnBoardPoint?.(e)||{x:50,y:50};e.preventDefault();e.stopImmediatePropagation();canvas.classList.remove('drop-ready');let item;if(data.kind==='shape')item=window.newBoardItem?.('shape',{shapeKind:data.shapeKind,color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});else{const isNumber=data.kind==='number';item=window.newBoardItem?.(data.kind,{...(isNumber?numberMarkerStyle():{}),fillColor:data.fillColor,borderColor:data.borderColor,textColor:data.textColor,noFill:data.noFill,noBorder:data.noBorder,bold:data.bold,fontSize:data.fontSize,w:data.w,h:data.h,fillOpacity:data.fillOpacity,borderOpacity:data.borderOpacity,borderWidth:data.borderWidth,color:data.color||currentColor,opacity:data.opacity||currentOpacity,__center:point});if(isNumber){window.__rnSetBoardTool?.('text');openNumberMarkerEditor(item);}}}catch(err){console.warn(err);}},true);}
  // Primary tool actions; Select is the default active tool and uses a cursor glyph.
  penBtn.addEventListener('click',()=>window.__rnSetBoardTool?.('pen-solid'));
@@ -5023,7 +5073,7 @@ window.RN_MAP_COVER_IMAGES={"arakko.jpg":"data:image/jpeg;base64,/9j/4AAQSkZJRgA
   const makeCards=mode=>MAPS.filter(m=>m.mode===mode).map(m=>`
     <button type="button" class="rn-map-card${m.id===currentMapId?' selected':''}" data-map-id="${m.id}" aria-label="Load ${m.name}" aria-pressed="${m.id===currentMapId?'true':'false'}">
       <img data-map-source="${m.cover}" data-cover-fallback="${m.coverFallback||''}" alt="${m.name} cover" loading="lazy">
-      <span class="rn-map-card-copy"><strong>${m.name}</strong><span>${m.viewType==='submap'?'3 AREAS · COMPETITIVE':(m.image?'2D + POINTS A–C':'POINTS A–C · 2D PENDING')}</span></span>
+      <span class="rn-map-card-copy"><strong>${m.name}</strong></span>
     </button>`).join('');
   overlay.innerHTML=`
     <section class="rn-map-library-dialog" role="dialog" aria-modal="true" aria-labelledby="rnMapLibraryTitle">
@@ -7156,15 +7206,7 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
   let picker=null,menu=null,currentButton=null;
   function escapeText(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
   function getMapForPlay(play){return (window.RN_TACTICAL_MAPS||[]).find(map=>map.id===play?.mapId)||null;}
-  function viewSetForPlay(play){
-    const prefix=`${play?.mapId||'__blank__'}::`;
-    const values=Object.keys(play?.mapBoards||{}).filter(key=>key.startsWith(prefix)).map(key=>{
-      const raw=key.slice(prefix.length);return /^([1-3])-2d$/i.test(raw)?raw.toLowerCase():raw.toUpperCase()==='2D'?'2d':raw.toUpperCase();
-    });
-    const map=getMapForPlay(play);
-    const order=map?.viewType==='submap'?['1','1-2d','2','2-2d','3','3-2d']:['A','B','C','2d'];
-    return order.filter(view=>values.includes(view));
-  }
+
   function thumbMarkup(map){
     // Saved-play thumbnails must use the same embedded cover registry as the map library.
     // Raw relative assets/maps/covers paths can resolve against the wrong Vercel route.
@@ -7184,11 +7226,11 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
     if(!picker||!menu||!nativeSelect)return;
     const active=(state.plays||[]).find(play=>String(play.id)===String(state.activePlayId||nativeSelect.value))||null;
     const activeMap=getMapForPlay(active);
-    currentButton.innerHTML=`${thumbMarkup(activeMap)}<span class="rn-saved-play-copy"><strong>${escapeText(active?.name||'Select a saved play…')}</strong><small>${escapeText(activeMap?.name||'No map selected')} · ${escapeText(viewSetForPlay(active).join(' / ')||'No saved view set')}</small></span><span class="rn-saved-play-chevron">▾</span>`;
+    currentButton.innerHTML=`${thumbMarkup(activeMap)}<span class="rn-saved-play-copy"><strong>${escapeText(active?.name||'Select a saved play…')}</strong><small>${escapeText(activeMap?.name||'No map selected')}</small></span><span class="rn-saved-play-chevron">▾</span>`;
     const list=(state.plays||[]).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
     menu.innerHTML=list.length?list.map(play=>{
-      const map=getMapForPlay(play),views=viewSetForPlay(play);
-      const summary=map?`${map.name} · ${views.join(' / ')||String(play.mapView||'2d').toUpperCase()}`:'No map · Checkered workspace';
+      const map=getMapForPlay(play);
+      const summary=map?map.name:'No map selected';
       return `<button type="button" class="rn-saved-play-option" data-saved-play-id="${escapeText(play.id)}">${thumbMarkup(map)}<span class="rn-saved-play-copy"><strong>${escapeText(play.name)}</strong><small>${escapeText(summary)}</small></span></button>`;
     }).join(''):'<div class="rn-saved-play-empty">No saved plays yet. Save a play to see its map cover here.</div>';
     menu.querySelectorAll('.rn-saved-play-thumb img').forEach(image=>image.addEventListener('error',()=>{
@@ -7202,14 +7244,24 @@ body.playbook-mode #rnToolSettings .rn-setting-row.rn-color-row[hidden]{display:
     picker=document.createElement('div');picker.className='rn-saved-play-picker';
     picker.innerHTML='<button type="button" class="rn-saved-play-current" id="rnSavedPlayCurrent" aria-haspopup="listbox" aria-expanded="false"></button><div class="rn-saved-play-menu" id="rnSavedPlayMenu" role="listbox" aria-label="Saved plays"></div>';
     savedField.appendChild(picker);currentButton=picker.querySelector('#rnSavedPlayCurrent');menu=picker.querySelector('#rnSavedPlayMenu');
-    currentButton.addEventListener('click',()=>{picker.classList.toggle('open');currentButton.setAttribute('aria-expanded',String(picker.classList.contains('open')));refreshSavedPlayPicker();});
+    const setPickerOpen=open=>{picker.classList.toggle('open',!!open);currentButton.setAttribute('aria-expanded',String(!!open));};
+    const togglePicker=()=>{setPickerOpen(!picker.classList.contains('open'));refreshSavedPlayPicker();};
+    const pointInsideCurrentButton=(x,y)=>{const rect=currentButton.getBoundingClientRect();return x>=rect.left&&x<=rect.right&&y>=rect.top&&y<=rect.bottom;};
+    // Hit-test the complete visible control. This remains reliable when a neighboring
+    // toolbar element temporarily overlays part of the custom button's hit area.
+    window.addEventListener('pointerdown',event=>{
+      if(event.button!==0||!picker.isConnected||menu.contains(event.target))return;
+      if(!pointInsideCurrentButton(event.clientX,event.clientY))return;
+      event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();togglePicker();
+    },true);
+    currentButton.addEventListener('click',event=>{if(event.detail!==0)return;event.preventDefault();togglePicker();});
     menu.addEventListener('click',event=>{
       const option=event.target.closest('[data-saved-play-id]');if(!option)return;
       nativeSelect.value=option.dataset.savedPlayId;nativeSelect.dispatchEvent(new Event('change',{bubbles:true}));
       picker.classList.remove('open');currentButton.setAttribute('aria-expanded','false');
       loadButton?.click();
     });
-    document.addEventListener('click',event=>{if(!picker.contains(event.target)){picker.classList.remove('open');currentButton.setAttribute('aria-expanded','false');}});
+    document.addEventListener('click',event=>{if(!picker.contains(event.target)&&!pointInsideCurrentButton(event.clientX,event.clientY))setPickerOpen(false);});
     document.addEventListener('keydown',event=>{if(event.key==='Escape'){picker.classList.remove('open');currentButton.setAttribute('aria-expanded','false');}});
     nativeSelect.addEventListener('change',refreshSavedPlayPicker);
     new MutationObserver(refreshSavedPlayPicker).observe(nativeSelect,{childList:true});
@@ -7391,7 +7443,7 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
   });
 
   // Keep text boxes as editable text objects in every saved play and map/view set.
-  const textDefaults=()=>window.__rnGetTextStyleDefaults?.()||{fillColor:'#253845',borderColor:'#73c9c4',textColor:'#f2f7fa'};
+  const textDefaults=()=>window.__rnGetTextStyleDefaults?.()||{fillColor:'#505050',borderColor:'#505050',textColor:'#ffc800',noFill:false,noBorder:true,fontSize:12};
   const rgba=(hex,alpha)=>{
     const match=/^#([0-9a-f]{6})$/i.exec(String(hex||''));
     if(!match)return `rgba(37,56,69,${alpha})`;
@@ -7461,6 +7513,13 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
   const editorStage=()=>$('playBoardStage')||textBoard?.querySelector('.board-surface-zoom')||textBoard;
   function openPersistentTextEditor(point,existing=null){
     if(!point||!Number.isFinite(Number(point.x))||!Number.isFinite(Number(point.y)))return null;
+    if(window.__rnActiveTextEditor?.isConnected){
+      const current=window.__rnActiveTextEditor;
+      if(existing&&String(current.dataset.boardItem||'')===String(existing.id)){
+        current.focus({preventScroll:true});return current;
+      }
+      current.blur();
+    }
     const defaults=textDefaults();
     let item=existing;
     if(!item){
@@ -7479,37 +7538,34 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
       item.borderWidth=Number(item.borderWidth)||1;item.fontSize=Number(item.fontSize)||Number(defaults.fontSize)||12;
       if(typeof item.noFill!=='boolean')item.noFill=!!defaults.noFill;if(typeof item.noBorder!=='boolean')item.noBorder=!!defaults.noBorder;if(typeof item.bold!=='boolean')item.bold=!!defaults.bold;
     }
-    // Clone the actual renderer output so edit mode and committed mode share identical box geometry,
-    // typography, padding, borders, colour/opacity and marker styling.
-    let editor;
-    try{editor=renderBoardItem(item,false);}catch(_){editor=null;}
-    if(!editor){editor=document.createElement('div');editor.className=`board-item ${isNumberMarker?'board-number':'board-text'}`;}
-    editor.classList.add('inline-board-text-editor');
-    editor.classList.toggle('rn-number-marker-editor',isNumberMarker);
-    editor.classList.toggle('rn-text-bold',!!item.bold);
-    editor.classList.toggle('rn-text-no-fill',!!item.noFill);
-    editor.classList.toggle('rn-text-no-border',!!item.noBorder);
-    editor.contentEditable='plaintext-only';
+    const editor=document.createElement('textarea');
+    editor.className=`${isNumberMarker?'board-number rn-editable-number-marker rn-number-marker-editor':'board-text rn-editable-text-box'} inline-board-text-editor${item.bold?' rn-text-bold':''}${item.noFill?' rn-text-no-fill':''}${item.noBorder?' rn-text-no-border':''}`;
+    editor.dataset.boardItem=String(item.id);
     editor.setAttribute('role','textbox');editor.setAttribute('aria-multiline','true');
     editor.setAttribute('aria-label',isNumberMarker?'Editable number marker text':'Editable text box');
-    editor.setAttribute('spellcheck','false');editor.tabIndex=0;
-    editor.textContent=String(item.text||'');
-    editor.style.left=`${Number(item.x??point.x)}%`;
-    editor.style.top=`${Number(item.y??point.y)}%`;
+    editor.setAttribute('spellcheck','false');editor.setAttribute('autocomplete','off');editor.setAttribute('autocapitalize','off');
+    editor.maxLength=240;editor.rows=1;editor.wrap='soft';editor.tabIndex=0;
+    editor.value=String(item.text||'');
+    editor.style.position='absolute';editor.style.left=`${Number(item.x??point.x)}%`;editor.style.top=`${Number(item.y??point.y)}%`;
     editor.style.width=`${isNumberMarker?Math.max(2,Math.min(60,Number(item.w)||5.5)):Math.max(8,Math.min(60,Number(item.w)||18))}%`;
     editor.style.height=`${isNumberMarker?Math.max(2,Math.min(80,Number(item.h)||9)):Math.max(4,Math.min(80,Number(item.h)||9))}%`;
-    editor.style.zIndex='180';editor.style.cursor='text';editor.style.userSelect='text';
-    editor.style.resize='both';editor.style.overflow='auto';editor.style.outline='2px solid #f3d36a';editor.style.outlineOffset='2px';
-    editor.style.minWidth='0';editor.style.minHeight='0';editor.style.maxWidth='60%';editor.style.maxHeight='80%';
-    editor.title='Edit text. Ctrl+Enter to finish, Escape to cancel.';
-    window.__rnActiveTextItem=item;
-    const original=stage.querySelector(`[data-board-item="${CSS.escape(String(item.id))}"]`);
+    editor.style.minWidth=isNumberMarker?'34px':'90px';editor.style.minHeight=isNumberMarker?'34px':'42px';
+    editor.style.maxWidth='60%';editor.style.maxHeight='80%';editor.style.zIndex='500';editor.style.display='block';
+    editor.style.boxSizing='border-box';editor.style.padding=isNumberMarker?'4px':'8px 10px';
+    editor.style.borderRadius=isNumberMarker?'50%':'5px';editor.style.textAlign=isNumberMarker?'center':'left';
+    editor.style.backgroundColor=item.noFill?'transparent':rgba(item.fillColor||defaults.fillColor,item.fillOpacity??.94);
+    editor.style.border=item.noBorder?'none':`${Math.max(.5,Math.min(8,Number(item.borderWidth)||1))}px solid ${rgba(item.borderColor||defaults.borderColor,item.borderOpacity??1)}`;
+    editor.style.color=item.textColor||defaults.textColor;editor.style.fontWeight=item.bold?'800':'400';
+    editor.style.fontSize=`${Math.max(6,Math.min(48,Number(item.fontSize)||Number(defaults.fontSize)||12))}px`;
+    editor.style.lineHeight='1.35';editor.style.whiteSpace='pre-wrap';editor.style.overflowWrap='anywhere';
+    editor.style.resize=isNumberMarker?'none':'both';editor.style.overflow='auto';editor.style.outline='2px solid #f3d36a';
+    editor.style.outlineOffset='2px';editor.style.pointerEvents='auto';editor.style.userSelect='text';editor.style.cursor='text';
+    window.__rnActiveTextItem=item;window.__rnActiveTextEditor=editor;
+    const original=[...stage.querySelectorAll('.board-item[data-board-item]')].find(node=>String(node.dataset.boardItem)===String(item.id));
     if(original)original.style.visibility='hidden';
     stage.appendChild(editor);
-    let closed=false;
+    let closed=false,textBoxObserver=null;
     const initial=String(item.text||'');
-    let textBoxObserver=null;
-    const readText=()=>String(editor.innerText??editor.textContent??'').replace(/\r/g,'').replace(/\u00a0/g,' ');
     const syncTextBoxSize=()=>{
       const sw=Math.max(1,stage.clientWidth),sh=Math.max(1,stage.clientHeight);
       const minW=isNumberMarker?2:8,minH=isNumberMarker?2:4;
@@ -7519,51 +7575,39 @@ body.playbook-mode .rn-play-dialog-actions button.danger{border-color:#9c525e!im
       if(Math.abs((Number(item.h)||0)-h)>.04)item.h=h;
     };
     const fit=()=>{
-      // Grow only when text exceeds the visible box. The editor uses the rendered board item CSS,
-      // so the saved object keeps the exact dimensions shown during editing.
-      if(editor.scrollHeight>editor.clientHeight+2){
-        const next=Math.min(stage.clientHeight*.8,editor.scrollHeight+2);
-        editor.style.height=`${next}px`;
-      }
+      if(isNumberMarker)return;
+      editor.style.height='auto';
+      const wanted=Math.min(stage.clientHeight*.8,Math.max(42,editor.scrollHeight+4));
+      editor.style.height=`${wanted}px`;
       syncTextBoxSize();
     };
     const finish=save=>{
       if(closed)return;closed=true;
       if(textBoxObserver){textBoxObserver.disconnect();textBoxObserver=null;}
-      if(save){item.text=readText().slice(0,240).trim();if(isNumberMarker&&!item.text)item.text=String(item.number||1);syncTextBoxSize();}
+      if(save){item.text=String(editor.value||'').replace(/\r/g,'').slice(0,240).trimEnd();if(isNumberMarker&&!item.text.trim())item.text=String(item.number||1);syncTextBoxSize();}
       else item.text=initial;
       editor.remove();
-      if(!isNumberMarker&&!String(item.text||'').trim())state.playItems=state.playItems.filter(x=>x.id!==item.id);
-      window.__rnSetBoardTool?.('select');$('boardTextToolBtn')?.setAttribute('aria-pressed','false');
-      window.__rnRenderBoard?.();
-      try{persist();}catch(error){console.warn('Text box could not be persisted',error);}
+      if(original?.isConnected)original.style.visibility='';
+      if(!isNumberMarker&&!String(item.text||'').trim())state.playItems=state.playItems.filter(candidate=>candidate.id!==item.id);
       if(window.__rnActiveTextEditor===editor)window.__rnActiveTextEditor=null;
       if(window.__rnActiveTextItem===item)window.__rnActiveTextItem=null;
+      window.__rnRenderBoard?.();
+      try{persist();}catch(error){console.warn('Text box could not be persisted',error);}
     };
     editor.addEventListener('input',()=>{
-      item.text=readText().slice(0,240);fit();
+      item.text=String(editor.value||'').slice(0,240);fit();
       try{persist();}catch(error){console.warn('Text typing autosave failed',error);}
     });
-    editor.addEventListener('paste',event=>{
-      const text=event.clipboardData?.getData('text/plain');if(text==null)return;
-      event.preventDefault();
-      const selection=window.getSelection();if(!selection?.rangeCount)return;
-      const range=selection.getRangeAt(0);range.deleteContents();
-      const node=document.createTextNode(text);range.insertNode(node);range.setStartAfter(node);range.collapse(true);selection.removeAllRanges();selection.addRange(range);
-      editor.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertText',data:text}));
-    });
     editor.addEventListener('keydown',event=>{
-      if(event.key==='Escape'){event.preventDefault();finish(false);}
-      else if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();finish(true);}
+      if(event.key==='Escape'){event.preventDefault();event.stopPropagation();finish(false);}
+      else if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();event.stopPropagation();finish(true);}
     });
     editor.addEventListener('blur',()=>finish(true),{once:true});
-    if(window.ResizeObserver){textBoxObserver=new ResizeObserver(()=>{if(editor.isConnected){syncTextBoxSize();try{persist();}catch(_){}}});textBoxObserver.observe(editor);}
-    fit();window.__rnActiveTextEditor=editor;window.__rnActiveTextItem=item;
+    if(window.ResizeObserver&&!isNumberMarker){textBoxObserver=new ResizeObserver(()=>{if(editor.isConnected){syncTextBoxSize();try{persist();}catch(_){}}});textBoxObserver.observe(editor);}
     requestAnimationFrame(()=>{
       if(!editor.isConnected)return;
-      editor.focus();
-      const range=document.createRange();range.selectNodeContents(editor);range.collapse(false);
-      const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range);
+      editor.focus({preventScroll:true});
+      const end=editor.value.length;editor.setSelectionRange(end,end);
     });
     return editor;
   }
@@ -7782,7 +7826,7 @@ body:not(.playbook-mode) #synergiesPage .synergy-results .synergy-section-title{
     if((active?.type==='text'||active?.type==='number')&&!list.some(item=>item.id===active.id))list.push(active);
     return list;
   };
-  const defaults=window.__rnGetTextStyleDefaults?.()||{fillColor:'#253845',borderColor:'#73c9c4',textColor:'#f2f7fa',fontSize:12,noFill:false,noBorder:false};
+  const defaults=window.__rnGetTextStyleDefaults?.()||{fillColor:'#505050',borderColor:'#505050',textColor:'#ffc800',fontSize:12,noFill:false,noBorder:true};
   const saveTextStyles=()=>{try{if(typeof persistPlaybook==='function')persistPlaybook();else if(typeof persist==='function')persist();else window.__rnPersistBoard?.();}catch(error){console.warn('Text style save failed',error);}};
   const render=()=>{if(!document.querySelector('.inline-board-text-editor'))window.__rnRenderBoard?.();};
   const editor=()=>document.querySelector('.inline-board-text-editor');
@@ -8197,8 +8241,8 @@ body.playbook-mode #playBoard .board-item{cursor:grab;}
     if(editor){
       event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
       editor.focus({preventScroll:true});
-      const range=document.createRange();range.selectNodeContents(editor);
-      const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range);
+      if(editor instanceof HTMLTextAreaElement||editor instanceof HTMLInputElement){editor.select();}
+      else{const range=document.createRange();range.selectNodeContents(editor);const selection=window.getSelection();selection?.removeAllRanges();selection?.addRange(range);}
       return;
     }
     // Let the browser select native input/textarea contents, while preventing the board shortcut.
@@ -8263,76 +8307,89 @@ body.playbook-mode .rn-map-view-selector[data-view-type="submap"] .rn-map-view-c
 </style>
 
 
-<script id="rn-v13-30-map-set-exclusive-and-text-edit">
+<script id="rn-v13-31-map-set-exclusive-and-text-edit">
 (()=>{
-  if(window.__rnV1330TextAndMapSetBound)return;
-  window.__rnV1330TextAndMapSetBound=true;
-  const isEditableTarget=target=>!!target?.closest?.('.inline-board-text-editor,[contenteditable="true"],[contenteditable="plaintext-only"],[role="textbox"],input,textarea,select');
-  const targetBoardItem=event=>{
+  if(window.__rnV1331TextAndMapSetBound)return;
+  window.__rnV1331TextAndMapSetBound=true;
+  const isEditor=target=>!!target?.closest?.('.inline-board-text-editor,[contenteditable="true"],[contenteditable="plaintext-only"],[role="textbox"],input,textarea,select');
+  const findItem=event=>{
     const path=typeof event.composedPath==='function'?event.composedPath():[];
     for(const node of path){
-      if(node instanceof Element){
-        if(node.matches('.inline-board-text-editor,[contenteditable="true"],[contenteditable="plaintext-only"],[role="textbox"]'))return null;
-        if(node.matches('.board-item[data-board-item]'))return node;
-      }
+      if(node instanceof Element){if(isEditor(node))return null;if(node.matches('.board-item[data-board-item]'))return node;}
     }
     const target=event.target instanceof Element?event.target:null;
-    if(!target||isEditableTarget(target))return null;
-    return target.closest('.board-item[data-board-item]');
+    return target&&!isEditor(target)?target.closest('.board-item[data-board-item]'):null;
   };
-  const editFromTarget=event=>{
-    if(!document.body.classList.contains('playbook-mode'))return false;
-    const itemEl=targetBoardItem(event);
-    const id=itemEl?.dataset?.boardItem;
-    if(!id)return false;
-    const item=(window.__rnGetBoardItems?.()||[]).find(candidate=>String(candidate?.id)===String(id));
-    if(!item||!['text','number'].includes(item.type))return false;
+  const openEditor=(event,id)=>{
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
     const active=document.querySelector('.inline-board-text-editor');
-    if(active?.isConnected){
-      if(String(active.dataset.boardItem||'')===String(id)){active.focus({preventScroll:true});return true;}
-      active.blur();
-    }
-    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+    if(active&&active.isConnected&&String(active.dataset.boardItem||'')!==String(id))active.blur();
     const editor=window.__rnEditBoardTextItem?.(id);
-    if(editor){
-      editor.dataset.boardItem=String(id);
-      editor.contentEditable='true';
-      editor.setAttribute('role','textbox');
-      editor.focus({preventScroll:true});
-    }
-    return !!editor;
+    if(editor){editor.focus({preventScroll:true});return true;}
+    return false;
   };
-  // Window capture runs before document/board selection and drag handlers.
+  let lastPointer={id:'',time:0};
+  // Selection redraws replace the clicked DOM node. The stable item ID allows the
+  // second click to open the editor before board movement handlers run.
   window.addEventListener('pointerdown',event=>{
-    if(event.button!==0||Number(event.detail||0)<2)return;
-    editFromTarget(event);
-  },true);
-  window.addEventListener('dblclick',event=>{editFromTarget(event);},true);
-  // Text-tool single-click editing remains available; Select/Move uses double-click.
-  const board=document.getElementById('playBoard');
-  board?.addEventListener('pointerdown',event=>{
-    if(event.button!==0||window.__rnGetBoardTool?.()!=='text')return;
-    const itemEl=targetBoardItem(event);const id=itemEl?.dataset?.boardItem;
+    if(event.button!==0||!document.body.classList.contains('playbook-mode')){lastPointer={id:'',time:0};return;}
+    if(isEditor(event.target))return;
+    const element=findItem(event),id=element?.dataset?.boardItem;
+    if(!id){lastPointer={id:'',time:0};return;}
     const item=(window.__rnGetBoardItems?.()||[]).find(candidate=>String(candidate?.id)===String(id));
-    if(!item||!['text','number'].includes(item.type))return;
-    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
-    const editor=window.__rnEditBoardTextItem?.(id);
-    if(editor){editor.dataset.boardItem=String(id);editor.contentEditable='true';editor.focus({preventScroll:true});}
+    if(!item||!['text','number'].includes(item.type)){lastPointer={id:'',time:0};return;}
+    const tool=window.__rnGetBoardTool?.()||'select';
+    if(tool==='text'){lastPointer={id:'',time:0};openEditor(event,id);return;}
+    const now=performance.now();
+    const secondClick=tool==='select'&&lastPointer.id===String(id)&&now-lastPointer.time<650;
+    lastPointer=secondClick?{id:'',time:0}:{id:String(id),time:now};
+    if(secondClick)openEditor(event,id);
   },true);
-  board?.addEventListener('keydown',event=>{
-    if(event.key!=='Enter'||event.altKey||event.ctrlKey||event.metaKey)return;
-    const itemEl=(event.target instanceof Element?event.target:null)?.closest?.('.board-item[data-board-item]');
-    const id=itemEl?.dataset?.boardItem;if(!id||isEditableTarget(event.target))return;
+  // Fallback for browsers that deliver a dblclick even after a board redraw.
+  window.addEventListener('dblclick',event=>{
+    if(!document.body.classList.contains('playbook-mode')||isEditor(event.target))return;
+    const element=findItem(event),id=element?.dataset?.boardItem;
     const item=(window.__rnGetBoardItems?.()||[]).find(candidate=>String(candidate?.id)===String(id));
-    if(!item||!['text','number'].includes(item.type))return;
-    event.preventDefault();event.stopPropagation();window.__rnEditBoardTextItem?.(id);
+    if(item&&['text','number'].includes(item.type))openEditor(event,id);
   },true);
-  // Make committed labels advertise the edit gesture and remain selectable as text.
-  const style=document.createElement('style');style.id='rn-v13-30-textbox-edit-affordance';
-  style.textContent='body.playbook-mode #playBoard .rn-editable-text-box,body.playbook-mode #playBoard .rn-editable-number-marker{cursor:text!important;user-select:text!important;-webkit-user-select:text!important;} body.playbook-mode #playBoard .inline-board-text-editor{cursor:text!important;user-select:text!important;-webkit-user-select:text!important;}';
+  window.addEventListener('keydown',event=>{
+    if(event.key!=='Enter'||event.altKey||event.ctrlKey||event.metaKey||!document.body.classList.contains('playbook-mode'))return;
+    const target=event.target instanceof Element?event.target:null;
+    if(!target||isEditor(target))return;
+    const itemEl=target.closest('.board-item[data-board-item]'),id=itemEl?.dataset?.boardItem;
+    const item=(window.__rnGetBoardItems?.()||[]).find(candidate=>String(candidate?.id)===String(id));
+    if(item&&['text','number'].includes(item.type))openEditor(event,id);
+  },true);
+  const style=document.createElement('style');style.id='rn-v13-31-textbox-native-editor';
+  style.textContent='body.playbook-mode #playBoard .rn-editable-text-box,body.playbook-mode #playBoard .rn-editable-number-marker{cursor:text!important;user-select:text!important;-webkit-user-select:text!important;} body.playbook-mode #playBoard textarea.inline-board-text-editor{display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important;cursor:text!important;white-space:pre-wrap!important;line-height:1.35!important;}';
   document.head.appendChild(style);
-})();
-</script>
+})();</script>
 
 </body>
 </html>
+
+
+<style id="rn-v13-31-controls-placement-defaults-and-labels">
+/* The saved-play button is one large, reliable hit target above adjacent toolbar content. */
+body.playbook-mode .playbook-topbar{position:relative!important;z-index:7000!important;overflow:visible!important;}
+body.playbook-mode .playbook-topbar-controls{position:relative!important;z-index:7001!important;overflow:visible!important;}
+body.playbook-mode .rn-saved-play-field{position:relative!important;z-index:7002!important;isolation:isolate!important;flex:0 0 245px!important;width:245px!important;min-width:210px!important;pointer-events:auto!important;}
+body.playbook-mode .rn-saved-play-picker{position:relative!important;z-index:7003!important;display:block!important;width:100%!important;min-width:0!important;flex:1 1 auto!important;pointer-events:auto!important;}
+body.playbook-mode .rn-saved-play-current{position:relative!important;z-index:7004!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:36px!important;pointer-events:auto!important;touch-action:manipulation!important;}
+body.playbook-mode .rn-saved-play-current>*{pointer-events:none!important;}
+body.playbook-mode .rn-saved-play-menu{z-index:7005!important;}
+@media(max-width:850px){body.playbook-mode .rn-saved-play-field{flex-basis:155px!important;width:155px!important;min-width:145px!important;}}
+@media(max-width:580px){body.playbook-mode .rn-saved-play-field{flex-basis:125px!important;width:125px!important;min-width:120px!important;}}
+/* Submap title is centred beneath the numbered and 2D choices. */
+body.playbook-mode .rn-map-view-name{display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;width:100%!important;}
+body.playbook-mode .rn-map-view-name[hidden]{display:none!important;}
+/* Map cards contain only the map name; no redundant POINTS / 2D caption. */
+body.playbook-mode .rn-map-card-copy{justify-content:flex-start!important;align-items:center!important;}
+body.playbook-mode .rn-map-card-copy strong{width:100%!important;text-align:left!important;}
+/* Defaults button is a single horizontal full-width control above the tool row. */
+body.playbook-mode .rn-tool-defaults{box-sizing:border-box!important;display:block!important;flex:0 0 auto!important;width:100%!important;min-width:0!important;height:29px!important;min-height:29px!important;padding:5px 8px!important;border:1px solid #6a7681!important;border-radius:5px!important;background:linear-gradient(90deg,#263b4a,#1d2d3a)!important;color:#dce8ee!important;font-size:8px!important;font-weight:950!important;letter-spacing:.16em!important;text-align:center!important;cursor:pointer!important;}
+body.playbook-mode .rn-tool-defaults:hover{border-color:#e3cb79!important;background:linear-gradient(90deg,#354653,#263a47)!important;color:#ffe9a4!important;}
+body.playbook-mode #rnToolFillOpacityRow output{color:#a8c2d0!important;}
+body.playbook-mode #playBoardStage textarea.inline-board-text-editor{font-family:inherit!important;outline:2px solid #f3d36a!important;}
+body.playbook-mode #playBoardStage textarea.inline-board-text-editor:focus{outline:2px solid #ffe28a!important;}
+</style>
