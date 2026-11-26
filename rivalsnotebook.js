@@ -795,25 +795,13 @@
 })();
 
 
-/* Load the v13.33 Playbook interaction upgrades after the inline notebook UI is ready. */
+/* Load the v13.34 Playbook interaction upgrades after the inline notebook UI is ready. */
 (() => {
-  if (window.__rnV1333PatchLoader) return;
-  window.__rnV1333PatchLoader = true;
-  // Register before the page's later inline handlers. A click made while the
-  // small compatibility file is still loading is queued instead of falling
-  // through to the v13.32 lower-left Pocket Strat handler.
-  window.addEventListener('click', event => {
-    const target = event.target instanceof Element ? event.target : null;
-    const button = target?.closest('[data-create-pocket-strat]');
-    if (!button) return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-    if (typeof window.__rnAddPocketPairCentered === 'function') window.__rnAddPocketPairCentered(button);
-    else window.__rnPendingPocketPairButton = button;
-  }, true);
+  if (window.__rnV1334PatchLoader) return;
+  window.__rnV1334PatchLoader = true;
   const script = document.createElement('script');
-  script.src = './rn-v1333-playbook-upgrades.js';
+  script.src = './rn-v1334-playbook-upgrades.js?v=1334';
   script.async = false;
+  script.onerror = () => console.error('RIVALSNOTEBOOK v13.34 Playbook upgrades could not be loaded.');
   document.head.appendChild(script);
 })();
