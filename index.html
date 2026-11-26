@@ -773,7 +773,7 @@ function reasonHtml(t){
  const target=`<span class="reason-vs">VS</span><span class="reason-target-hero"><span class="reason-target-icon">${targetHero?.img?`<img src="${escapeHtml(targetHero.img)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()">`:''}<span class="reason-icon-fallback">${escapeHtml(initials)}</span></span><span class="reason-target-name">${escapeHtml(t.against)}</span></span>${t.generated?`<span class="group-result-tag">GROUP RULE</span>`:''}`;
  const vote=t.generated?`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-groupcounter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="${t.myVote?'Remove your upvote':'Upvote this individual matchup'}">▲ ${t.votes}</button>`:`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-counter="${escapeHtml(t.id)}" title="${t.myVote?'Remove your upvote':'Upvote this reason'}">▲ ${t.votes}</button>`;
  const edit=t.generated?`<button class="edit-btn" data-edit-generated-counter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="Edit only this hero matchup">EDIT</button>`:`<button class="edit-btn" data-edit-counter="${escapeHtml(t.id)}">EDIT</button>`;
- return `<div class="reason"><div class="reason-top"><span class="reason-target">${target}</span><div class="reason-actions"><span class="tier-badge ${TIER[t.tier].cls}">${TIER[t.tier].label} · ${TIER[t.tier].weight.toFixed(1)}x</span><span class="reason-points">${counterPoints(t)} pts</span>${vote}${pocketAction(t.pocketPlayId)}${edit}</div></div><div class="reason-text">${escapeHtml(t.reason)}</div>${t.source?`<div class="tip-foot">${t.sourceUrl?`<a href="${escapeHtml(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t.source)} ↗</a>`:escapeHtml(t.source)}</div>`:''}</div>`;
+ return `<div class="reason"><div class="reason-top"><span class="reason-target">${target}${vote}</span><div class="reason-actions"><span class="tier-badge ${TIER[t.tier].cls}">${TIER[t.tier].label} · ${TIER[t.tier].weight.toFixed(1)}x</span><span class="reason-points">${counterPoints(t)} pts</span>${pocketAction(t.pocketPlayId)}${edit}</div></div><div class="reason-text">${escapeHtml(t.reason)}</div>${t.source?`<div class="tip-foot">${t.sourceUrl?`<a href="${escapeHtml(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t.source)} ↗</a>`:escapeHtml(t.source)}</div>`:''}</div>`;
 }
 function roleColumnForRole(role){
  const normalized=String(role||'').toLowerCase();
@@ -1069,7 +1069,7 @@ initData();bindPlaybook();render();renderPlaybook();
     const vote = c.generated ? `<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}" title="Upvote this matchup">▲ ${Number(c.votes)||0}</button>` : `<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}" title="Upvote this synergy">▲ ${Number(c.votes)||0}</button>`;
     const edit = c.generated ? `<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>` : `<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;
     const icon = typeof iconSvg==='function' ? iconSvg(c.icon||'sparkles') : '✦';
-    return `<article class="combo-card synergy-match-card"><div class="combo-head"><div class="combo-icon">${icon}</div><div class="combo-title-wrap"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div><div class="combo-role-hint">${escapeHtml(hero(c.a)?.role==='Strategist'?'Support':hero(c.a)?.role||'')} + ${escapeHtml(hero(c.b)?.role==='Strategist'?'Support':hero(c.b)?.role||'')}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="synergy-hero-pair">${heroTile(c.a,aIn)}<div class="synergy-plus">+</div>${heroTile(c.b,bIn)}</div><div class="combo-status">${status}</div>${c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>'}${c.generated?'<span class="group-result-tag">GROUP RULE</span>':''}<div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${vote}${typeof pocketAction==='function'?pocketAction(c.pocketPlayId):''}${edit}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`;
+    return `<article class="combo-card synergy-match-card"><div class="combo-head"><div class="combo-icon">${icon}</div><div class="combo-title-wrap"><div class="combo-title-line"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div>${vote}</div><div class="combo-role-hint">${escapeHtml(hero(c.a)?.role==='Strategist'?'Support':hero(c.a)?.role||'')} + ${escapeHtml(hero(c.b)?.role==='Strategist'?'Support':hero(c.b)?.role||'')}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="synergy-hero-pair">${heroTile(c.a,aIn)}<div class="synergy-plus">+</div>${heroTile(c.b,bIn)}</div><div class="combo-status">${status}</div>${c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>'}${c.generated?'<span class="group-result-tag">GROUP RULE</span>':''}<div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${typeof pocketAction==='function'?pocketAction(c.pocketPlayId):''}${edit}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`;
   };
 
   function expandComboRulesForSuggestions(team){
@@ -8603,4 +8603,37 @@ body.playbook-mode .rn-tool-defaults:hover{border-color:#e3cb79!important;backgr
 body.playbook-mode #rnToolFillOpacityRow output{color:#a8c2d0!important;}
 body.playbook-mode #playBoardStage textarea.inline-board-text-editor{font-family:inherit!important;outline:2px solid #f3d36a!important;}
 body.playbook-mode #playBoardStage textarea.inline-board-text-editor:focus{outline:2px solid #ffe28a!important;}
+</style>
+
+<style id="rn-v13-38-upvote-title-alignment">
+/* Keep each community upvote directly beside the item title, in a Reddit-style title row. */
+#counterPage .rn-counter-role-column .reason-top{
+  display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;
+  align-items:center!important;justify-content:flex-start!important;gap:4px!important;
+}
+#counterPage .rn-counter-role-column .reason-target{
+  display:inline-flex!important;flex:1 1 100%!important;align-items:center!important;
+  flex-wrap:nowrap!important;gap:5px!important;min-width:0!important;margin:0!important;
+}
+#counterPage .rn-counter-role-column .reason-target-name{
+  min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important;
+}
+#counterPage .rn-counter-role-column .reason-target .vote-btn{
+  flex:0 0 auto!important;align-self:center!important;margin:0!important;
+}
+#counterPage .rn-counter-role-column .reason-actions{
+  display:flex!important;flex:1 1 100%!important;width:100%!important;max-width:100%!important;
+  flex-wrap:wrap!important;justify-content:flex-start!important;gap:3px!important;
+}
+#synergiesPage .rn-synergy-role-column .combo-title-wrap{flex:1 1 auto!important;min-width:0!important}
+#synergiesPage .rn-synergy-role-column .combo-title-line{
+  display:flex!important;align-items:center!important;flex-wrap:nowrap!important;
+  gap:5px!important;min-width:0!important;
+}
+#synergiesPage .rn-synergy-role-column .combo-title-line .combo-names{
+  flex:0 1 auto!important;min-width:0!important;overflow-wrap:anywhere!important;
+}
+#synergiesPage .rn-synergy-role-column .combo-title-line .vote-btn{
+  flex:0 0 auto!important;align-self:center!important;margin:0!important;white-space:nowrap!important;
+}
 </style>
