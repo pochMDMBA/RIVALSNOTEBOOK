@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v13.38</title>
+<title>RIVALSNOTEBOOK · v13.39</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -768,12 +768,13 @@ function normalizePlayItems(list){
 function selectorLabel(type,value){if(type==='hero')return value;const g=state.groups.find(x=>x.id===value);return g?g.name:'Deleted group'}
 function expandGroupRules(enemyNames=state.enemy){const out=[];for(const rule of state.groupRules){const sourceMembers=groupMembers(rule.sourceType,rule.sourceValue),targetMembers=groupMembers(rule.targetType,rule.targetValue);for(const counterHero of sourceMembers){for(const against of targetMembers){const key=pairKey(counterHero,against);if(!enemyNames.includes(against)||counterHero===against||rule.excludedPairs.includes(key))continue;out.push({id:`group:${rule.id}:${encodeURIComponent(counterHero)}:${encodeURIComponent(against)}`,groupRuleId:rule.id,pairKey:key,generated:true,against,hero:counterHero,tier:rule.tier,reason:rule.reason,votes:Number(rule.votesByPair[key])||0,myVote:!!rule.myVotesByPair[key],source:`Group rule · ${selectorLabel(rule.sourceType,rule.sourceValue)} → ${selectorLabel(rule.targetType,rule.targetValue)}`,sourceUrl:'',pocketPlayId:String((rule.pocketPlayByPair&&rule.pocketPlayByPair[key])||rule.pocketPlayId||'')})}}}return out}
 function expandComboRules(team=state.ally){const picks=new Set(team),out=[];if(!picks.size)return out;for(const rule of state.comboRules){const seen=new Set(),left=groupMembers(rule.sourceType,rule.sourceValue),right=groupMembers(rule.targetType,rule.targetValue);for(const a of left){for(const b of right){const key=pairComboKey(a,b);if(a===b||seen.has(key)||(!picks.has(a)&&!picks.has(b)))continue;seen.add(key);out.push({id:`group-synergy:${rule.id}:${encodeURIComponent(a)}:${encodeURIComponent(b)}`,ruleId:rule.id,pairKey:key,generated:true,a,b,reason:rule.reason,official:rule.official,votes:Number(rule.votesByPair[key])||0,myVote:!!rule.myVotesByPair[key],source:`Group synergy · ${selectorLabel(rule.sourceType,rule.sourceValue)} + ${selectorLabel(rule.targetType,rule.targetValue)}`,sourceUrl:rule.sourceUrl||'',icon:rule.icon||'sparkles',pocketPlayId:String((rule.pocketPlayByPair&&rule.pocketPlayByPair[key])||rule.pocketPlayId||'')})}}}return out}
+
 function reasonHtml(t){
- const targetHero=hero(t.against),initials=String(t.against||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('');
+ const targetHero=hero(t.against),initials=String(t.against||'?').split(/\\s+/).map(w=>w[0]).slice(0,2).join('');
  const target=`<span class="reason-vs">VS</span><span class="reason-target-hero"><span class="reason-target-icon">${targetHero?.img?`<img src="${escapeHtml(targetHero.img)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()">`:''}<span class="reason-icon-fallback">${escapeHtml(initials)}</span></span><span class="reason-target-name">${escapeHtml(t.against)}</span></span>${t.generated?`<span class="group-result-tag">GROUP RULE</span>`:''}`;
  const vote=t.generated?`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-groupcounter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="${t.myVote?'Remove your upvote':'Upvote this individual matchup'}">▲ ${t.votes}</button>`:`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-counter="${escapeHtml(t.id)}" title="${t.myVote?'Remove your upvote':'Upvote this reason'}">▲ ${t.votes}</button>`;
  const edit=t.generated?`<button class="edit-btn" data-edit-generated-counter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="Edit only this hero matchup">EDIT</button>`:`<button class="edit-btn" data-edit-counter="${escapeHtml(t.id)}">EDIT</button>`;
- return `<div class="reason"><div class="reason-top"><span class="reason-target">${target}${vote}</span><div class="reason-actions"><span class="tier-badge ${TIER[t.tier].cls}">${TIER[t.tier].label} · ${TIER[t.tier].weight.toFixed(1)}x</span><span class="reason-points">${counterPoints(t)} pts</span>${pocketAction(t.pocketPlayId)}${edit}</div></div><div class="reason-text">${escapeHtml(t.reason)}</div>${t.source?`<div class="tip-foot">${t.sourceUrl?`<a href="${escapeHtml(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t.source)} ↗</a>`:escapeHtml(t.source)}</div>`:''}</div>`;
+ return `<div class="reason"><div class="reason-top"><span class="reason-target">${target}</span><div class="reason-actions"><span class="tier-badge ${TIER[t.tier].cls}">${TIER[t.tier].label} · ${TIER[t.tier].weight.toFixed(1)}x</span><span class="reason-points">${counterPoints(t)} pts</span>${pocketAction(t.pocketPlayId)}${vote}</div></div><div class="reason-text">${escapeHtml(t.reason)}</div><div class="reason-bottom-actions">${edit}</div>${t.source?`<div class="tip-foot">${t.sourceUrl?`<a href="${escapeHtml(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t.source)} ↗</a>`:escapeHtml(t.source)}</div>`:''}</div>`;
 }
 function roleColumnForRole(role){
  const normalized=String(role||'').toLowerCase();
@@ -1059,17 +1060,19 @@ initData();bindPlaybook();render();renderPlaybook();
   }
 
   // Synergy cards use the same character portraits/visual hierarchy as counter recommendations.
+  
   comboCardHtml = function(c){
-    const aIn = state.ally.includes(c.a), bIn = state.ally.includes(c.b);
-    const status = aIn&&bIn ? 'TEAM PAIR ACTIVE' : aIn ? `SUGGEST ADD · ${c.b.toUpperCase()}` : `SUGGEST ADD · ${c.a.toUpperCase()}`;
-    const heroTile = (name, inTeam) => {
-      const h = hero(name);
-      return `<div class="synergy-hero-tile ${inTeam?'in-team':'suggested'}"><div class="synergy-portrait"><img loading="lazy" src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(name)}" onerror="this.parentElement.classList.add('broken');this.remove()"><span>${escapeHtml(name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><div class="synergy-hero-name">${escapeHtml(name)}</div><div class="synergy-hero-role">${escapeHtml(h?.role==='Strategist'?'Support':h?.role||'Hero')}</div><div class="synergy-state">${inTeam?'IN TEAM':'SUGGESTED'}</div></div>`;
+    const aIn=state.ally.includes(c.a),bIn=state.ally.includes(c.b);
+    const status=aIn&&bIn?'TEAM PAIR ACTIVE':aIn?`SUGGEST ADD · ${c.b.toUpperCase()}`:bIn?`SUGGEST ADD · ${c.a.toUpperCase()}`:'MATCH';
+    const heroTile=(name,inTeam)=>{
+      const h=hero(name);
+      return `<div class="synergy-hero-tile ${inTeam?'in-team':'suggested'}"><div class="synergy-portrait"><img loading="lazy" src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(name)}" onerror="this.parentElement.classList.add('broken');this.remove()"><span>${escapeHtml(name.split(/\\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><div class="synergy-hero-name">${escapeHtml(name)}</div><div class="synergy-hero-role">${escapeHtml(h?.role==='Strategist'?'Support':h?.role||'Hero')}</div><div class="synergy-state">${inTeam?'IN TEAM':'SUGGESTED'}</div></div>`;
     };
-    const vote = c.generated ? `<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}" title="Upvote this matchup">▲ ${Number(c.votes)||0}</button>` : `<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}" title="Upvote this synergy">▲ ${Number(c.votes)||0}</button>`;
-    const edit = c.generated ? `<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>` : `<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;
-    const icon = typeof iconSvg==='function' ? iconSvg(c.icon||'sparkles') : '✦';
-    return `<article class="combo-card synergy-match-card"><div class="combo-head"><div class="combo-icon">${icon}</div><div class="combo-title-wrap"><div class="combo-title-line"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div>${vote}</div><div class="combo-role-hint">${escapeHtml(hero(c.a)?.role==='Strategist'?'Support':hero(c.a)?.role||'')} + ${escapeHtml(hero(c.b)?.role==='Strategist'?'Support':hero(c.b)?.role||'')}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="synergy-hero-pair">${heroTile(c.a,aIn)}<div class="synergy-plus">+</div>${heroTile(c.b,bIn)}</div><div class="combo-status">${status}</div>${c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>'}${c.generated?'<span class="group-result-tag">GROUP RULE</span>':''}<div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${typeof pocketAction==='function'?pocketAction(c.pocketPlayId):''}${edit}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`;
+    const vote=c.generated?`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}" title="Upvote this matchup">▲ ${Number(c.votes)||0}</button>`:`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}" title="Upvote this synergy">▲ ${Number(c.votes)||0}</button>`;
+    const edit=c.generated?`<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>`:`<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;
+    const icon=typeof iconSvg==='function'?iconSvg(c.icon||'sparkles'):'✦';
+    const category=c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>';
+    return `<article class="combo-card synergy-match-card"><div class="combo-head">${vote}<div class="combo-icon">${icon}</div><div class="combo-title-wrap"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="synergy-hero-pair">${heroTile(c.a,aIn)}<div class="synergy-plus">+</div>${heroTile(c.b,bIn)}</div><div class="combo-status">${status}</div><div class="synergy-tag-row">${category}${edit}${c.generated?'<span class="group-result-tag">GROUP RULE</span>':''}</div><div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${typeof pocketAction==='function'?pocketAction(c.pocketPlayId):''}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`;
   };
 
   function expandComboRulesForSuggestions(team){
@@ -2502,9 +2505,9 @@ initData();bindPlaybook();render();renderPlaybook();
       const item = state.playItems.find(x=>x.id===el.dataset.boardItem); if (!item) return;
       state.selectedBoardItem=item.id;
       const rect=board.getBoundingClientRect();
-      const stretchable=['shape','pen','arrow','wall'].includes(item.type);
-      const defaults=item.type==='shape'?({line:[14,4],circle:[9,14],rectangle:[11,13],triangle:[11,14],diamond:[9,14],cone:[10,14],star:[9,14]}[item.shapeKind]||[11,13]):item.type==='arrow'?[15,6]:item.type==='wall'?[15,5]:[2,2];
-      resizing={id:item.id,startX:e.clientX,startY:e.clientY,startScale:Number(item.scale)||1,startW:Number(item.w)||defaults[0],startH:Number(item.h)||defaults[1],boardW:rect.width,boardH:rect.height,stretchable,changed:false};
+      const stretchable=['shape','pen','arrow','wall','number'].includes(item.type);
+      const defaults=item.type==='shape'?({line:[14,4],circle:[9,14],rectangle:[11,13],triangle:[11,14],diamond:[9,14],cone:[10,14],star:[9,14]}[item.shapeKind]||[11,13]):item.type==='arrow'?[15,6]:item.type==='wall'?[15,5]:item.type==='number'?[2.8,5.2]:[2,2];
+      resizing={id:item.id,type:item.type,startX:e.clientX,startY:e.clientY,startScale:Number(item.scale)||1,startW:Number(item.w)||defaults[0],startH:Number(item.h)||defaults[1],boardW:rect.width,boardH:rect.height,stretchable,changed:false};
       e.preventDefault(); board.setPointerCapture(e.pointerId); return;
     }
     if (!el && penModeActive && e.button === 0) { beginPen(e); return; }
@@ -2535,8 +2538,15 @@ initData();bindPlaybook();render();renderPlaybook();
       if (resizing.stretchable) {
         const dx=(e.clientX-resizing.startX)/Math.max(1,resizing.boardW)*100;
         const dy=(e.clientY-resizing.startY)/Math.max(1,resizing.boardH)*100;
-        item.w=Math.max(.05,Math.min(500,resizing.startW+dx));
-        item.h=Math.max(.05,Math.min(500,resizing.startH+dy));
+        if(resizing.type==='number'){
+          const ratio=resizing.boardW/Math.max(1,resizing.boardH);
+          const startDiameter=(resizing.startW+resizing.startH/ratio)/2;
+          item.w=Math.max(2.4,Math.min(20,startDiameter+(dx+dy*ratio)/2));
+          item.h=item.w*ratio;
+        }else{
+          item.w=Math.max(.05,Math.min(500,resizing.startW+dx));
+          item.h=Math.max(.05,Math.min(500,resizing.startH+dy));
+        }
         resizing.changed=Math.abs(item.w-resizing.startW)>.001||Math.abs(item.h-resizing.startH)>.001;
         if(el){el.style.width=`${item.w}%`;el.style.height=`${item.h}%`;}
       } else {
@@ -3762,8 +3772,8 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     }
     if(resize&&el&&selectedIds.size<=1){
       const item=itemFromElement(el);if(!item)return;setSelection([item.id]);
-      const defaults=item.type==='shape'?({line:[14,4],circle:[9,14],rectangle:[11,13],triangle:[11,14],diamond:[9,14],cone:[10,14],star:[9,14]}[item.shapeKind]||[11,13]):item.type==='arrow'?[15,6]:item.type==='wall'?[15,5]:item.type==='image'?[18,20]:item.type==='text'?[18,9]:[2,2];
-      resizing={id:item.id,startX:e.clientX,startY:e.clientY,startScale:Number(item.scale)||1,startW:Number(item.w)||defaults[0],startH:Number(item.h)||defaults[1],startWBoard:Math.max(1,stage.clientWidth*zoom),startHBoard:Math.max(1,stage.clientHeight*zoom),stretchable:['shape','pen','arrow','wall','image','text'].includes(item.type),changed:false};
+      const defaults=item.type==='shape'?({line:[14,4],circle:[9,14],rectangle:[11,13],triangle:[11,14],diamond:[9,14],cone:[10,14],star:[9,14]}[item.shapeKind]||[11,13]):item.type==='arrow'?[15,6]:item.type==='wall'?[15,5]:item.type==='image'?[18,20]:item.type==='text'?[18,9]:item.type==='number'?[2.8,5.2]:[2,2];
+      resizing={id:item.id,type:item.type,startX:e.clientX,startY:e.clientY,startScale:Number(item.scale)||1,startW:Number(item.w)||defaults[0],startH:Number(item.h)||defaults[1],startWBoard:Math.max(1,stage.clientWidth*zoom),startHBoard:Math.max(1,stage.clientHeight*zoom),stretchable:['shape','pen','arrow','wall','image','text','number'].includes(item.type),changed:false};
       e.preventDefault();board.setPointerCapture(e.pointerId);return;
     }
     if(!el && pendingTextPlacement){showInlineTextEditor(worldPoint(e));return;}
@@ -3802,7 +3812,15 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       const item=state.playItems.find(x=>x.id===resizing.id);if(!item)return;const el=stage.querySelector(`[data-board-item="${CSS.escape(item.id)}"]`);
       if(resizing.stretchable){
         const dx=(e.clientX-resizing.startX)/resizing.startWBoard*100,dy=(e.clientY-resizing.startY)/resizing.startHBoard*100;
-        item.w=Math.max(.05,Math.min(500,resizing.startW+dx));item.h=Math.max(.05,Math.min(500,resizing.startH+dy));
+        if(resizing.type==='number'){
+          const ratio=resizing.startWBoard/Math.max(1,resizing.startHBoard);
+          const startDiameter=(resizing.startW+resizing.startH/ratio)/2;
+          item.w=Math.max(2.4,Math.min(20,startDiameter+(dx+dy*ratio)/2));
+          item.h=item.w*ratio;
+        }else{
+          item.w=Math.max(.05,Math.min(500,resizing.startW+dx));
+          item.h=Math.max(.05,Math.min(500,resizing.startH+dy));
+        }
         resizing.changed=Math.abs(item.w-resizing.startW)>.001||Math.abs(item.h-resizing.startH)>.001;
         if(el){el.style.width=`${item.w}%`;el.style.height=`${item.h}%`;}
       }else{
@@ -8363,15 +8381,13 @@ body.playbook-mode .rn-map-view-selector[data-view-type="submap"] .rn-map-view-c
 
 
 <style id="rn-v13-32-number-marker-pocket-strat">
-/* Number markers keep their original compact circle-and-number appearance.
-   Number badges never inherit the general Text tool's box sizing or scrollbars. */
+/* Number markers retain their compact yellow circle by default and remain resizable. */
 body.playbook-mode #playBoardStage > .board-item.board-number.rn-number-compact{
   box-sizing:border-box!important;display:grid!important;place-items:center!important;
-  width:31px!important;height:31px!important;min-width:31px!important;min-height:31px!important;
-  max-width:31px!important;max-height:31px!important;padding:0!important;margin:0!important;
-  border:2px solid #fff0a8!important;border-radius:50%!important;
-  background:#f5d54e!important;color:#242a31!important;
-  font-family:inherit!important;font-size:15px!important;font-weight:950!important;line-height:1!important;
+  min-width:24px!important;min-height:24px!important;max-width:20%!important;max-height:40%!important;
+  padding:0!important;margin:0!important;border:2px solid #fff0a8!important;border-radius:50%!important;
+  background:#f5d54e!important;color:#242a31!important;font-family:inherit!important;
+  font-size:15px!important;font-weight:950!important;line-height:1!important;
   white-space:nowrap!important;overflow:hidden!important;overflow-wrap:normal!important;
   text-align:center!important;scrollbar-width:none!important;box-shadow:0 2px 8px #0008!important;
 }
@@ -8379,11 +8395,10 @@ body.playbook-mode #playBoardStage > .board-item.board-number.rn-number-compact:
 body.playbook-mode #playBoardStage > .inline-board-text-editor.rn-number-marker-editor::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
 body.playbook-mode #playBoardStage > .inline-board-text-editor.rn-number-marker-editor{
   box-sizing:border-box!important;display:grid!important;place-items:center!important;
-  width:31px!important;height:31px!important;min-width:31px!important;min-height:31px!important;
-  max-width:31px!important;max-height:31px!important;padding:0!important;margin:0!important;
-  border:2px solid #fff0a8!important;border-radius:50%!important;
-  background:#f5d54e!important;color:#242a31!important;
-  font-family:inherit!important;font-size:15px!important;font-weight:950!important;line-height:1!important;
+  min-width:24px!important;min-height:24px!important;max-width:20%!important;max-height:40%!important;
+  padding:0!important;margin:0!important;border:2px solid #fff0a8!important;border-radius:50%!important;
+  background:#f5d54e!important;color:#242a31!important;font-family:inherit!important;
+  font-size:15px!important;font-weight:950!important;line-height:1!important;
   white-space:nowrap!important;overflow:hidden!important;overflow-wrap:normal!important;
   text-align:center!important;resize:none!important;scrollbar-width:none!important;
   box-shadow:0 2px 8px #0008!important;
@@ -8421,7 +8436,7 @@ body.playbook-mode #playBoardStage > .inline-board-text-editor.rn-number-marker-
           item.fillOpacity=1;item.borderOpacity=1;item.borderWidth=2;item.color='yellow';item.opacity=1;
           item.number=Math.max(1,Number(item.number)||1);
           item.text=String(item.text!=null&&String(item.text).trim()?item.text:item.number);
-          item.w=2.8;item.h=5.2;
+          const legacyScale=Math.max(.25,Math.min(4,Number(item.scale)||1));item.w=Math.max(2.4,Math.min(20,(Number(item.w)>0?Number(item.w):markerDefaults.w)*legacyScale));item.h=Math.max(4,Math.min(40,(Number(item.h)>0?Number(item.h):markerDefaults.h)*legacyScale));item.scale=1;
         }
         return item;
       });
@@ -8439,7 +8454,7 @@ body.playbook-mode #playBoardStage > .inline-board-text-editor.rn-number-marker-
         const value=String(item.text!=null&&String(item.text).trim()?item.text:(item.number||1));
         const textNode=[...el.childNodes].find(node=>node.nodeType===Node.TEXT_NODE);
         if(textNode)textNode.textContent=value;else el.insertBefore(document.createTextNode(value),el.firstChild);
-        Object.assign(el.style,{width:'31px',height:'31px',minWidth:'31px',minHeight:'31px',maxWidth:'31px',maxHeight:'31px',padding:'0',border:'2px solid #fff0a8',borderRadius:'50%',backgroundColor:'#f5d54e',color:'#242a31',fontSize:'15px',fontWeight:'950',lineHeight:'1',whiteSpace:'nowrap',overflow:'hidden',overflowWrap:'normal',textAlign:'center',display:'grid',placeItems:'center',scrollbarWidth:'none'});
+        const markerWidth=Math.max(2.4,Math.min(20,Number(item.w)||markerDefaults.w));const markerHeight=Math.max(4,Math.min(40,Number(item.h)||markerDefaults.h));Object.assign(el.style,{width:`${markerWidth}%`,height:`${markerHeight}%`,minWidth:'24px',minHeight:'24px',maxWidth:'20%',maxHeight:'40%',padding:'0',border:'2px solid #fff0a8',borderRadius:'50%',backgroundColor:'#f5d54e',color:'#242a31',fontSize:'15px',fontWeight:'950',lineHeight:'1',whiteSpace:'nowrap',overflow:'hidden',overflowWrap:'normal',textAlign:'center',display:'grid',placeItems:'center',scrollbarWidth:'none'});el.style.transform=`rotate(${Number(item.rotate)||0}deg)`;
         el.title='Double-click to edit number';
         el.setAttribute('aria-label',`Number marker ${value}`);
       }
@@ -8453,11 +8468,11 @@ body.playbook-mode #playBoardStage > .inline-board-text-editor.rn-number-marker-
     const baseEdit=window.__rnEditBoardTextItem;
     const wrappedEdit=function(id){
       const item=(window.__rnGetBoardItems?.()||[]).find(candidate=>String(candidate.id)===String(id));
-      if(item?.type==='number')Object.assign(item,markerDefaults,{number:Math.max(1,Number(item.number)||1)});
+      if(item?.type==='number'){const savedW=Number(item.w),savedH=Number(item.h);Object.assign(item,markerDefaults,{number:Math.max(1,Number(item.number)||1)});item.w=savedW>0?savedW:markerDefaults.w;item.h=savedH>0?savedH:markerDefaults.h;item.scale=1;}
       const editor=baseEdit.call(this,id);
       if(editor&&item?.type==='number'){
         editor.classList.add('rn-number-marker-editor');
-        Object.assign(editor.style,{width:'31px',height:'31px',minWidth:'31px',minHeight:'31px',maxWidth:'31px',maxHeight:'31px',padding:'0',border:'2px solid #fff0a8',borderRadius:'50%',backgroundColor:'#f5d54e',color:'#242a31',fontSize:'15px',fontWeight:'950',lineHeight:'1',whiteSpace:'nowrap',overflow:'hidden',overflowWrap:'normal',resize:'none',scrollbarWidth:'none',textAlign:'center'});
+        const markerWidth=Math.max(2.4,Math.min(20,Number(item.w)||markerDefaults.w));const markerHeight=Math.max(4,Math.min(40,Number(item.h)||markerDefaults.h));Object.assign(editor.style,{width:`${markerWidth}%`,height:`${markerHeight}%`,minWidth:'24px',minHeight:'24px',maxWidth:'20%',maxHeight:'40%',padding:'0',border:'2px solid #fff0a8',borderRadius:'50%',backgroundColor:'#f5d54e',color:'#242a31',fontSize:'15px',fontWeight:'950',lineHeight:'1',whiteSpace:'nowrap',overflow:'hidden',overflowWrap:'normal',resize:'none',scrollbarWidth:'none',textAlign:'center'});
         editor.value=String(item.text!=null&&String(item.text).trim()?item.text:item.number);
       }
       return editor;
@@ -8636,4 +8651,62 @@ body.playbook-mode #playBoardStage textarea.inline-board-text-editor:focus{outli
 #synergiesPage .rn-synergy-role-column .combo-title-line .vote-btn{
   flex:0 0 auto!important;align-self:center!important;margin:0!important;white-space:nowrap!important;
 }
+</style>
+
+<style id="rn-v13-39-card-layout-and-number-resize">
+/* Synergy cards: upvote first, then icon and hero-pair title. */
+#synergiesPage .rn-synergy-role-column .synergy-match-card .combo-head{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:5px!important;
+}
+#synergiesPage .rn-synergy-role-column .synergy-match-card .combo-head>.vote-btn{
+  order:0!important;flex:0 0 auto!important;margin:0!important;
+}
+#synergiesPage .rn-synergy-role-column .synergy-match-card .combo-head>.combo-icon{order:1!important;flex:0 0 20px!important;}
+#synergiesPage .rn-synergy-role-column .synergy-match-card .combo-title-wrap{order:2!important;flex:1 1 auto!important;min-width:0!important;}
+#synergiesPage .rn-synergy-role-column .synergy-match-card .combo-names{font-size:9px!important;line-height:1.2!important;overflow-wrap:anywhere!important;}
+#synergiesPage .rn-synergy-role-column .synergy-match-card .points-badge{order:3!important;margin-left:auto!important;flex:0 0 auto!important;}
+#synergiesPage .rn-synergy-role-column .synergy-tag-row{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:5px!important;
+  flex-wrap:wrap!important;margin:4px 0!important;min-width:0!important;
+}
+#synergiesPage .rn-synergy-role-column .synergy-tag-row .edit-btn{flex:0 0 auto!important;margin:0!important;}
+#synergiesPage .rn-synergy-role-column .combo-foot .reason-actions{display:flex!important;align-items:center!important;gap:4px!important;}
+/* Counterpicker: keep the vote at the far-right edge of the metadata row. */
+#counterPage .rn-counter-role-column .reason-top{
+  display:flex!important;flex-direction:row!important;align-items:center!important;
+  justify-content:space-between!important;flex-wrap:wrap!important;gap:5px!important;
+}
+#counterPage .rn-counter-role-column .reason-target{
+  display:inline-flex!important;flex:0 1 auto!important;align-items:center!important;
+  flex-wrap:wrap!important;gap:5px!important;min-width:0!important;margin:0!important;
+}
+#counterPage .rn-counter-role-column .reason-actions{
+  display:flex!important;flex:1 1 180px!important;width:auto!important;max-width:100%!important;
+  flex-wrap:wrap!important;align-items:center!important;justify-content:flex-end!important;
+  margin-left:auto!important;gap:4px!important;min-width:0!important;
+}
+#counterPage .rn-counter-role-column .reason-actions .vote-btn{
+  flex:0 0 auto!important;margin-left:auto!important;order:99!important;
+}
+#counterPage .rn-counter-role-column .reason-bottom-actions{
+  display:flex!important;align-items:center!important;justify-content:flex-end!important;
+  width:100%!important;margin-top:5px!important;
+}
+#counterPage .rn-counter-role-column .reason-bottom-actions .edit-btn{margin-left:auto!important;}
+/* Number-marker resizing keeps a circular badge while the stored dimensions change. */
+body.playbook-mode #playBoardStage>.board-item.board-number.rn-number-compact{
+  min-width:24px!important;min-height:24px!important;max-width:20%!important;max-height:40%!important;
+}
+body.playbook-mode #playBoardStage>.board-item.board-number.rn-number-compact .resize-handle{
+  display:grid!important;place-items:center!important;visibility:visible!important;opacity:1!important;
+  pointer-events:auto!important;z-index:100!important;width:16px!important;height:16px!important;
+  right:-8px!important;bottom:-8px!important;border:1.5px solid #172532!important;border-radius:3px!important;
+  background:#f4f8fb!important;color:#172532!important;box-shadow:0 1px 4px #0008!important;
+  font-size:0!important;line-height:1!important;cursor:nwse-resize!important;
+}
+body.playbook-mode #playBoardStage>.board-item.board-number.rn-number-compact .resize-handle::before{
+  content:'↘';display:block!important;font-family:Arial,sans-serif!important;font-size:13px!important;
+  font-weight:900!important;line-height:1!important;color:#172532!important;
+}
+body.playbook-mode #playBoardStage>.board-item.board-number.rn-number-compact .resize-handle::after{display:none!important;}
 </style>
