@@ -126,9 +126,23 @@ create table if not exists public.community_votes (
   content_type text not null check (content_type in ('counter_tip','synergy','group_counter','group_synergy')),
   content_id text not null,
   user_id uuid not null references auth.users(id) on delete cascade,
+  vote_value smallint not null default 1 constraint community_votes_vote_value_check check (vote_value in (-1,1)),
   created_at timestamptz not null default now(),
   unique (content_type, content_id, user_id)
 );
+alter table public.community_votes add column if not exists vote_value smallint not null default 1;
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'community_votes_vote_value_check'
+      and conrelid = 'public.community_votes'::regclass
+  ) then
+    alter table public.community_votes
+      add constraint community_votes_vote_value_check check (vote_value in (-1,1));
+  end if;
+end $$;
+
 create index if not exists community_votes_content_idx on public.community_votes(content_type, content_id);
 alter table public.community_votes enable row level security;
 drop policy if exists "Members can read only their own community votes" on public.community_votes;
@@ -137,21 +151,27 @@ create policy "Members can read only their own community votes" on public.commun
 drop policy if exists "Members can add their own community votes" on public.community_votes;
 create policy "Members can add their own community votes" on public.community_votes
   for insert to authenticated with check (user_id = auth.uid());
+drop policy if exists "Members can update their own community vote direction" on public.community_votes;
+create policy "Members can update their own community vote direction" on public.community_votes
+  for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 drop policy if exists "Members can remove their own community votes" on public.community_votes;
 create policy "Members can remove their own community votes" on public.community_votes
   for delete to authenticated using (user_id = auth.uid());
 revoke all on public.community_votes from anon, authenticated;
 grant select, delete on public.community_votes to authenticated;
-grant insert (content_type, content_id, user_id) on public.community_votes to authenticated;
+grant insert (content_type, content_id, user_id, vote_value) on public.community_votes to authenticated;
+grant update (vote_value) on public.community_votes to authenticated;
 
--- Public aggregate counts expose totals without exposing voters' account IDs.
+-- Public aggregate score exposes net upvotes minus downvotes without exposing voters' account IDs.
 create table if not exists public.community_vote_totals (
   content_type text not null,
   content_id text not null,
-  vote_count integer not null default 0 check (vote_count >= 0),
+  vote_count integer not null default 0,
   updated_at timestamptz not null default now(),
   primary key (content_type, content_id)
 );
+alter table public.community_vote_totals
+  drop constraint if exists community_vote_totals_vote_count_check;
 alter table public.community_vote_totals enable row level security;
 drop policy if exists "Anyone can read aggregate community votes" on public.community_vote_totals;
 create policy "Anyone can read aggregate community votes" on public.community_vote_totals
@@ -169,19 +189,33 @@ declare
   delta integer;
 begin
   if tg_op = 'INSERT' then
-    vote_type := new.content_type; vote_content_id := new.content_id; delta := 1;
+    vote_type := new.content_type;
+    vote_content_id := new.content_id;
+    delta := new.vote_value;
+  elsif tg_op = 'DELETE' then
+    vote_type := old.content_type;
+    vote_content_id := old.content_id;
+    delta := -old.vote_value;
   else
-    vote_type := old.content_type; vote_content_id := old.content_id; delta := -1;
+    vote_type := new.content_type;
+    vote_content_id := new.content_id;
+    delta := new.vote_value - old.vote_value;
   end if;
-  insert into public.community_vote_totals(content_type, content_id, vote_count, updated_at)
-  values (vote_type, vote_content_id, greatest(delta,0), now())
-  on conflict (content_type, content_id) do update
-    set vote_count = greatest(0, public.community_vote_totals.vote_count + delta), updated_at = now();
+
+  if delta <> 0 then
+    insert into public.community_vote_totals(content_type, content_id, vote_count, updated_at)
+    values (vote_type, vote_content_id, delta, now())
+    on conflict (content_type, content_id) do update
+      set vote_count = public.community_vote_totals.vote_count + excluded.vote_count,
+          updated_at = now();
+  end if;
+
   if tg_op = 'DELETE' then return old; else return new; end if;
 end;
 $$;
 drop trigger if exists community_vote_total_after_change on public.community_votes;
-create trigger community_vote_total_after_change after insert or delete on public.community_votes
+create trigger community_vote_total_after_change
+after insert or update of vote_value or delete on public.community_votes
 for each row execute function public.refresh_community_vote_total();
 
 -- Public Community Groups; private My Groups remain in user_workspaces only.
