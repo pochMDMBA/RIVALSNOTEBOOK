@@ -88,6 +88,134 @@
     return wrap;
   }
 
+
+  function communityThreadIsOpen(threadKey) {
+    const open = appState()?.openCommunityCommentThreads;
+    return Array.isArray(open) && open.includes(threadKey);
+  }
+
+  function communityThreadCommentCount(threadKey) {
+    try {
+      if (typeof communityCommentCount === 'function') {
+        const count = Number(communityCommentCount(threadKey));
+        return Number.isFinite(count) ? Math.max(0, Math.trunc(count)) : 0;
+      }
+    } catch (_) {}
+    const stored = appState()?.communityComments?.[threadKey];
+    return Array.isArray(stored) ? stored.length : 0;
+  }
+
+  function communityThreadPanelHtml(threadKey) {
+    try {
+      if (typeof communityCommentPanelHtml === 'function') {
+        return String(communityCommentPanelHtml(threadKey) || '');
+      }
+    } catch (_) {}
+    return '';
+  }
+
+  function makeCommunityCommentToggle(threadKey) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'rn-post-comment-toggle rn-matchup-comment-toggle';
+    button.dataset.communityCommentToggle = threadKey;
+    button.setAttribute('aria-expanded', String(communityThreadIsOpen(threadKey)));
+    button.title = 'Open the matchup discussion';
+    button.textContent = `◯ ${communityThreadCommentCount(threadKey)} COMMENTS`;
+    return button;
+  }
+
+  function makeCommunityCommentPanel(threadKey) {
+    const html = communityThreadPanelHtml(threadKey);
+    if (!html) return null;
+    const template = document.createElement('template');
+    template.innerHTML = html.trim();
+    return template.content;
+  }
+
+  function appendMatchupCommunityActions(reason, voteStack, threadKey) {
+    if (!reason) return;
+    const row = document.createElement('div');
+    row.className = 'rn-matchup-community-actions';
+    if (voteStack) row.appendChild(voteStack);
+    row.appendChild(makeCommunityCommentToggle(threadKey));
+    reason.appendChild(row);
+    const panel = makeCommunityCommentPanel(threadKey);
+    if (panel) reason.appendChild(panel);
+  }
+
+  function counterMatchupThreadKey(item, isGroup, ruleId, pairKey, contentId) {
+    const identity = isGroup ? `group:${ruleId}:${pairKey}` : `tip:${contentId || item?.id || 'unknown'}`;
+    return `counter-matchup:${identity}`;
+  }
+
+  function placeSelectedTeamMemberFirst(template, item) {
+    const allies = (appState()?.ally || []).map(name => String(name).trim().toLowerCase());
+    const a = String(item?.a || '').trim().toLowerCase();
+    const b = String(item?.b || '').trim().toLowerCase();
+    if (!allies.includes(b) || allies.includes(a)) return;
+
+    const pair = template.content.querySelector('.rn-post-avatar-pair');
+    const avatars = pair ? [...pair.querySelectorAll('.rn-post-pair-avatar')] : [];
+    const plus = pair?.querySelector('.rn-post-pair-plus');
+    if (avatars.length >= 2 && plus) pair.replaceChildren(avatars[1], plus, avatars[0]);
+
+    const title = template.content.querySelector('.rn-post-title');
+    if (title) title.textContent = `${item.b} + ${item.a}`;
+  }
+
+  function cleanupCounterPostChrome(root = document) {
+    root.querySelectorAll('#counterPage .counter-post').forEach(card => {
+      card.querySelector('.rn-post-header .rn-post-byline')?.remove();
+      card.querySelector('.rn-post-header .rn-post-subtitle')?.remove();
+      card.querySelector('.rn-post-targets')?.remove();
+      card.querySelector('.rn-post-actions .rn-post-vote')?.remove();
+      card.querySelector('.rn-post-actions [data-community-comment-toggle]')?.remove();
+      card.querySelector('.counter-card-body > .rn-post-section-label')?.remove();
+      card.querySelector('.counter-card-body > .rn-post-comments-heading')?.remove();
+      [...card.children].filter(child => child.classList?.contains('rn-community-comment-panel')).forEach(panel => panel.remove());
+      const actions = card.querySelector(':scope > .rn-post-actions');
+      if (actions && !actions.children.length) actions.remove();
+    });
+  }
+
+  function installMatchupLayoutStyles() {
+    if ($('rn-v1342-matchup-layout-style')) return;
+    const style = document.createElement('style');
+    style.id = 'rn-v1342-matchup-layout-style';
+    style.textContent = `
+      #counterPage .rn-post-header .rn-post-byline,
+      #counterPage .rn-post-header .rn-post-subtitle,
+      #synergiesPage .rn-post-header .rn-post-byline,
+      #synergiesPage .rn-post-header .rn-post-subtitle{display:none!important}
+      #counterPage .rn-post-targets{display:none!important}
+      #counterPage .rn-post-actions .rn-post-vote,
+      #counterPage .rn-post-actions .rn-post-comment-toggle{display:none!important}
+      #counterPage .counter-card-body>.rn-post-section-label,
+      #counterPage .counter-card-body>.rn-post-comments-heading{display:none!important}
+      #counterPage .reason-actions .tier-badge,
+      #counterPage .reason-actions .reason-points{display:none!important}
+      #counterPage .reason-bottom-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:6px!important;flex-wrap:wrap!important}
+      .rn-matchup-community-actions{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:6px!important;min-width:0!important;margin:6px 0 1px!important;padding-top:5px!important;border-top:1px solid #344451!important}
+      .rn-matchup-community-actions .rn-reddit-vote-stack{display:inline-flex!important;flex-direction:row!important;align-items:center!important;gap:4px!important;min-width:0!important;padding:3px 6px!important;border-radius:999px!important}
+      .rn-matchup-community-actions .rn-reddit-vote{width:18px!important;height:18px!important;min-height:18px!important}
+      .rn-matchup-community-actions .rn-reddit-score{min-width:14px!important;padding:0!important;font-size:9px!important}
+      .rn-matchup-community-actions .rn-matchup-comment-toggle{min-height:24px!important;padding:3px 8px!important;font-size:8px!important}
+      #counterPage .rn-matchup-community-actions{margin-top:5px!important}
+      #counterPage .rn-matchup-comment-toggle{margin-left:0!important}
+      #synergiesPage .rn-post-community-attribution{display:block!important;margin:5px 0 0!important;color:#9babb8!important;font-size:8px!important;line-height:1.35!important}
+      #synergiesPage .rn-post-community-attribution a{color:#b9d9ec!important;text-decoration:none!important}
+      #synergiesPage .rn-post-community-attribution a:hover{text-decoration:underline!important}
+      #synergiesPage .rn-synergy-community-actions{margin-top:6px!important}
+      #synergiesPage .rn-post-actions{margin:5px 0!important}
+      @media(max-width:600px){
+        .rn-matchup-community-actions{gap:5px!important}
+        .rn-matchup-community-actions .rn-post-comment-toggle{white-space:normal!important}
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function installDirectionalVoteRenderers() {
     if (typeof window.reasonHtml === 'function' && !window.reasonHtml.__rnV1337) {
       const original = window.reasonHtml;
@@ -97,15 +225,42 @@
         template.innerHTML = String(html || '').trim();
         const old = template.content.querySelector('[data-vote-groupcounter],[data-vote-counter]');
         if (!old) return html;
+
         const isGroup = old.hasAttribute('data-vote-groupcounter');
         const ruleId = old.getAttribute('data-vote-groupcounter') || '';
         const pairKey = old.getAttribute('data-pair-key') || '';
         const type = isGroup ? 'group_counter' : 'counter_tip';
-        const contentId = isGroup ? `${ruleId}::${pairKey}` : (old.getAttribute('data-vote-counter') || '');
-        old.replaceWith(makeVoteStack(type, contentId, item?.votes, directionForItem(item,'counter')));
-        const seePlay = template.content.querySelector('.reason-actions > .pocket-open-btn');
-        const reasonTop = template.content.querySelector('.reason-top');
-        if (seePlay && reasonTop) reasonTop.appendChild(seePlay);
+        const contentId = isGroup ? `${ruleId}::${pairKey}` : (old.getAttribute('data-vote-counter') || item?.id || '');
+        const voteStack = makeVoteStack(type, contentId, item?.votes, directionForItem(item,'counter'));
+        old.replaceWith(voteStack);
+
+        const reason = template.content.querySelector('.reason');
+        const actions = template.content.querySelector('.reason-actions');
+        const bottomActions = template.content.querySelector('.reason-bottom-actions');
+        const seePlay = actions?.querySelector('.pocket-open-btn');
+        if (seePlay) {
+          if (bottomActions) bottomActions.insertBefore(seePlay, bottomActions.firstChild);
+          else if (reason) {
+            const bottom = document.createElement('div');
+            bottom.className = 'reason-bottom-actions';
+            bottom.appendChild(seePlay);
+            reason.appendChild(bottom);
+          }
+        }
+        actions?.querySelectorAll('.tier-badge,.reason-points').forEach(node => node.remove());
+        if (actions && !actions.children.length) actions.remove();
+
+        const threadKey = counterMatchupThreadKey(item, isGroup, ruleId, pairKey, contentId);
+        let attribution = reason?.querySelector('.tip-foot');
+        if (reason && !attribution) {
+          attribution = document.createElement('div');
+          attribution.className = 'tip-foot rn-matchup-community-label';
+          attribution.textContent = item?.source || 'Community matchup tip';
+          const description = reason.querySelector('.reason-text');
+          if (description) description.after(attribution);
+          else reason.appendChild(attribution);
+        }
+        appendMatchupCommunityActions(reason, voteStack, threadKey);
         return template.innerHTML;
       };
       wrapped.__rnV1337 = true;
@@ -120,15 +275,62 @@
         template.innerHTML = String(html || '').trim();
         const old = template.content.querySelector('[data-vote-combo-rule],[data-vote-combo]');
         if (!old) return html;
+
         const isGroup = old.hasAttribute('data-vote-combo-rule');
         const ruleId = old.getAttribute('data-vote-combo-rule') || '';
         const pairKey = old.getAttribute('data-pair-key') || '';
         const type = isGroup ? 'group_synergy' : 'synergy';
-        const contentId = isGroup ? `${ruleId}::${pairKey}` : (old.getAttribute('data-vote-combo') || '');
-        old.replaceWith(makeVoteStack(type, contentId, item?.votes, directionForItem(item,'synergy')));
+        const contentId = isGroup ? `${ruleId}::${pairKey}` : (old.getAttribute('data-vote-combo') || item?.id || '');
+        const threadKey = `synergy:${item?.id || contentId}`;
+        const voteStack = makeVoteStack(type, contentId, item?.votes, directionForItem(item,'synergy'));
+        old.replaceWith(voteStack);
+
+        placeSelectedTeamMemberFirst(template, item);
+
+        const header = template.content.querySelector('.rn-post-header');
+        const byline = template.content.querySelector('.rn-post-byline');
+        const description = template.content.querySelector('.rn-post-description');
+        const sourceMarkup = byline ? (() => {
+          const source = byline.cloneNode(true);
+          source.querySelectorAll('span').forEach(span => {
+            if (span.textContent.trim().toLowerCase() === 'submitted by') span.remove();
+          });
+          return source.innerHTML.trim();
+        })() : '';
+        byline?.remove();
+        header?.querySelector('.rn-post-subtitle')?.remove();
+
+        if (description) {
+          const attribution = document.createElement('div');
+          attribution.className = 'rn-post-community-attribution';
+          attribution.innerHTML = sourceMarkup || '<span>Community synergy tip</span>';
+          description.appendChild(attribution);
+        }
+
+        const actions = template.content.querySelector('.rn-post-actions');
+        const commentButton = actions?.querySelector('[data-community-comment-toggle]');
+        commentButton?.remove();
+        const oldPanel = template.content.querySelector('.rn-community-comment-panel');
         const seePlay = template.content.querySelector('.combo-foot .reason-actions > .pocket-open-btn');
         const comboFoot = template.content.querySelector('.combo-foot');
         if (seePlay && comboFoot) comboFoot.appendChild(seePlay);
+
+        actions?.querySelector('.group-result-tag')?.remove();
+        if (actions && header) header.after(actions);
+
+        const communityRow = document.createElement('div');
+        communityRow.className = 'rn-matchup-community-actions rn-synergy-community-actions';
+        communityRow.appendChild(voteStack);
+        communityRow.appendChild(makeCommunityCommentToggle(threadKey));
+        if (description) description.after(communityRow);
+        else if (actions) actions.after(communityRow);
+
+        if (oldPanel) communityRow.after(oldPanel);
+        else {
+          const panel = makeCommunityCommentPanel(threadKey);
+          if (panel) communityRow.after(panel);
+        }
+
         return template.innerHTML;
       };
       wrapped.__rnV1337 = true;
@@ -139,7 +341,7 @@
       const original = window.pocketAction;
       const wrapped = function() {
         return String(original.apply(this, arguments) || '')
-          .replace(/<span>PLAY<\/span>/g, '<span>SEE PLAY</span>');
+          .replaceAll('<span>PLAY</span>', '<span>SEE PLAY</span>');
       };
       wrapped.__rnV1337 = true;
       window.pocketAction = wrapped;
@@ -217,6 +419,7 @@
       const original = window.renderCounterResults;
       const wrapped = function() {
         const result = original.apply(this,arguments);
+        cleanupCounterPostChrome();
         applyCounterFilter();
         return result;
       };
@@ -342,6 +545,8 @@
 
   function install() {
     installStyles();
+    installMatchupLayoutStyles();
+    cleanupCounterPostChrome();
     installGroupSynergyValidation();
     installDirectionalVoteRenderers();
     installFilters();
@@ -360,6 +565,7 @@
       document.body.dataset.rnV1337UiObserver = '1';
       const observer = new MutationObserver(() => {
         retry();
+        cleanupCounterPostChrome();
         if (onlyUpvoted.counter) applyCounterFilter();
       });
       observer.observe(document.body,{childList:true,subtree:true});
