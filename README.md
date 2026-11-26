@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current deployment package: v13.34.** See `V13.34_RELEASE_NOTES.md` for the corrected pen-width scale, fixed Synergies heading, Playbook Pocket Strat workflow and number-marker resizing.
+**Current deployment package: v13.35.** See `V13.35_RELEASE_NOTES.md` for the restored Synergies layout, fully adjustable thickness slider, Saved Play discard confirmation and repository asset cleanup.
 
 **v13.30 baseline:** Replaced the six Competitive Domination cover thumbnails with clean crops from the latest unannotated `marvelrivals.gg/maps/` screenshot. All 18 Domination 2D layout URLs and the separate cover/tactical map asset registries are retained. Saved Plays are restricted to one map and its complete Point/Submap plus 2D view set; changing maps from an active saved play prompts to start a new play.
 
