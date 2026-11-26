@@ -5,10 +5,13 @@ The message `Could not find the table 'public.community_groups' in the schema ca
 ## Step 1: Identify the correct Supabase project
 
 1. Open the RIVALSNOTEBOOK project files in GitHub.
-2. Open `config.js`.
-3. Find `supabaseUrl`. It looks like `https://YOUR_PROJECT_REF.supabase.co`.
-4. Open the Supabase Dashboard and select the project with that same project reference.
-5. If you connected Supabase through RIVALSNOTEBOOK's **SIGN IN → CONNECT SUPABASE PROJECT** window, compare the URL saved there too.
+2. Open `config.js`. The two values are intentionally blank until the project owner configures them.
+3. Set `supabaseUrl` to the Supabase project URL. It looks like `https://YOUR_PROJECT_REF.supabase.co`.
+4. Set `supabaseAnonKey` to that project's publishable key (or legacy anon key).
+5. Open the Supabase Dashboard and select the project with that same project reference.
+6. Commit the configured `config.js` and allow Vercel to redeploy. The in-app **Connect Supabase Project** panel is hidden in v13.38, so configure the client here instead.
+
+Never put the Supabase `service_role` key in `config.js`, HTML, JavaScript or any browser-visible file.
 
 If the project reference does not match, you may have run SQL in one project while the deployed site is calling another.
 
