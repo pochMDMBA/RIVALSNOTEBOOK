@@ -770,7 +770,7 @@ function expandGroupRules(enemyNames=state.enemy){const out=[];for(const rule of
 function expandComboRules(team=state.ally){const picks=new Set(team),out=[];if(!picks.size)return out;for(const rule of state.comboRules){const seen=new Set(),left=groupMembers(rule.sourceType,rule.sourceValue),right=groupMembers(rule.targetType,rule.targetValue);for(const a of left){for(const b of right){const key=pairComboKey(a,b);if(a===b||seen.has(key)||(!picks.has(a)&&!picks.has(b)))continue;seen.add(key);out.push({id:`group-synergy:${rule.id}:${encodeURIComponent(a)}:${encodeURIComponent(b)}`,ruleId:rule.id,pairKey:key,generated:true,a,b,reason:rule.reason,official:rule.official,votes:Number(rule.votesByPair[key])||0,myVote:!!rule.myVotesByPair[key],source:`Group synergy · ${selectorLabel(rule.sourceType,rule.sourceValue)} + ${selectorLabel(rule.targetType,rule.targetValue)}`,sourceUrl:rule.sourceUrl||'',icon:rule.icon||'sparkles',pocketPlayId:String((rule.pocketPlayByPair&&rule.pocketPlayByPair[key])||rule.pocketPlayId||'')})}}}return out}
 
 function reasonHtml(t){
- const targetHero=hero(t.against),initials=String(t.against||'?').split(/\\s+/).map(w=>w[0]).slice(0,2).join('');
+ const targetHero=hero(t.against),initials=String(t.against||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('');
  const target=`<span class="reason-vs">VS</span><span class="reason-target-hero"><span class="reason-target-icon">${targetHero?.img?`<img src="${escapeHtml(targetHero.img)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('broken');this.remove()">`:''}<span class="reason-icon-fallback">${escapeHtml(initials)}</span></span><span class="reason-target-name">${escapeHtml(t.against)}</span></span>${t.generated?`<span class="group-result-tag">GROUP RULE</span>`:''}`;
  const vote=t.generated?`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-groupcounter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="${t.myVote?'Remove your upvote':'Upvote this individual matchup'}">▲ ${t.votes}</button>`:`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-counter="${escapeHtml(t.id)}" title="${t.myVote?'Remove your upvote':'Upvote this reason'}">▲ ${t.votes}</button>`;
  const edit=t.generated?`<button class="edit-btn" data-edit-generated-counter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="Edit only this hero matchup">EDIT</button>`:`<button class="edit-btn" data-edit-counter="${escapeHtml(t.id)}">EDIT</button>`;
@@ -1066,7 +1066,7 @@ initData();bindPlaybook();render();renderPlaybook();
     const status=aIn&&bIn?'TEAM PAIR ACTIVE':aIn?`SUGGEST ADD · ${c.b.toUpperCase()}`:bIn?`SUGGEST ADD · ${c.a.toUpperCase()}`:'MATCH';
     const heroTile=(name,inTeam)=>{
       const h=hero(name);
-      return `<div class="synergy-hero-tile ${inTeam?'in-team':'suggested'}"><div class="synergy-portrait"><img loading="lazy" src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(name)}" onerror="this.parentElement.classList.add('broken');this.remove()"><span>${escapeHtml(name.split(/\\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><div class="synergy-hero-name">${escapeHtml(name)}</div><div class="synergy-hero-role">${escapeHtml(h?.role==='Strategist'?'Support':h?.role||'Hero')}</div><div class="synergy-state">${inTeam?'IN TEAM':'SUGGESTED'}</div></div>`;
+      return `<div class="synergy-hero-tile ${inTeam?'in-team':'suggested'}"><div class="synergy-portrait"><img loading="lazy" src="${escapeHtml(h?.img||'')}" alt="${escapeHtml(name)}" onerror="this.parentElement.classList.add('broken');this.remove()"><span>${escapeHtml(name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><div class="synergy-hero-name">${escapeHtml(name)}</div><div class="synergy-hero-role">${escapeHtml(h?.role==='Strategist'?'Support':h?.role||'Hero')}</div><div class="synergy-state">${inTeam?'IN TEAM':'SUGGESTED'}</div></div>`;
     };
     const vote=c.generated?`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}" title="Upvote this matchup">▲ ${Number(c.votes)||0}</button>`:`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}" title="Upvote this synergy">▲ ${Number(c.votes)||0}</button>`;
     const edit=c.generated?`<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>`:`<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;
@@ -2541,7 +2541,7 @@ initData();bindPlaybook();render();renderPlaybook();
         if(resizing.type==='number'){
           const ratio=resizing.boardW/Math.max(1,resizing.boardH);
           const startDiameter=(resizing.startW+resizing.startH/ratio)/2;
-          item.w=Math.max(2.4,Math.min(20,startDiameter+(dx+dy*ratio)/2));
+          item.w=Math.max(2.4,Math.min(20,startDiameter+(dx+dy/ratio)/2));
           item.h=item.w*ratio;
         }else{
           item.w=Math.max(.05,Math.min(500,resizing.startW+dx));
@@ -3815,7 +3815,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
         if(resizing.type==='number'){
           const ratio=resizing.startWBoard/Math.max(1,resizing.startHBoard);
           const startDiameter=(resizing.startW+resizing.startH/ratio)/2;
-          item.w=Math.max(2.4,Math.min(20,startDiameter+(dx+dy*ratio)/2));
+          item.w=Math.max(2.4,Math.min(20,startDiameter+(dx+dy/ratio)/2));
           item.h=item.w*ratio;
         }else{
           item.w=Math.max(.05,Math.min(500,resizing.startW+dx));
