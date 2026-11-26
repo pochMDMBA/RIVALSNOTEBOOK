@@ -24,6 +24,7 @@
   function routeNormalSynergy() {
     const s = getState();
     if (!s) return;
+    s.activePage = 'synergiesPage';
     s.rnGroupRuleMode = '';
     s.returnToGroupManager = false;
     s.editingComboRule = null;
@@ -32,6 +33,7 @@
   function routeNormalCounter() {
     const s = getState();
     if (!s) return;
+    s.activePage = 'counterPage';
     s.rnGroupRuleMode = '';
     s.returnToGroupManager = false;
     s.editingCounterRule = null;
