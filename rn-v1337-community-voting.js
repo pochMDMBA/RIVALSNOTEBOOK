@@ -348,6 +348,40 @@
     }
   }
 
+
+  function installMatchupCommentToggleEvents() {
+    if (document.documentElement.dataset.rnV1342CommentToggle) return;
+    document.documentElement.dataset.rnV1342CommentToggle = '1';
+    document.addEventListener('click', event => {
+      const button = event.target instanceof Element
+        ? event.target.closest('.rn-matchup-comment-toggle')
+        : null;
+      if (!button) return;
+
+      const row = button.closest('.rn-matchup-community-actions');
+      const panel = row?.nextElementSibling?.matches?.('[data-community-comment-panel]')
+        ? row.nextElementSibling
+        : null;
+      if (!panel) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      const willOpen = panel.hidden;
+      panel.hidden = !willOpen;
+      button.setAttribute('aria-expanded', String(willOpen));
+
+      const thread = button.getAttribute('data-community-comment-toggle') || '';
+      const s = appState();
+      if (!s) return;
+      if (!Array.isArray(s.openCommunityCommentThreads)) s.openCommunityCommentThreads = [];
+      const index = s.openCommunityCommentThreads.indexOf(thread);
+      if (willOpen && index < 0) s.openCommunityCommentThreads.push(thread);
+      if (!willOpen && index >= 0) s.openCommunityCommentThreads.splice(index, 1);
+    }, true);
+  }
+
   function createFilter(id, kind, labelText) {
     const label = document.createElement('label');
     label.className = 'rn-upvoted-filter';
@@ -549,6 +583,7 @@
     cleanupCounterPostChrome();
     installGroupSynergyValidation();
     installDirectionalVoteRenderers();
+    installMatchupCommentToggleEvents();
     installFilters();
     installRenderFilters();
     installVotingEvents();
