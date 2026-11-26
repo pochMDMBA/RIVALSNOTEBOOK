@@ -385,11 +385,24 @@
     document.head.appendChild(style);
   }
 
+  function installRenderLifecycle() {
+    const original=window.render;
+    if (typeof original!=='function' || original.__rnV1338Lifecycle) return;
+    const wrapped=function(...args) {
+      migrateAccidentalHeroOnlyGroupRules();
+      stampDeveloperRecords();
+      return original.apply(this,args);
+    };
+    wrapped.__rnV1338Lifecycle=true;
+    window.render=wrapped;
+  }
+
   function install() {
     hideSupabaseProjectSetup();
     installEditorContext();
     installFormPairingValidation();
     installSubmissionAttribution();
+    installRenderLifecycle();
     migrateAccidentalHeroOnlyGroupRules();
     stampDeveloperRecords();
   }
