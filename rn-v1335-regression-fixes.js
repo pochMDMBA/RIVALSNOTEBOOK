@@ -11,127 +11,6 @@
     else console.info(message);
   };
 
-  function installSynergyLayoutRestoration() {
-    const section = document.querySelector('#synergiesPage .synergy-results');
-    if (!section || section.dataset.rnV1335Layout === '1') return;
-    const scroller = section.querySelector(':scope > .result-scroll');
-    if (!scroller) return;
-    section.dataset.rnV1335Layout = '1';
-
-    let moving = false;
-    const restoreStructure = () => {
-      if (moving) return;
-      moving = true;
-      try {
-        const heading = section.querySelector('.synergy-section-title');
-        if (heading && heading.parentElement !== section) section.insertBefore(heading, scroller);
-        const ribbon = section.querySelector('#rnSynergyRibbon') || document.querySelector('#rnSynergyRibbon');
-        if (ribbon && ribbon.parentElement !== scroller) scroller.insertBefore(ribbon, scroller.firstChild);
-      } finally {
-        moving = false;
-      }
-    };
-    restoreStructure();
-
-    const style = document.createElement('style');
-    style.id = 'rn-v1335-synergy-layout-restoration';
-    style.textContent = `
-      body:not(.playbook-mode) #synergiesPage .synergy-results{
-        box-sizing:border-box!important;display:flex!important;flex-direction:column!important;
-        align-items:stretch!important;justify-content:flex-start!important;
-        grid-template-columns:none!important;grid-template-rows:none!important;
-        gap:0!important;width:100%!important;min-width:0!important;min-height:0!important;
-        height:100%!important;overflow:hidden!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results>.team-head{
-        display:flex!important;flex:0 0 auto!important;align-items:center!important;
-        justify-content:space-between!important;width:100%!important;min-width:0!important;
-        margin:0 0 7px!important;padding:0!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results>.allied-lineup{
-        box-sizing:border-box!important;display:grid!important;flex:0 0 auto!important;
-        grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-auto-rows:minmax(58px,auto)!important;
-        align-content:start!important;align-items:stretch!important;gap:5px!important;
-        width:100%!important;min-width:0!important;height:auto!important;min-height:62px!important;
-        max-height:none!important;margin:0 0 9px!important;padding:4px!important;
-        overflow:visible!important;border:1px dashed #586474!important;border-radius:5px!important;
-        background:#303741!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results>.synergy-section-title{
-        box-sizing:border-box!important;display:flex!important;flex:0 0 auto!important;
-        flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;
-        justify-content:space-between!important;gap:12px!important;width:100%!important;
-        min-width:0!important;min-height:40px!important;margin:0 0 8px!important;
-        padding:5px 0 7px!important;position:relative!important;top:auto!important;z-index:3!important;
-        background:transparent!important;border:0!important;border-bottom:1px solid #53616f!important;
-        box-shadow:none!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results>.synergy-section-title>div:first-child{
-        flex:1 1 auto!important;min-width:0!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results>.synergy-section-title h2{
-        margin:0!important;line-height:1.2!important;white-space:nowrap!important;
-        overflow:hidden!important;text-overflow:ellipsis!important;font-size:18px!important;
-      }
-      body:not(.playbook-mode) #synergiesPage #synergyAddMount{
-        display:flex!important;flex:0 0 auto!important;align-items:center!important;
-        justify-content:flex-end!important;min-width:0!important;max-width:100%!important;
-        margin:0!important;white-space:nowrap!important;
-      }
-      body:not(.playbook-mode) #synergiesPage #synergyAddMount button{
-        flex:0 0 auto!important;white-space:nowrap!important;margin:0!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results>.result-scroll{
-        box-sizing:border-box!important;display:block!important;position:relative!important;z-index:1!important;
-        flex:1 1 0!important;width:100%!important;min-width:0!important;min-height:140px!important;
-        height:auto!important;max-height:none!important;margin:0!important;padding:0 3px 8px 0!important;
-        overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;
-        -webkit-overflow-scrolling:touch!important;
-      }
-      body:not(.playbook-mode) #synergiesPage #rnSynergyRibbon{
-        box-sizing:border-box!important;display:flex!important;flex:0 0 auto!important;
-        align-items:center!important;gap:8px!important;width:100%!important;max-width:100%!important;
-        margin:0 0 9px!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results .result-scroll>*{
-        box-sizing:border-box!important;max-width:100%!important;min-width:0!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results .right-foot{
-        box-sizing:border-box!important;display:flex!important;flex:0 0 auto!important;
-        flex-direction:row!important;flex-wrap:wrap!important;align-items:flex-start!important;
-        justify-content:flex-start!important;gap:12px 20px!important;width:100%!important;
-        min-width:0!important;margin:8px 0 0!important;padding:7px 0 0!important;
-        border-top:1px solid #485766!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results .right-foot>*{
-        flex:1 1 220px!important;min-width:0!important;max-width:100%!important;
-      }
-      @media(max-width:820px){
-        body:not(.playbook-mode) #synergiesPage .synergy-results{
-          height:auto!important;min-height:580px!important;overflow:visible!important;
-        }
-        body:not(.playbook-mode) #synergiesPage .synergy-results>.result-scroll{
-          flex:1 1 auto!important;min-height:250px!important;max-height:none!important;
-        }
-      }
-      @media(max-width:600px){
-        body:not(.playbook-mode) #synergiesPage .synergy-results>.allied-lineup{
-          grid-template-columns:repeat(3,minmax(0,1fr))!important;
-        }
-        body:not(.playbook-mode) #synergiesPage .synergy-results>.synergy-section-title h2{font-size:15px!important;}
-      }
-    `;
-    document.head.appendChild(style);
-
-    // The cloud ribbon is created separately by the community layer. Keep it
-    // inside the scrolling region so it cannot become an extra flex/grid row.
-    const observer = new MutationObserver(() => {
-      if (!moving) queueMicrotask(restoreStructure);
-    });
-    observer.observe(section, {childList:true, subtree:true});
-    window.__rnV1335SynergyObserver = observer;
-  }
-
   function installThicknessSliderResync() {
     const input = document.getElementById('boardPenThickness');
     const output = document.getElementById('boardPenThicknessValue');
@@ -328,7 +207,6 @@
   }
 
   function install() {
-    installSynergyLayoutRestoration();
     installThicknessSliderResync();
     installSamePlayDiscardPrompt();
   }
