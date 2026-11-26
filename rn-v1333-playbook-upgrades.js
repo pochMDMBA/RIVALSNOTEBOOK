@@ -122,13 +122,15 @@
     });
     const active = window.__rnActiveTextItem;
     const editor = window.__rnActiveTextEditor;
+    const editingActiveText = active?.type === 'text' && editor?.isConnected;
     if (active?.type === 'text') {
       active.fillOpacity = opacity;
-      if (editor?.isConnected && !active.noFill) editor.style.backgroundColor = rgba(active.fillColor, opacity);
+      if (editingActiveText && !active.noFill) editor.style.backgroundColor = rgba(active.fillColor, opacity);
       changed = true;
     }
     if (changed) {
-      window.__rnRenderBoard?.();
+      // Keep a live textarea mounted while its fill opacity is adjusted.
+      if (!editingActiveText) window.__rnRenderBoard?.();
       saveBoard();
     }
   }
