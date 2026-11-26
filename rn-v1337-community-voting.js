@@ -344,8 +344,17 @@
       installDirectionalVoteRenderers();
     };
     retry();
-    const synergyMount = $('synergyAddMount');
-    if (synergyMount) new MutationObserver(retry).observe(synergyMount,{childList:true});
+    // The Synergies DOM is assembled by the base app after startup. Watch the
+    // page shell so both filters are installed even when their mount nodes appear later.
+    if (document.body && !document.body.dataset.rnV1337UiObserver) {
+      document.body.dataset.rnV1337UiObserver = '1';
+      const observer = new MutationObserver(() => {
+        retry();
+        if (onlyUpvoted.counter) applyCounterFilter();
+      });
+      observer.observe(document.body,{childList:true,subtree:true});
+      window.__rnV1337UiObserver = observer;
+    }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',install,{once:true});
