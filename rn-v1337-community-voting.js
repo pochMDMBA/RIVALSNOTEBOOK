@@ -194,11 +194,11 @@
         }
         const tier = actions.querySelector('.rn-post-rating');
         const points = actions.querySelector('.rn-post-points');
-        if (tier && meta && !meta.contains(tier)) meta.appendChild(tier);
         if (points && meta && !meta.contains(points)) {
           points.classList.add('rn-counter-total-points');
           meta.appendChild(points);
         }
+        if (tier && meta && !meta.contains(tier)) meta.appendChild(tier);
         if (!actions.children.length) actions.remove();
       }
     });
@@ -234,7 +234,7 @@
       #synergiesPage .rn-synergy-community-actions{margin-top:6px!important}
       #synergiesPage .rn-post-actions{margin:5px 0!important}
       #counterPage .rn-counter-header-meta{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:6px!important;margin-top:3px!important;min-width:0!important}
-      #counterPage .rn-counter-header-meta .rn-post-points{margin:0 0 0 auto!important}
+      #counterPage .rn-counter-header-meta .rn-post-points{margin:0!important}
       #counterPage .rn-counter-header-meta .rn-post-rating{min-height:22px!important;padding:3px 7px!important}
       #counterPage .rn-counter-more-matchups{display:block!important}
       #counterPage .rn-counter-more-matchups>summary{display:none!important}
