@@ -920,6 +920,13 @@
       v1337.src = './rn-v1337-community-voting.js?v=1337';
       v1337.async = false;
       v1337.onerror = () => console.error('RIVALSNOTEBOOK v13.37 community voting UI could not be loaded.');
+      v1337.onload = () => {
+        const v1338 = document.createElement('script');
+        v1338.src = './rn-v1338-pairing-attribution.js?v=1338';
+        v1338.async = false;
+        v1338.onerror = () => console.error('RIVALSNOTEBOOK v13.38 pairing and attribution updates could not be loaded.');
+        document.head.appendChild(v1338);
+      };
       document.head.appendChild(v1337);
     };
     document.head.appendChild(v1335);
