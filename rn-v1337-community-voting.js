@@ -103,6 +103,9 @@
         const type = isGroup ? 'group_counter' : 'counter_tip';
         const contentId = isGroup ? `${ruleId}::${pairKey}` : (old.getAttribute('data-vote-counter') || '');
         old.replaceWith(makeVoteStack(type, contentId, item?.votes, directionForItem(item,'counter')));
+        const seePlay = template.content.querySelector('.reason-actions > .pocket-open-btn');
+        const reasonTop = template.content.querySelector('.reason-top');
+        if (seePlay && reasonTop) reasonTop.appendChild(seePlay);
         return template.innerHTML;
       };
       wrapped.__rnV1337 = true;
@@ -123,6 +126,9 @@
         const type = isGroup ? 'group_synergy' : 'synergy';
         const contentId = isGroup ? `${ruleId}::${pairKey}` : (old.getAttribute('data-vote-combo') || '');
         old.replaceWith(makeVoteStack(type, contentId, item?.votes, directionForItem(item,'synergy')));
+        const seePlay = template.content.querySelector('.combo-foot .reason-actions > .pocket-open-btn');
+        const comboFoot = template.content.querySelector('.combo-foot');
+        if (seePlay && comboFoot) comboFoot.appendChild(seePlay);
         return template.innerHTML;
       };
       wrapped.__rnV1337 = true;
@@ -310,11 +316,15 @@
         font-variant-numeric:tabular-nums;
       }
       .reason-actions .rn-reddit-vote-stack{margin:0 2px;}
-      .reason-actions .pocket-open-btn{
+      .reason-actions{min-width:0;}
+      .reason-top>.pocket-open-btn,
+      .combo-foot>.pocket-open-btn,
+      .group-rule-detail>.pocket-open-btn{
+        display:inline-flex!important;align-items:center!important;justify-content:center!important;
         order:99!important;margin-left:auto!important;flex:0 0 auto!important;
         white-space:nowrap!important;
       }
-      .reason-actions{min-width:0;}
+      .reason-actions>.pocket-open-btn{margin-left:0!important;}
       #synergyAddMount{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px;}
       #synergyAddMount .rn-upvoted-filter{order:0;}
       #synergyAddMount>button{order:2;}
