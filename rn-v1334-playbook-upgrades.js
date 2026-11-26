@@ -842,54 +842,6 @@
     document.head.appendChild(style);
   }
 
-  function installStickySynergyHeadingV1334() {
-    const section = document.querySelector('#synergiesPage .synergy-results');
-    const scroller = section?.querySelector(':scope > .result-scroll');
-    const heading = scroller?.querySelector(':scope > .synergy-section-title');
-    if (section && scroller && heading && heading.parentElement === scroller) {
-      // Keep the heading outside the independently scrolling recommendation list.
-      section.insertBefore(heading, scroller);
-    }
-    if (document.getElementById('rn-v1334-sticky-synergy-heading')) return;
-    const style = document.createElement('style');
-    style.id = 'rn-v1334-sticky-synergy-heading';
-    style.textContent = `
-      body:not(.playbook-mode) #synergiesPage .synergy-results{
-        display:grid!important;grid-template-columns:minmax(0,1fr)!important;
-        grid-template-rows:auto auto auto minmax(0,1fr) auto!important;
-        min-height:0!important;overflow:hidden!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results>.team-head{grid-row:1!important;}
-      body:not(.playbook-mode) #synergiesPage .synergy-results>.allied-lineup{grid-row:2!important;}
-      body:not(.playbook-mode) #synergiesPage .synergy-results>.synergy-section-title{
-        grid-row:3!important;position:relative!important;top:auto!important;z-index:20!important;
-        min-height:39px!important;margin:0 0 7px!important;padding:7px 0 6px!important;
-        background:#1a2834!important;border-bottom:1px solid #516473!important;
-        box-shadow:0 4px 8px #07121b44!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results>.synergy-section-title h2{
-        position:relative!important;margin:0!important;line-height:1.2!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results>.result-scroll{
-        grid-row:4!important;position:relative!important;min-height:0!important;height:100%!important;max-height:100%!important;
-        overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;
-        -webkit-overflow-scrolling:touch!important;
-      }
-      body:not(.playbook-mode) #synergiesPage .synergy-results>.right-foot{grid-row:5!important;}
-      @media(max-width:820px){
-        body:not(.playbook-mode) #synergiesPage .synergy-results{
-          height:auto!important;min-height:640px!important;
-          grid-template-rows:auto auto auto minmax(280px,1fr) auto!important;
-        }
-        body:not(.playbook-mode) #synergiesPage .synergy-results>.result-scroll{
-          height:auto!important;min-height:280px!important;max-height:calc(100vh - 430px)!important;
-          overflow-y:auto!important;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
   function installPocketPlayWorkflowV1334() {
     if (window.__rnV1334PocketPlayWorkflow) return;
     window.__rnV1334PocketPlayWorkflow = true;
@@ -1058,14 +1010,13 @@
   }
 
   function install() {
-    document.title = 'RIVALSNOTEBOOK · v13.34';
+    document.title = 'RIVALSNOTEBOOK · v13.36';
     installDefaultMigrations();
     installShapePalette();
     installSmallerShapeDefaults();
     installTextFillOpacity();
     installThicknessPercentageV1334();
     installNumberMarkerResizeV1334();
-    installStickySynergyHeadingV1334();
     installPocketPlayWorkflowV1334();
     applyInitialShapeFillDefault();
 
