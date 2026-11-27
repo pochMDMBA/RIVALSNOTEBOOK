@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.60 display-name submission attribution. */
+/* RIVALSNOTEBOOK v13.63 source cleanup and display-name attribution. */
 (() => {
   'use strict';
   if (window.__rnV1338RulesLoaded) return;
@@ -176,11 +176,12 @@
     if (!record) return false;
     const id=String(record.id||'');
     const source=String(record.source||'');
-    if (record.submittedByEmail===DEV_EMAIL || record.submittedByName===DEV_NAME) return true;
+    const hasSubmitter=!!(String(record.submittedByEmail||'').trim() || String(record.submittedByName||'').trim());
+    if (hasSubmitter) return true;
     if (kind==='group' || kind==='groupRule' || kind==='groupSynergy') return true;
-    if (kind==='counter') return /^(tip-|override-|tip-migrated-)/.test(id) ||
-      /^(Community edited|Individual override|Community tip)$/i.test(source);
-    if (kind==='synergy') return /^(combo-|combo-migrated-)/.test(id) ||
+    if (kind==='counter') return /^(tip-|override-|tip-migrated-|rn-v135-c[0-9]+)/i.test(id) ||
+      /^(Community edited|Individual override|Community tip|Player-submitted mechanics tip)$/i.test(source);
+    if (kind==='synergy') return /^(combo-|combo-migrated-)/i.test(id) ||
       /Community edited|Community synergy|Official Team-Up · user entry/i.test(source);
     return false;
   }
@@ -199,6 +200,51 @@
 
   function developerSubmission(record, kind) {
     return looksUserSubmitted(record,kind);
+  }
+
+  function keepCounterRecord(record) {
+    return looksUserSubmitted(record,'counter');
+  }
+
+  function keepSynergyRecord(record) {
+    const source=String(record?.source||'');
+    return looksUserSubmitted(record,'synergy') || record?.official===true ||
+      record?.official==='true' || record?.isOfficial===true ||
+      record?.officialTeamUp===true || /^Official Team-Up\\b/i.test(source);
+  }
+
+  function pruneArrayInPlace(list, keep) {
+    if (!Array.isArray(list)) return 0;
+    const retained=list.filter(keep);
+    const removed=list.length-retained.length;
+    if (removed) list.splice(0,list.length,...retained);
+    return removed;
+  }
+
+  function pruneExternalReferenceRecords() {
+    const s=getState();
+    let removed=0;
+    try {
+      if (typeof DEFAULT_COUNTER_TIPS!=='undefined') removed+=pruneArrayInPlace(DEFAULT_COUNTER_TIPS,keepCounterRecord);
+    } catch (_) {}
+    try {
+      if (typeof DEFAULT_COMBOS!=='undefined') removed+=pruneArrayInPlace(DEFAULT_COMBOS,keepSynergyRecord);
+    } catch (_) {}
+    if (s && Array.isArray(s.counterTips)) {
+      const kept=s.counterTips.filter(keepCounterRecord);
+      removed+=s.counterTips.length-kept.length;
+      if (kept.length!==s.counterTips.length) s.counterTips=kept;
+    }
+    if (s && Array.isArray(s.combos)) {
+      const kept=s.combos.filter(keepSynergyRecord);
+      removed+=s.combos.length-kept.length;
+      if (kept.length!==s.combos.length) s.combos=kept;
+    }
+    if (removed) {
+      window.persist?.();
+      console.info('[RIVALSNOTEBOOK] Removed '+removed+' imported counter/synergy reference records.');
+    }
+    return removed;
   }
 
   function appendAttribution(parent) {
@@ -225,6 +271,22 @@
     return template.innerHTML;
   }
 
+  function decorateCounterReasonHtml(html, selector, record, kind, insertBeforeSelector) {
+    const template=document.createElement('template');
+    template.innerHTML=String(html||'').trim();
+    const card=template.content.querySelector(selector);
+    if (!card) return html;
+    const sourceLabel=card.querySelector('.rn-matchup-community-label, .tip-foot');
+    if (sourceLabel) {
+      if (developerSubmission(record,kind)) sourceLabel.remove();
+      else {
+        const source=String(sourceLabel.textContent||'').trim();
+        if (source && !/^Source:/i.test(source)) sourceLabel.textContent='Source: '+source;
+      }
+    }
+    return decorateCardHtml(template.innerHTML,selector,record,kind,insertBeforeSelector);
+  }
+
   function wrapCardRenderer(name, selector, type, kind, insertBeforeSelector, parentResolver) {
     const original=window[name];
     if (typeof original!=='function' || original.__rnV1338Author) return;
@@ -233,7 +295,9 @@
       let record=item;
       if (item?.generated && typeof parentResolver==='function') record=parentResolver(item)||item;
       const html=original.apply(this,arguments);
-      return decorateCardHtml(html,selector,record,kind,insertBeforeSelector);
+      return kind==='counter'
+        ? decorateCounterReasonHtml(html,selector,record,kind,insertBeforeSelector)
+        : decorateCardHtml(html,selector,record,kind,insertBeforeSelector);
     };
     wrapped.__rnV1338Author=true;
     window[name]=wrapped;
@@ -274,7 +338,7 @@
       },0);
     });
 
-    wrapCardRenderer('reasonHtml','.reason','counter','counter','.reason-text',item=>{
+    wrapCardRenderer('reasonHtml','.reason','counter','counter',null,item=>{
       const s=getState();
       return item?.generated ? (s?.groupRules||[]).find(x=>x.id===item.groupRuleId) : item;
     });
@@ -403,6 +467,7 @@
     const original=window.render;
     if (typeof original!=='function' || original.__rnV1338Lifecycle) return;
     const wrapped=function(...args) {
+      pruneExternalReferenceRecords();
       migrateAccidentalHeroOnlyGroupRules();
       stampDeveloperRecords();
       return original.apply(this,args);
@@ -412,6 +477,7 @@
   }
 
   function install() {
+    pruneExternalReferenceRecords();
     hideSupabaseProjectSetup();
     installEditorContext();
     installFormPairingValidation();
