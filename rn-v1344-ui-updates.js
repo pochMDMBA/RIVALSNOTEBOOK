@@ -1,12 +1,16 @@
-/* RIVALSNOTEBOOK v13.52 active tabs, live refresh and restored original points totals. */
+/* RIVALSNOTEBOOK v13.53 bulk hide controls for Counterpicker and Synergies. */
 (() => {
   'use strict';
-  if (window.__rnV1352SynergyUiLoaded) return;
-  window.__rnV1352SynergyUiLoaded = true;
+  if (window.__rnV1353SynergyUiLoaded) return;
+  window.__rnV1353SynergyUiLoaded = true;
 
   const style = document.createElement('style');
   style.id = 'rn-v1347-layout-fixes-style';
   style.textContent = `
+    #counterPage .rn-counter-hide-all,#synergiesPage .rn-synergy-hide-all{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:25px!important;padding:4px 9px!important;border:1px solid #526b79!important;border-radius:6px!important;background:#263b47!important;color:#dceaf1!important;font:850 8px/1.1 Inter,ui-sans-serif,system-ui,sans-serif!important;letter-spacing:.055em!important;white-space:nowrap!important;cursor:pointer!important}
+    #counterPage .rn-counter-hide-all:hover,#synergiesPage .rn-synergy-hide-all:hover{border-color:#83c9bd!important;background:#2c4b52!important;color:#f1fffb!important}
+    #counterPage .result-scroll .section-title .rn-counter-hide-all{margin-left:5px!important}
+    #synergiesPage .rn-synergy-hide-all{margin-left:2px!important}
     #counterPage .rn-counter-role-column .reason-top{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:6px!important;min-width:0!important}
     #counterPage .rn-counter-role-column .reason-actions{order:1!important;flex:0 1 auto!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:flex-start!important}
     #counterPage .rn-counter-role-column .reason-target{order:2!important;display:inline-flex!important;align-items:center!important;justify-content:flex-end!important;text-align:right!important;flex:0 1 auto!important;min-width:0!important;margin-left:auto!important}
@@ -294,9 +298,113 @@
   }
 
 
-  function install() { installCounterControls(); installSynergyEntries(); installSynergyControls(); }
+  let counterHideAllActive = false;
+  let synergyHideAllActive = false;
+
+  function installGlobalHideAllControls() {
+    const counterHeading = document.querySelector('#counterPage .result-scroll .section-title');
+    if (counterHeading) {
+      let actions = counterHeading.querySelector(':scope > div');
+      if (!actions) {
+        actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.alignItems = 'center';
+        actions.style.gap = '5px';
+        counterHeading.appendChild(actions);
+      }
+      let button = actions.querySelector(':scope > .rn-counter-hide-all');
+      if (!button) {
+        button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'rn-counter-hide-all';
+        actions.appendChild(button);
+      }
+      document.querySelectorAll('#counterPage .counter-post').forEach(card => {
+        const detailNodes = [
+          card.querySelector(':scope > .counter-card-body'),
+          card.querySelector(':scope > .rn-community-comment-panel')
+        ].filter(Boolean);
+        detailNodes.forEach(node => {
+          const savedState = 'rnHideAllPreviousHidden';
+          if (counterHideAllActive) {
+            if (!node.hasAttribute('data-' + savedState)) {
+              node.setAttribute('data-' + savedState, String(node.hidden));
+            }
+            if (!node.hidden) node.hidden = true;
+          } else if (node.hasAttribute('data-' + savedState)) {
+            const wasHidden = node.getAttribute('data-' + savedState) === 'true';
+            if (node.hidden !== wasHidden) node.hidden = wasHidden;
+            node.removeAttribute('data-' + savedState);
+          }
+        });
+        card.dataset.rnCounterMatchupsHidden = String(counterHideAllActive);
+      });
+      const label = counterHideAllActive ? 'SHOW ALL' : 'HIDE ALL';
+      if (button.textContent !== label) button.textContent = label;
+      button.title = counterHideAllActive ? 'Show all Counterpicker details' : 'Hide all Counterpicker details';
+      button.setAttribute('aria-expanded', String(!counterHideAllActive));
+    }
+
+    const synergyActions = document.querySelector('#synergiesPage #synergyAddMount')
+      || document.querySelector('#synergiesPage .rn-synergy-content-toolbar-actions');
+    if (synergyActions) {
+      let button = synergyActions.querySelector(':scope > .rn-synergy-hide-all');
+      if (!button) {
+        button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'rn-synergy-hide-all';
+        synergyActions.appendChild(button);
+      }
+      document.querySelectorAll('#synergiesPage .synergy-match-card').forEach(card => {
+        const detailNodes = [
+          card.querySelector(':scope > .rn-post-description'),
+          card.querySelector(':scope > .rn-community-comment-panel')
+        ].filter(Boolean);
+        detailNodes.forEach(node => {
+          const savedState = 'rnHideAllPreviousHidden';
+          if (synergyHideAllActive) {
+            if (!node.hasAttribute('data-' + savedState)) {
+              node.setAttribute('data-' + savedState, String(node.hidden));
+            }
+            if (!node.hidden) node.hidden = true;
+          } else if (node.hasAttribute('data-' + savedState)) {
+            const wasHidden = node.getAttribute('data-' + savedState) === 'true';
+            if (node.hidden !== wasHidden) node.hidden = wasHidden;
+            node.removeAttribute('data-' + savedState);
+          }
+        });
+      });
+      const label = synergyHideAllActive ? 'SHOW ALL' : 'HIDE ALL';
+      if (button.textContent !== label) button.textContent = label;
+      button.title = synergyHideAllActive ? 'Show all synergy details' : 'Hide all synergy details';
+      button.setAttribute('aria-expanded', String(!synergyHideAllActive));
+    }
+  }
+
+  function install() {
+    installCounterControls();
+    installSynergyEntries();
+    installSynergyControls();
+    installGlobalHideAllControls();
+  }
   document.addEventListener('click', event => {
     const target = event.target instanceof Element ? event.target : null;
+    const counterAll = target?.closest('#counterPage .rn-counter-hide-all');
+    if (counterAll) {
+      const details = [...document.querySelectorAll('#counterPage .counter-post > .counter-card-body, #counterPage .counter-post > .rn-community-comment-panel')];
+      if (!details.length) return;
+      counterHideAllActive = details.some(node => !node.hidden);
+      installGlobalHideAllControls();
+      return;
+    }
+    const synergyAll = target?.closest('#synergiesPage .rn-synergy-hide-all');
+    if (synergyAll) {
+      const details = [...document.querySelectorAll('#synergiesPage .synergy-match-card > .rn-post-description, #synergiesPage .synergy-match-card > .rn-community-comment-panel')];
+      if (!details.length) return;
+      synergyHideAllActive = details.some(node => !node.hidden);
+      installGlobalHideAllControls();
+      return;
+    }
     const counter = target?.closest('#counterPage .rn-counter-collapse-control');
     if (counter) {
       const card = counter.closest('.counter-post');
