@@ -927,9 +927,9 @@
         v1338.onerror = () => console.error('RIVALSNOTEBOOK v13.38 pairing and attribution updates could not be loaded.');
         v1338.onload = () => {
           const v1344 = document.createElement('script');
-          v1344.src = './rn-v1344-ui-updates.js?v=1346';
+          v1344.src = './rn-v1344-ui-updates.js?v=1347';
           v1344.async = false;
-          v1344.onerror = () => console.error('RIVALSNOTEBOOK v13.44 UI updates could not be loaded.');
+          v1344.onerror = () => console.error('RIVALSNOTEBOOK v13.47 UI updates could not be loaded.');
           document.head.appendChild(v1344);
         };
         document.head.appendChild(v1338);

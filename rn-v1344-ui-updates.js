@@ -2,10 +2,10 @@
 (() => {
   'use strict';
   if (window.__rnV1346LayoutOverlapFixLoaded) return;
-  window.__rnV1344UIUpdatesLoaded = true;
+  window.__rnV1347LayoutFixesLoaded = true;
 
   const style = document.createElement('style');
-  style.id = 'rn-v1346-layout-overlap-fix-style';
+  style.id = 'rn-v1347-layout-fixes-style';
   style.textContent = `
     #counterPage .rn-counter-role-column .reason-top{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:6px!important;min-width:0!important}
     #counterPage .rn-counter-role-column .reason-actions{order:1!important;flex:0 1 auto!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:flex-start!important}
@@ -68,6 +68,65 @@
     #synergiesPage .rn-synergy-entry-description .combo-reason{font-size:9px!important;line-height:1.4!important;color:#d6e0e8!important}
     #synergiesPage .rn-synergy-team-list[hidden]{display:none!important}
     @media(max-width:600px){#synergiesPage .rn-synergy-entry-right{width:100%!important;justify-content:flex-end!important}#synergiesPage .rn-synergy-team-identity{margin-left:auto!important}}
+
+    /* v13.47: toolbar is part of the scrolling content, never a floating overlay. */
+    body:not(.playbook-mode) #synergiesPage .synergy-results .result-scroll{
+      display:flex!important;flex-direction:column!important;align-items:stretch!important;
+      min-width:0!important;min-height:0!important;
+    }
+    body:not(.playbook-mode) #synergiesPage .synergy-results .synergy-section-title{
+      position:static!important;top:auto!important;z-index:auto!important;flex:0 0 auto!important;
+      display:flex!important;align-items:center!important;justify-content:space-between!important;
+      flex-wrap:wrap!important;gap:8px!important;width:100%!important;min-width:0!important;
+      min-height:32px!important;height:auto!important;margin:0 0 11px!important;padding:0 0 8px!important;
+      background:transparent!important;border:0!important;border-bottom:1px solid #526271!important;
+      border-radius:0!important;box-shadow:none!important;
+    }
+    body:not(.playbook-mode) #synergiesPage .synergy-results .synergy-section-title h2{
+      flex:0 1 auto!important;min-width:0!important;margin:0!important;line-height:1.25!important;
+    }
+    body:not(.playbook-mode) #synergiesPage #synergyAddMount{
+      position:static!important;display:flex!important;flex:0 1 auto!important;align-items:center!important;
+      justify-content:flex-end!important;flex-wrap:wrap!important;gap:8px!important;
+      min-width:0!important;margin:0 0 0 auto!important;white-space:normal!important;
+    }
+    body:not(.playbook-mode) #synergiesPage #synergyAddMount .rn-upvoted-filter{
+      position:static!important;flex:0 1 auto!important;max-width:none!important;margin:0!important;
+    }
+    body:not(.playbook-mode) #synergiesPage #synergyAddMount>button{
+      position:static!important;flex:0 0 auto!important;margin:0!important;
+    }
+    body:not(.playbook-mode) #synergiesPage .synergy-result-scroll .combo-list{
+      flex:0 0 auto!important;min-width:0!important;margin-top:0!important;
+    }
+
+    /* Counterpicker: keep VS, hero portrait and hero name in one right-aligned row. */
+    #counterPage .reason-top{
+      display:flex!important;flex-direction:row!important;align-items:center!important;
+      justify-content:flex-end!important;flex-wrap:nowrap!important;gap:8px!important;
+      width:100%!important;min-width:0!important;
+    }
+    #counterPage .reason-top>.reason-target{
+      display:inline-flex!important;flex:0 1 auto!important;flex-direction:row!important;
+      align-items:center!important;justify-content:flex-end!important;flex-wrap:nowrap!important;
+      gap:7px!important;width:auto!important;min-width:0!important;margin:0 0 0 auto!important;
+      white-space:nowrap!important;
+    }
+    #counterPage .reason-target-hero{
+      display:inline-flex!important;flex:0 1 auto!important;flex-direction:row!important;
+      align-items:center!important;justify-content:flex-end!important;flex-wrap:nowrap!important;
+      gap:6px!important;width:auto!important;min-width:0!important;margin:0!important;
+      white-space:nowrap!important;
+    }
+    #counterPage .reason-target .reason-vs{flex:0 0 auto!important;white-space:nowrap!important}
+    #counterPage .reason-target-icon{flex:0 0 31px!important;width:31px!important;height:31px!important}
+    #counterPage .reason-target-name{flex:0 1 auto!important;white-space:nowrap!important}
+    #counterPage .reason-target .group-result-tag{display:none!important}
+    @media(max-width:600px){
+      body:not(.playbook-mode) #synergiesPage .synergy-results .synergy-section-title{align-items:flex-start!important}
+      body:not(.playbook-mode) #synergiesPage #synergyAddMount{justify-content:flex-start!important;margin-left:0!important}
+      #counterPage .reason-top>.reason-target{gap:5px!important}
+    }
   `;
   document.head.appendChild(style);
 
