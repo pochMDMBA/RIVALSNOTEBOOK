@@ -1,11 +1,11 @@
-/* RIVALSNOTEBOOK v13.45 Counterpicker and Synergies card layout. */
+/* RIVALSNOTEBOOK v13.46 layout overlap fixes. */
 (() => {
   'use strict';
-  if (window.__rnV1345CardLayoutLoaded) return;
+  if (window.__rnV1346LayoutOverlapFixLoaded) return;
   window.__rnV1344UIUpdatesLoaded = true;
 
   const style = document.createElement('style');
-  style.id = 'rn-v1345-card-layout-style';
+  style.id = 'rn-v1346-layout-overlap-fix-style';
   style.textContent = `
     #counterPage .rn-counter-role-column .reason-top{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:6px!important;min-width:0!important}
     #counterPage .rn-counter-role-column .reason-actions{order:1!important;flex:0 1 auto!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:flex-start!important}
@@ -17,6 +17,18 @@
     #counterPage .rn-counter-title-row{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:7px!important;width:100%!important;min-width:0!important}
     #counterPage .rn-counter-title-row .rn-post-title{flex:0 1 auto!important;min-width:0!important}
     #counterPage .rn-counter-header-meta{display:inline-flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:wrap!important;gap:6px!important;margin:0 0 0 auto!important;min-width:0!important}
+
+    #counterPage .reason-top{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:nowrap!important;width:100%!important;min-width:0!important}
+    #counterPage .reason-top>.reason-target{display:flex!important;flex:1 1 auto!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-end!important;gap:7px!important;width:100%!important;min-width:0!important;margin:0 0 0 auto!important;white-space:nowrap!important}
+    #counterPage .reason-target-hero{display:inline-flex!important;flex:0 0 auto!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-end!important;gap:6px!important;width:auto!important;min-width:0!important;margin:0!important;white-space:nowrap!important}
+    #counterPage .reason-target-icon{width:31px!important;height:31px!important;flex:0 0 31px!important}
+    #counterPage .reason-target-name{white-space:nowrap!important}
+    #counterPage .reason-target .group-result-tag{flex:0 0 auto!important;white-space:nowrap!important}
+    body:not(.playbook-mode) #synergiesPage .synergy-results .synergy-section-title{position:sticky!important;top:0!important;z-index:20!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:39px!important;margin:0 0 11px!important;padding:7px 0 9px!important;background:#1c2a35!important;border:0!important;border-bottom:1px solid #526271!important;border-radius:0!important;box-shadow:0 5px 9px #101820aa!important}
+    body:not(.playbook-mode) #synergiesPage .synergy-results .synergy-section-title h2{margin:0!important;line-height:1.25!important}
+    body:not(.playbook-mode) #synergiesPage .synergy-results .result-scroll{scroll-padding-top:46px!important}
+    #synergiesPage .synergy-results .rn-synergy-suggestion-post{position:relative!important;z-index:1!important}
+
     #counterPage .reason-top{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:wrap!important;width:100%!important;min-width:0!important;margin-bottom:8px!important}
     #counterPage .reason-target-hero{display:inline-flex!important;align-items:center!important;justify-content:flex-end!important;gap:7px!important;width:100%!important;min-width:0!important;margin-left:auto!important;text-align:right!important;white-space:nowrap!important}
     #counterPage .reason-target-hero .reason-vs{font-size:9px!important;font-weight:950!important;letter-spacing:.08em!important;color:#93aabb!important}
