@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.51 community voting and Group Synergy Rules UI. */
+/* RIVALSNOTEBOOK v13.52 community voting and Group Synergy Rules UI. */
 (() => {
   'use strict';
   if (window.__rnV1337CommunityUiLoaded) return;
@@ -510,13 +510,12 @@
 
       const list = document.createElement('div');
       list.className = 'rn-synergy-team-list';
-      const pointsByTeammate = new Map();
+      let totalPoints = 0;
 
       entries.forEach(card => {
         const teammate = String(card.dataset.rnSynergyTeamMember || '').trim();
         const points = Math.round(Number(card.dataset.rnSynergyContributionPoints) || 0);
-        const matchupKey = teammate.toLocaleLowerCase();
-        pointsByTeammate.set(matchupKey, Math.max(pointsByTeammate.has(matchupKey) ? pointsByTeammate.get(matchupKey) : -Infinity, points));
+        totalPoints += points;
 
         const avatars = [...card.querySelectorAll('.rn-post-avatar-pair .rn-post-pair-avatar')];
         const teammateAvatar = avatars[0]?.cloneNode(true);
@@ -576,26 +575,12 @@
         list.appendChild(entry);
       });
 
-      const totalPoints = [...pointsByTeammate.values()].reduce((sum, value) => sum + value, 0);
       totalValue.textContent = String(totalPoints);
       parent.appendChild(list);
       host.insertBefore(parent, firstCard);
       entries.forEach(card => card.remove());
     }
 
-    target.querySelectorAll('.rn-role-card-stack').forEach(stack => {
-      const cardsInStack = [...stack.children].filter(card => card.classList?.contains('rn-synergy-suggestion-post'));
-      const sorted = [...cardsInStack].sort((a, b) => {
-        const aPoints = Number(a.querySelector('.rn-synergy-total-points strong')?.textContent) || 0;
-        const bPoints = Number(b.querySelector('.rn-synergy-total-points strong')?.textContent) || 0;
-        return bPoints - aPoints;
-      });
-      if (sorted.some((card, index) => card !== cardsInStack[index])) sorted.forEach(card => stack.appendChild(card));
-    });
-
-    const help = target.querySelector(':scope > .small-help');
-    const helpText = 'Each role column is sorted from highest to lowest points. For each suggested hero, only the highest score per teammate pairing counts; scores from different teammates are added together. Strength: Strong 100 · Moderate 70 · Situational 40; Official Team-Ups +25; upvotes +5.';
-    if (help && help.textContent !== helpText) help.textContent = helpText;
   }
 
   function installMatchupCommentToggleEvents() {
