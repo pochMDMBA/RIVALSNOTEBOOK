@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.58 role-column Synergy ranking and submitter attribution. */
+/* RIVALSNOTEBOOK v13.59 role-column Synergy ranking and submitter attribution. */
 (() => {
   'use strict';
   if (window.__rnV1337CommunityUiLoaded) return;
@@ -523,6 +523,8 @@
     if (!firstHost) return;
     const columns = document.createElement('div');
     columns.className = 'rn-role-columns rn-synergy-role-columns';
+    columns.style.gridColumn = '1 / -1';
+    columns.style.width = '100%';
     const columnStacks = new Map();
 
     roleOrder.forEach(role=>{

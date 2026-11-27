@@ -1,8 +1,8 @@
-/* RIVALSNOTEBOOK v13.58 role-column Synergy ranking and reliable detail/edit controls. */
+/* RIVALSNOTEBOOK v13.59 role-column Synergy ranking and reliable detail/edit controls. */
 (() => {
   'use strict';
-  if (window.__rnV1358SynergyUiLoaded) return;
-  window.__rnV1358SynergyUiLoaded = true;
+  if (window.__rnV1359SynergyUiLoaded) return;
+  window.__rnV1359SynergyUiLoaded = true;
 
   const style = document.createElement('style');
   style.id = 'rn-v1347-layout-fixes-style';
@@ -517,8 +517,8 @@
 
   function start() {
     install();
-    if (!document.body || document.body.dataset.rnV1358Observer) return;
-    document.body.dataset.rnV1358Observer = '1';
+    if (!document.body || document.body.dataset.rnV1359Observer) return;
+    document.body.dataset.rnV1359Observer = '1';
     let queued = false;
     const observer = new MutationObserver(() => {
       if (queued) return;
