@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current deployment package: v13.54.** See `V13.54_RELEASE_NOTES.md` for correctly ranked Synergy totals, working bulk and per-card collapse controls, group selection in Add forms, and aligned recommendation styling.
+**Current deployment package: v13.55.** See `V13.55_RELEASE_NOTES.md` for global Synergy ranking across roles, correct submitter attribution, and Strategist category labels.
 
 **v13.30 baseline:** Replaced the six Competitive Domination cover thumbnails with clean crops from the latest unannotated `marvelrivals.gg/maps/` screenshot. All 18 Domination 2D layout URLs and the separate cover/tactical map asset registries are retained. Saved Plays are restricted to one map and its complete Point/Submap plus 2D view set; changing maps from an active saved play prompts to start a new play.
 

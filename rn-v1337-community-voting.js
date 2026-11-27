@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.54 community voting, ranked synergy groups and aligned descriptions. */
+/* RIVALSNOTEBOOK v13.55 global Synergy ranking and submitter attribution. */
 (() => {
   'use strict';
   if (window.__rnV1337CommunityUiLoaded) return;
@@ -246,9 +246,6 @@
       .rn-matchup-community-actions .rn-matchup-comment-toggle{min-height:24px!important;padding:3px 8px!important;font-size:8px!important}
       #counterPage .rn-matchup-community-actions{margin-top:5px!important}
       #counterPage .rn-matchup-comment-toggle{margin-left:0!important}
-      #synergiesPage .rn-post-community-attribution{display:block!important;margin:5px 0 0!important;color:#9babb8!important;font-size:8px!important;line-height:1.35!important}
-      #synergiesPage .rn-post-community-attribution a{color:#b9d9ec!important;text-decoration:none!important}
-      #synergiesPage .rn-post-community-attribution a:hover{text-decoration:underline!important}
       #synergiesPage .rn-synergy-community-actions{margin-top:6px!important}
       #synergiesPage .rn-post-actions{margin:5px 0!important}
       #counterPage .rn-counter-title-row{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:7px!important;min-width:0!important}
@@ -277,7 +274,10 @@
       #synergiesPage .rn-synergy-entry-description .combo-reason{font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif!important;font-size:9px!important;line-height:1.4!important;color:#d6e0e8!important}
       #counterPage .rn-counter-role-column .reason-text{font-size:9px!important}
       #counterPage .rn-counter-submitted-by{display:block!important;margin:4px 0 0!important;color:#96a8b9!important;font-size:8px!important;font-weight:750!important;line-height:1.3!important}
-      #synergiesPage .rn-synergy-entry-description .rn-post-community-attribution{margin-top:4px!important}
+      #synergiesPage .rn-synergy-entry-description .rn-post-source-attribution{margin-top:5px!important;color:#94a8b7!important;font-size:8px!important;line-height:1.3!important}
+      #synergiesPage .rn-synergy-entry-description .rn-post-source-attribution a{color:#b7d9ed!important;text-decoration:none!important}
+      #synergiesPage .rn-synergy-entry-description .rn-post-source-attribution a:hover{text-decoration:underline!important}
+      #synergiesPage .rn-synergy-submitted-by{display:block!important;margin:5px 0 0!important;color:#96a8b9!important;font-size:8px!important;font-weight:750!important;line-height:1.3!important}
       #synergiesPage .rn-synergy-community-actions{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:5px!important;margin:6px 0 0!important}
       #synergiesPage .rn-synergy-contribution-points{margin-left:auto!important}
       #synergiesPage .rn-synergy-entry-footer{display:flex!important;justify-content:flex-end!important;margin-top:5px!important}
@@ -381,21 +381,19 @@
         const header = template.content.querySelector('.rn-post-header');
         const byline = template.content.querySelector('.rn-post-byline');
         const description = template.content.querySelector('.rn-post-description');
-        const sourceMarkup = byline ? (() => {
-          const source = byline.cloneNode(true);
-          source.querySelectorAll('span').forEach(span => {
-            if (span.textContent.trim().toLowerCase() === 'submitted by') span.remove();
-          });
-          return source.innerHTML.trim();
-        })() : '';
+        const sourceLink = item?.sourceUrl && !item?.generated
+          ? byline?.querySelector('a')?.cloneNode(true)
+          : null;
         byline?.remove();
         header?.querySelector('.rn-post-subtitle')?.remove();
 
-        if (description) {
-          const attribution = document.createElement('div');
-          attribution.className = 'rn-post-community-attribution';
-          attribution.innerHTML = sourceMarkup || '<span>Community synergy tip</span>';
-          description.appendChild(attribution);
+        // The source/byline text may contain "Group synergy · A + B". It is not an
+        // author name, so do not display it as a Submitted by attribution.
+        if (description && sourceLink) {
+          const source = document.createElement('div');
+          source.className = 'rn-post-source-attribution';
+          source.append('Source: ', sourceLink);
+          description.appendChild(source);
         }
 
         const actions = template.content.querySelector('.rn-post-actions');
@@ -406,7 +404,7 @@
         const comboFoot = template.content.querySelector('.combo-foot');
         if (seePlay && comboFoot) comboFoot.appendChild(seePlay);
 
-        actions?.querySelector('.group-result-tag')?.remove();
+        actions?.querySelectorAll('.group-result-tag').forEach(node => node.remove());
         if (actions && header) header.after(actions);
 
         const communityRow = document.createElement('div');
@@ -573,6 +571,11 @@
 
         entry.appendChild(entryHeader);
         if (description) entry.appendChild(description);
+        const submittedBy = card.querySelector('.rn-submitted-by');
+        if (submittedBy) {
+          submittedBy.classList.add('rn-synergy-submitted-by');
+          entry.appendChild(submittedBy);
+        }
         if (communityRow) entry.appendChild(communityRow);
 
         const panel = communityRow?.nextElementSibling?.matches?.('[data-community-comment-panel]')
@@ -590,7 +593,9 @@
 
       totalValue.textContent = String(totalPoints);
       parent.appendChild(list);
-      host.insertBefore(parent, firstCard);
+      // Every suggestion now shares one global list. Appending in rankedGroups order
+      // avoids inheriting the original per-pair order from the first matching card.
+      host.appendChild(parent);
       entries.forEach(card => card.remove());
     }
 

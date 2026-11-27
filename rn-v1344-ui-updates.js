@@ -1,8 +1,8 @@
-/* RIVALSNOTEBOOK v13.54 live refresh, ranked controls and reliable Synergy editing. */
+/* RIVALSNOTEBOOK v13.55 global Synergy ranking and reliable detail/edit controls. */
 (() => {
   'use strict';
-  if (window.__rnV1354SynergyUiLoaded) return;
-  window.__rnV1354SynergyUiLoaded = true;
+  if (window.__rnV1355SynergyUiLoaded) return;
+  window.__rnV1355SynergyUiLoaded = true;
 
   const style = document.createElement('style');
   style.id = 'rn-v1347-layout-fixes-style';
@@ -517,8 +517,8 @@
 
   function start() {
     install();
-    if (!document.body || document.body.dataset.rnV1354Observer) return;
-    document.body.dataset.rnV1354Observer = '1';
+    if (!document.body || document.body.dataset.rnV1355Observer) return;
+    document.body.dataset.rnV1355Observer = '1';
     let queued = false;
     const observer = new MutationObserver(() => {
       if (queued) return;

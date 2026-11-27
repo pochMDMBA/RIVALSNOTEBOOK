@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>RIVALSNOTEBOOK · v13.54</title>
+<title>RIVALSNOTEBOOK · v13.55</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -265,7 +265,7 @@ body.playbook-mode .inline-board-text-editor{z-index:120!important;pointer-event
 <main id="groupsPage" class="groups-page hidden">
  <section class="panel group-browser-panel">
   <div class="group-page-heading"><div><div class="panel-title">Hero Groups</div><div class="panel-sub">Reusable archetypes for matchup rules. Groups are alphabetical; members are sorted by role, then name.</div></div><button class="btn accent" type="button" id="newGroupBtn">＋ CREATE GROUP</button></div>
-  <div class="group-page-legend"><span class="role-pill vanguard">Vanguard</span><span class="role-pill duelist">Duelist</span><span class="role-pill strategist">Support</span><span class="small-help">Drop a hero onto a group to add it. Drag a member to another group to move it.</span></div>
+  <div class="group-page-legend"><span class="role-pill vanguard">Vanguard</span><span class="role-pill duelist">Duelist</span><span class="role-pill strategist">Strategist</span><span class="small-help">Drop a hero onto a group to add it. Drag a member to another group to move it.</span></div>
   <div id="groupManagerList" class="group-manager-scroll"></div>
  </section>
  <section class="panel group-editor-panel">
@@ -574,7 +574,7 @@ function synergyPoints(c){return (c.official?100:synergyStrengthInfo(c).points)+
 function selectorLabel(type,value){if(type==='hero')return value;const g=state.groups.find(x=>x.id===value);return g?g.name:'Deleted group'}
 function renderRoster(){
  const q=$('heroSearch').value.trim().toLowerCase();const groups=[['Vanguard','vanguard'],['Duelist','duelist'],['Strategist','strategist'],['Multi-role','multi']];
- $('rosterGrid').innerHTML=groups.map(([role,cls])=>{const items=HEROES.filter(h=>h.role===role&&(!q||(h.name+' '+h.ult).toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name));if(!items.length)return'';return `<div class="role-group"><div class="role-head"><span class="role-pill ${cls}">${role}</span><span>${role==='Vanguard'?'Tank':role==='Duelist'?'Damage':role==='Strategist'?'Support':'Flexible'}</span></div><div class="hero-grid">${items.map(h=>`<button class="hero-card ${(state.enemy.includes(h.name)||state.ally.includes(h.name))?'selected':''}" draggable="true" data-hero="${escapeHtml(h.name)}" title="${escapeHtml(h.name)} · ${escapeHtml(h.ult||'')}" aria-label="Add ${escapeHtml(h.name)}"><div class="hero-portrait"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="portrait-fallback">${escapeHtml(h.name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><span class="hero-name">${escapeHtml(h.name)}</span></button>`).join('')}</div></div>`}).join('')||'<div class="empty-state">No heroes match that search.</div>';
+ $('rosterGrid').innerHTML=groups.map(([role,cls])=>{const items=HEROES.filter(h=>h.role===role&&(!q||(h.name+' '+h.ult).toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name));if(!items.length)return'';return `<div class="role-group"><div class="role-head"><span class="role-pill ${cls}">${role}</span><span>${role==='Vanguard'?'Tank':role==='Duelist'?'Damage':role==='Strategist'?'Strategist':'Flexible'}</span></div><div class="hero-grid">${items.map(h=>`<button class="hero-card ${(state.enemy.includes(h.name)||state.ally.includes(h.name))?'selected':''}" draggable="true" data-hero="${escapeHtml(h.name)}" title="${escapeHtml(h.name)} · ${escapeHtml(h.ult||'')}" aria-label="Add ${escapeHtml(h.name)}"><div class="hero-portrait"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="portrait-fallback">${escapeHtml(h.name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><span class="hero-name">${escapeHtml(h.name)}</span></button>`).join('')}</div></div>`}).join('')||'<div class="empty-state">No heroes match that search.</div>';
 }
 function slotHtml(name,side,index,compact=false){if(!name)return `<div class="team-slot" data-slot="${side}-${index}"><span class="empty-plus">＋</span>${compact?'':'<span class="slot-name">Empty slot</span>'}</div>`;const h=hero(name);return `<div class="team-slot filled" draggable="true" data-hero="${escapeHtml(name)}" data-source-side="${side}" data-slot="${side}-${index}"><span class="slot-portrait"><img src="${escapeHtml(h?.img||'')}" alt="" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="slot-fallback">${escapeHtml(name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></span><span class="slot-name">${escapeHtml(name)}</span><button class="slot-remove" data-remove="${escapeHtml(name)}" data-side="${side}" aria-label="Remove ${escapeHtml(name)}">×</button></div>`}
 function allyChipHtml(name,index){const h=hero(name);return `<div class="ally-chip" draggable="true" data-hero="${escapeHtml(name)}" data-source-side="ally"><span class="slot-portrait"><img src="${escapeHtml(h?.img||'')}" alt="" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="slot-fallback">${escapeHtml(name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></span><span>${escapeHtml(name)}</span><button class="ally-remove" data-remove="${escapeHtml(name)}" data-side="ally">×</button></div>`}
@@ -616,7 +616,7 @@ function render(){renderRoster();renderTeams();renderCounterResults();renderComb
 function addHero(name,side){if(!hero(name))return;const other=side==='enemy'?'ally':'enemy';if(state[side].includes(name)){toast(`${name} already selected`);return}if(state[side].length>=6){toast(`${side==='enemy'?'Enemy':'Allied'} team is full`);return}state[other]=state[other].filter(x=>x!==name);state[side].push(name);state.showAllCounters=false;render();}
 function removeHero(name,side){state[side]=state[side].filter(x=>x!==name);render()}
 function resetTeams(){state.enemy=[];state.ally=[];state.target='enemy';state.showAllCombos=false;state.showAllCounters=false;$('heroSearch').value='';render();toast('Team lineups reset')}
-function populateHeroSelect(id,selected=''){const el=$(id);el.innerHTML='<option value="">Select hero…</option>'+HEROES.map(h=>`<option value="${escapeHtml(h.name)}">${escapeHtml(h.name)} · ${escapeHtml(h.role==='Strategist'?'Support':h.role)}</option>`).join('');if(selected)el.value=selected}
+function populateHeroSelect(id,selected=''){const el=$(id);el.innerHTML='<option value="">Select hero…</option>'+HEROES.map(h=>`<option value="${escapeHtml(h.name)}">${escapeHtml(h.name)} · ${escapeHtml(h.role==='Strategist'?'Strategist':h.role)}</option>`).join('');if(selected)el.value=selected}
 function openModal(id){$(id).classList.add('open')}
 function closeModal(id){$(id).classList.remove('open')}
 function openCounterEditor(tip=null){state.editingCounter=tip?.id||null;state.editingCounterRule=null;state.editingDerived=null;$('counterModalTitle').textContent=tip?'Edit counter tip':'Add counter rule';populateHeroSelect('counterAgainst',tip?.against||state.enemy[0]||'');populateHeroSelect('counterHero',tip?.hero||'');populateGroupSelect('counterSourceGroup');populateGroupSelect('counterTargetGroup');$('counterSourceType').value='hero';$('counterTargetType').value='hero';$('counterTier').value=tip?.tier||'moderate';$('counterReason').value=tip?.reason||'';$('deleteCounterBtn').classList.toggle('hidden',!tip);syncCounterForm();openModal('counterModal')}
@@ -653,9 +653,9 @@ function renderGroupMembers(selected=state.groupMemberDraft){
  const q=$('groupMemberSearch').value.trim().toLowerCase();
  const available=HEROES.filter(h=>!state.groupMemberDraft.includes(h.name)&&(!q||(h.name+' '+h.role).toLowerCase().includes(q))).sort((a,b)=>ROLE_ORDER.indexOf(a.role)-ROLE_ORDER.indexOf(b.role)||a.name.localeCompare(b.name));
  const availableGroups=new Map();available.forEach(h=>{const roles=[h.role];roles.forEach(role=>{if(!availableGroups.has(role))availableGroups.set(role,[]);availableGroups.get(role).push(h)})});
- $('groupAvailableList').innerHTML=available.length?[...availableGroups.entries()].map(([role,heroes])=>`<div class="member-role-set"><div class="member-role-set-title">${escapeHtml(role==='Strategist'?'Support':role)} · ${heroes.length}</div>${heroes.map(h=>`<button type="button" class="member-hero" draggable="true" data-hero="${escapeHtml(h.name)}" data-group-add="${escapeHtml(h.name)}"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.remove()"><span>${escapeHtml(h.name)}</span><span class="member-action">＋</span></button>`).join('')}</div>`).join(''):'<div class="member-drop-hint">No available heroes match this search.</div>';
+ $('groupAvailableList').innerHTML=available.length?[...availableGroups.entries()].map(([role,heroes])=>`<div class="member-role-set"><div class="member-role-set-title">${escapeHtml(role)} · ${heroes.length}</div>${heroes.map(h=>`<button type="button" class="member-hero" draggable="true" data-hero="${escapeHtml(h.name)}" data-group-add="${escapeHtml(h.name)}"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.remove()"><span>${escapeHtml(h.name)}</span><span class="member-action">＋</span></button>`).join('')}</div>`).join(''):'<div class="member-drop-hint">No available heroes match this search.</div>';
  const selectedGroups=groupByRole(state.groupMemberDraft);
- $('groupMemberList').innerHTML=state.groupMemberDraft.length?[...selectedGroups.entries()].map(([role,heroes])=>`<div class="member-role-set"><div class="member-role-set-title">${escapeHtml(role==='Strategist'?'Support':role)} · ${heroes.length}</div>${heroes.map(h=>`<button type="button" class="member-hero selected" draggable="true" data-hero="${escapeHtml(h.name)}" data-source-group="${escapeHtml(state.editingGroup||'editor-draft')}" data-group-remove="${escapeHtml(h.name)}"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.remove()"><span>${escapeHtml(h.name)}</span><span class="member-action">×</span></button>`).join('')}</div>`).join(''):'<div class="member-drop-hint">Drag heroes here, or click an available hero.</div>';
+ $('groupMemberList').innerHTML=state.groupMemberDraft.length?[...selectedGroups.entries()].map(([role,heroes])=>`<div class="member-role-set"><div class="member-role-set-title">${escapeHtml(role)} · ${heroes.length}</div>${heroes.map(h=>`<button type="button" class="member-hero selected" draggable="true" data-hero="${escapeHtml(h.name)}" data-source-group="${escapeHtml(state.editingGroup||'editor-draft')}" data-group-remove="${escapeHtml(h.name)}"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.remove()"><span>${escapeHtml(h.name)}</span><span class="member-action">×</span></button>`).join('')}</div>`).join(''):'<div class="member-drop-hint">Drag heroes here, or click an available hero.</div>';
  $('groupMemberCount').textContent=`${state.groupMemberDraft.length} selected`;
 }
 function selectedGroupMembers(){return sortedHeroes(state.groupMemberDraft).map(h=>h.name)}
@@ -901,13 +901,13 @@ function reasonHtml(t,hideVote=false){
 function roleColumnForRole(role){
  const normalized=String(role||'').toLowerCase();
  if(normalized==='vanguard')return 'Vanguard';
- if(normalized==='strategist'||normalized==='support')return 'Support';
+ if(normalized==='strategist'||normalized==='support')return 'Strategist';
  // Multi-role heroes need to live in one of the three requested columns. Duelist is
  // the display fallback only; their original in-card role label remains unchanged.
  return 'Duelist';
 }
 function roleColumnForHero(name){return roleColumnForRole(hero(name)?.role)}
-function roleColumnClass(label){return label==='Vanguard'?'vanguard':label==='Support'?'strategist':'duelist'}
+function roleColumnClass(label){return label==='Vanguard'?'vanguard':label==='Strategist'?'strategist':'duelist'}
 function renderCounterResults(){
  const enemies=state.enemy;
  if(!enemies.length){$('counterResults').innerHTML='<div class="empty-state"><strong>Select enemy heroes to start.</strong><br>Counter suggestions are ranked from saved ability-interaction tips, counter strength and community votes.</div>';return}
@@ -919,7 +919,7 @@ function renderCounterResults(){
    arr.sort((a,b)=>counterPoints(b)-counterPoints(a)||TIER[b.tier].weight-TIER[a.tier].weight||a.against.localeCompare(b.against));
    return{name,arr,targets:[...new Set(arr.map(t=>t.against))],points:arr.reduce((n,t)=>n+counterPoints(t),0),totalVotes:arr.reduce((n,t)=>n+(Number(t.votes)||0),0),weight:Math.max(...arr.map(t=>TIER[t.tier].weight))};
  }).sort((a,b)=>b.points-a.points||b.totalVotes-a.totalVotes||b.weight-a.weight||b.targets.length-a.targets.length||a.name.localeCompare(b.name));
- const roles=['Vanguard','Duelist','Support'];
+ const roles=['Vanguard','Duelist','Strategist'];
  const byRole=new Map(roles.map(role=>[role,[]]));
  for(const card of cards)byRole.get(roleColumnForHero(card.name)).push(card);
  const compareCounterCards=(a,b)=>b.points-a.points||b.totalVotes-a.totalVotes||b.weight-a.weight||b.targets.length-a.targets.length||a.name.localeCompare(b.name);
@@ -972,7 +972,7 @@ function renderCounterResults(){
  }).join('');
  $('counterResults').innerHTML=`<div class="rn-role-columns rn-counter-columns">${columns}</div><div class="small-help">Each role column is sorted from highest to lowest points. Counter scores use the selected matchup strength plus 5 points per upvote. Hero totals sum every applicable matchup against the selected enemy lineup.</div>`;
 }
-function comboCardHtml(c){const aIn=state.ally.includes(c.a),bIn=state.ally.includes(c.b),status=aIn&&bIn?'TEAM PAIR ACTIVE':aIn?`SUGGEST ADD · ${c.b.toUpperCase()}`:bIn?`SUGGEST ADD · ${c.a.toUpperCase()}`:'MATCH';const vote=c.generated?`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}">▲ ${c.votes}</button>`:`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}">▲ ${c.votes}</button>`;const edit=c.generated?`<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>`:`<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;return `<article class="combo-card"><div class="combo-head"><div class="combo-icon">${iconSvg(c.icon||'sparkles')}</div><div class="combo-title-wrap"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div><div class="combo-role-hint">${escapeHtml(hero(c.a)?.role==='Strategist'?'Support':hero(c.a)?.role||'')} + ${escapeHtml(hero(c.b)?.role==='Strategist'?'Support':hero(c.b)?.role||'')}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="combo-status">${status}</div>${c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>'}<div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${vote}${pocketAction(c.pocketPlayId)}${edit}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`}
+function comboCardHtml(c){const aIn=state.ally.includes(c.a),bIn=state.ally.includes(c.b),status=aIn&&bIn?'TEAM PAIR ACTIVE':aIn?`SUGGEST ADD · ${c.b.toUpperCase()}`:bIn?`SUGGEST ADD · ${c.a.toUpperCase()}`:'MATCH';const vote=c.generated?`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo-rule="${escapeHtml(c.ruleId)}" data-pair-key="${escapeHtml(c.pairKey)}">▲ ${c.votes}</button>`:`<button class="vote-btn ${c.myVote?'voted':''}" data-vote-combo="${escapeHtml(c.id)}">▲ ${c.votes}</button>`;const edit=c.generated?`<button class="edit-btn" data-edit-combo-rule="${escapeHtml(c.ruleId)}">EDIT RULE</button>`:`<button class="edit-btn" data-edit-combo="${escapeHtml(c.id)}">EDIT</button>`;return `<article class="combo-card"><div class="combo-head"><div class="combo-icon">${iconSvg(c.icon||'sparkles')}</div><div class="combo-title-wrap"><div class="combo-names">${escapeHtml(c.a)} + ${escapeHtml(c.b)}</div><div class="combo-role-hint">${escapeHtml(hero(c.a)?.role==='Strategist'?'Strategist':hero(c.a)?.role||'')} + ${escapeHtml(hero(c.b)?.role==='Strategist'?'Strategist':hero(c.b)?.role||'')}</div></div><span class="points-badge">${synergyPoints(c)} PTS</span></div><div class="combo-status">${status}</div>${c.official?'<span class="combo-official">OFFICIAL TEAM-UP</span>':'<span class="tiny-tag">COMMUNITY SYNERGY</span>'}<div class="combo-reason">${escapeHtml(c.reason)}</div><div class="combo-foot"><div class="reason-actions">${vote}${pocketAction(c.pocketPlayId)}${edit}</div><span class="tip-foot">${c.sourceUrl?`<a href="${escapeHtml(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(c.source||'Source')} ↗</a>`:escapeHtml(c.source||'Community tip')}</span></div></article>`}
 function renderComboCards(combos,containerId,label){const container=$(containerId);if(!container)return;if(!combos.length){container.innerHTML=state.ally.length?'<div class="empty-state">No saved synergy matches this allied lineup yet. Add a synergy or create a group synergy rule. As you add allies, matching teammate picks appear here.</div>':'<div class="empty-state">Select at least one allied hero to discover suggested teammates from the saved synergy database.</div>';return}const sorted=[...combos].sort((a,b)=>synergyPoints(b)-synergyPoints(a)||b.votes-a.votes||a.a.localeCompare(b.a)||a.b.localeCompare(b.b));container.innerHTML=`<div class="combo-list">${sorted.map(comboCardHtml).join('')}</div><div class="small-help">Synergy points: Synergy scores use the selected strength; Official Team-Ups use a 100-point base · +5 points per upvote. Suggestions are triggered by at least one selected ally; pairings already in your team are marked active.</div>`}
 function renderComboResults(){const picks=new Set(state.ally);let combos=[];if(picks.size){const direct=state.combos.filter(c=>picks.has(c.a)||picks.has(c.b));combos=[...direct,...expandComboRules(state.ally)];}const community=combos.filter(c=>!c.official),official=combos.filter(c=>c.official);renderComboCards(community,'comboResults','community');renderComboCards(official,'officialComboResults','official');$('synergyCount').textContent=`${community.length} SUGGESTIONS`;$('officialTeamupCount').textContent=`${official.length} SUGGESTIONS`}
 function renderComboResultsVisibility(){const allied=state.target==='ally',counterTitle=$('counterResults').previousElementSibling,counterNote=$('counterResults').nextElementSibling,community=$('synergyDetails'),official=$('officialTeamupDetails');if(counterTitle)counterTitle.style.display=allied?'none':'';$('counterResults').style.display=allied?'none':'';if(counterNote&&counterNote.classList.contains('footer-note'))counterNote.style.display=allied?'none':'';community.style.display=allied?'':'none';community.open=allied;official.style.display=allied?'':'none';const sum=community.querySelector('summary span');if(sum)sum.textContent='Recommended Teammates / Synergies';const h=community.querySelector('.section-title h2');if(h)h.textContent='Suggested Teammates & Synergies';}
@@ -1172,7 +1172,7 @@ initData();bindPlaybook();render();renderPlaybook();
     return roles.map(([role,cls])=>{
       const items = HEROES.filter(h=>h.role===role && (!q || (h.name+' '+(h.ult||'')).toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name));
       if(!items.length) return '';
-      return `<div class="role-group"><div class="role-head"><span class="role-pill ${cls}">${role}</span><span>${role==='Vanguard'?'Tank':role==='Duelist'?'Damage':role==='Strategist'?'Support':'Flexible'}</span></div><div class="hero-grid">${items.map(h=>{
+      return `<div class="role-group"><div class="role-head"><span class="role-pill ${cls}">${role}</span><span>${role==='Vanguard'?'Tank':role==='Duelist'?'Damage':role==='Strategist'?'Strategist':'Flexible'}</span></div><div class="hero-grid">${items.map(h=>{
         const selected = state[side].includes(h.name);
         return `<button class="hero-card ${selected?'selected':''}" draggable="true" data-hero="${escapeHtml(h.name)}" data-roster-side="${side}" title="${escapeHtml(h.name)} · ${escapeHtml(h.ult||'')}" aria-label="${selected?'Remove':'Add'} ${escapeHtml(h.name)} ${side}"><div class="hero-portrait"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="portrait-fallback">${escapeHtml(h.name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><span class="hero-name">${escapeHtml(h.name)}</span></button>`;
       }).join('')}</div></div>`;
@@ -1262,35 +1262,16 @@ initData();bindPlaybook();render();renderPlaybook();
     const container = $(containerId); if(!container) return;
     if(!combos.length){
       container.innerHTML = state.ally.length
-        ? `<div class="empty-state">No ${label==='official'?'official Team-Ups':'synergies and official Team-Ups'} match the selected allies yet. Add a synergy or a group synergy rule to build this library.</div>`
+        ? '<div class="empty-state">No synergies or official Team-Ups match the selected allies yet. Add a synergy or a group synergy rule to build this library.</div>'
         : '<div class="empty-state"><strong>Select allied heroes to begin.</strong><br>Suggested teammates, ability combinations and official Team-Ups will be ranked here using the current ally lineup.</div>';
       return;
     }
-    const roles=['Vanguard','Duelist','Support'];
-    const byRole=new Map(roles.map(role=>[role,[]]));
-    const roleForCombo=combo=>{
-      const aIn=state.ally.includes(combo.a),bIn=state.ally.includes(combo.b);
-      // Bucket the pair by the suggested teammate, not by the selected ally.
-      const suggested=aIn&&!bIn?combo.b:bIn&&!aIn?combo.a:(aIn?combo.a:combo.b);
-      const suggestedRole=hero(suggested)?.role;
-      if(suggestedRole==='Multi-role'){
-        const anchor=aIn?combo.a:(bIn?combo.b:combo.a);
-        return roleColumnForRole(hero(anchor)?.role);
-      }
-      return roleColumnForRole(suggestedRole);
-    };
-    for(const combo of combos)byRole.get(roleForCombo(combo)).push(combo);
-    const compare=(a,b)=>synergyPoints(b)-synergyPoints(a)||(Number(b.votes)||0)-(Number(a.votes)||0)||a.a.localeCompare(b.a)||a.b.localeCompare(b.b);
-    const columns=roles.map(role=>{
-      const entries=byRole.get(role).sort(compare);
-      return `<section class="rn-role-column rn-synergy-role-column" data-role="${role.toLowerCase()}">
-        <div class="rn-role-column-head"><span class="role-pill ${roleColumnClass(role)}">${role}</span><span class="rn-role-column-count">${entries.length} ${entries.length===1?'SUGGESTION':'SUGGESTIONS'}</span></div>
-        <div class="rn-role-card-stack">${entries.map(comboCardHtml).join('')||'<div class="rn-role-empty">No recommendations</div>'}</div>
-      </section>`;
-    }).join('');
-    container.innerHTML = `<div class="rn-role-columns rn-synergy-columns">${columns}</div><div class="small-help">Each role column is sorted from highest to lowest points. Synergy points: Synergy scores use the selected strength; Official Team-Ups use a 100-point base · +5 points per upvote. Pairings are grouped by the suggested teammate's role.</div>`;
+    const compare=(a,b)=>synergyPoints(b)-synergyPoints(a)
+      ||(Number(b.votes)||0)-(Number(a.votes)||0)
+      ||a.a.localeCompare(b.a)||a.b.localeCompare(b.b);
+    const sorted=[...combos].sort(compare);
+    container.innerHTML = `<div class="rn-synergy-global-ranking">${sorted.map(comboCardHtml).join('')}</div><div class="small-help">All suggested heroes are ranked globally by their combined synergy points, highest first. Official Team-Ups use a 100-point base; each upvote adds 5 points.</div>`;
   };
-
   // Remove the old allied roster tab entirely. Enemy selection belongs only to Counterpicks.
   const allyTab = document.querySelector('#counterPage .tab[data-target="ally"]'); if (allyTab) allyTab.remove();
   const enemyTab = document.querySelector('#counterPage .tab[data-target="enemy"]'); if(enemyTab) enemyTab.classList.add('active');
@@ -1470,7 +1451,7 @@ initData();bindPlaybook();render();renderPlaybook();
         <button type="button" class="active" data-role-filter="All" title="All heroes">All</button>
         <button type="button" data-role-filter="Vanguard" title="Vanguard">V</button>
         <button type="button" data-role-filter="Duelist" title="Duelist">D</button>
-        <button type="button" data-role-filter="Strategist" title="Support">S</button>
+        <button type="button" data-role-filter="Strategist" title="Strategist">S</button>
         
       </div>
       <div class="hero-dock-help">Click to place · hover for skills</div>
@@ -1998,7 +1979,7 @@ initData();bindPlaybook();render();renderPlaybook();
     $('heroDockCount').textContent = `${list.length}/${HEROES.length}`;
     scroll.innerHTML = list.map(h => {
       const initials = h.name.split(/\s+/).map(w => w[0]).slice(0, 2).join('');
-      return `<div class="hero-dock-card" tabindex="0" draggable="true" data-dock-hero="${escapeHtml(h.name)}" title="${escapeHtml(h.name)} · ${escapeHtml(h.role==='Strategist'?'Support':h.role)} · click to place, hover for abilities">
+      return `<div class="hero-dock-card" tabindex="0" draggable="true" data-dock-hero="${escapeHtml(h.name)}" title="${escapeHtml(h.name)} · ${escapeHtml(h.role==='Strategist'?'Strategist':h.role)} · click to place, hover for abilities">
         <div class="hero-dock-portrait"><img loading="lazy" src="${escapeHtml(h.img || '')}" alt="" onerror="this.parentElement.classList.add('broken');this.remove()"><span>${escapeHtml(initials)}</span></div>
         <span class="hero-dock-name">${escapeHtml(h.name)}</span><i class="hero-dock-role ${getRoleClass(h.role)}"></i>
       </div>`;
@@ -2959,7 +2940,7 @@ body.groups-mode .groups-page.group-editing .modal-actions .btn{min-height:30px!
       .slice().sort((a,b) => ROLE_ORDER.indexOf(a.role)-ROLE_ORDER.indexOf(b.role) || a.name.localeCompare(b.name));
     grid.innerHTML = heroes.map(h => {
       const initials = h.name.split(/\s+/).map(w=>w[0]).slice(0,2).join('');
-      return `<button type="button" class="compact-group-hero ${selected.has(h.name)?'selected':''}" data-compact-group-hero="${escapeHtml(h.name)}" data-role="${escapeHtml(h.role)}" aria-pressed="${selected.has(h.name)}" title="${escapeHtml(h.name)} · ${escapeHtml(h.role==='Strategist'?'Support':h.role)}">
+      return `<button type="button" class="compact-group-hero ${selected.has(h.name)?'selected':''}" data-compact-group-hero="${escapeHtml(h.name)}" data-role="${escapeHtml(h.role)}" aria-pressed="${selected.has(h.name)}" title="${escapeHtml(h.name)} · ${escapeHtml(h.role==='Strategist'?'Strategist':h.role)}">
         <img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.style.display='none'">
         <span>${escapeHtml(h.name)}</span><i class="role-dot" aria-hidden="true"></i>
       </button>`;
@@ -4347,7 +4328,7 @@ body.playbook-mode .sidebar-play-panel .play-action-row .btn{flex:1!important;mi
 
 
 <script src="./config.js"></script>
-<script src="./rivalsnotebook.js?v=1354"></script>
+<script src="./rivalsnotebook.js?v=1355"></script>
 <style id="rn-final-polish">
   body.playbook-mode .playbook-mark{width:27px!important;height:27px!important;border:1px solid #c4a957!important;border-radius:6px!important;background:linear-gradient(145deg,#3e3927,#182c35)!important;color:#ffe79b!important;font-size:10px!important;box-shadow:0 2px 7px #0007!important}
   body.playbook-mode .board-pen-tool-row #penDashedArrowBtn{display:grid!important;place-items:center!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;height:32px!important;min-height:32px!important;padding:2px!important;overflow:hidden!important;border:1px solid #3f5a6c!important;border-radius:4px!important}
@@ -5542,11 +5523,11 @@ body.groups-mode .rn-v10-group-actions [data-rn-publish-group]{background:#22563
   window.RN_MAP_ASSET_DIAGNOSTICS={count:mapImageSources.length,pointLayerCount:mapImageSources.reduce((n,m)=>n+Object.keys(m.points).length,0),allDeclaredAssetsValid:mapAssetsValid,assetMode:'flat-root-jpeg-points+remote-layout',maps:mapImageSources.map(m=>m.id)};
 
   const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const roleNames=['Vanguard','Duelist','Support'];
+  const roleNames=['Vanguard','Duelist','Strategist'];
   const roleForGroup=name=>{
     if(String(name).toLowerCase()==='deadpool')return roleNames;
     const r=typeof hero==='function'?hero(name)?.role:'';
-    if(r==='Strategist')return ['Support'];
+    if(r==='Strategist')return ['Strategist'];
     return roleNames.includes(r)?[r]:[];
   };
   const memberHtml=(name,large=false)=>{
@@ -5734,7 +5715,7 @@ body.playbook-mode .rn-map-grid-preview:after{content:'';position:absolute;top:5
   }
   // Remove the outdated fourth role pill. Group cards and the roster now use the requested three categories.
   document.querySelectorAll('.group-page-legend .role-pill.multi').forEach(el=>el.remove());
-  document.querySelectorAll('.group-page-legend .role-pill.strategist').forEach(el=>el.textContent='Support');
+  document.querySelectorAll('.group-page-legend .role-pill.strategist').forEach(el=>el.textContent='Strategist');
 
   // Deadpool now has distinct role-specific roster entries.
   function normalizeRoster(grid){
@@ -5744,7 +5725,7 @@ body.playbook-mode .rn-map-grid-preview:after{content:'';position:absolute;top:5
     const multi=groups.find(g=>g.querySelector('.role-pill.multi')||g.querySelector('.role-pill')?.textContent.trim().toLowerCase()==='multi-role');
     const deadpool=multi?.querySelector('[data-hero="Deadpool"]');
     if(deadpool){
-      const destinations=[findGroup('Vanguard'),findGroup('Duelist'),findGroup('Strategist'),findGroup('Support')].filter(Boolean);
+      const destinations=[findGroup('Vanguard'),findGroup('Duelist'),findGroup('Strategist'),findGroup('Strategist')].filter(Boolean);
       destinations.forEach(group=>{
         const target=group.querySelector('.hero-grid');
         if(target&&!target.querySelector('[data-hero="Deadpool"]'))target.appendChild(deadpool.cloneNode(true));
@@ -5752,7 +5733,7 @@ body.playbook-mode .rn-map-grid-preview:after{content:'';position:absolute;top:5
       deadpool.remove();
     }
     if(multi&&!multi.querySelector('.hero-card'))multi.remove();
-    grid.querySelectorAll('.role-pill.strategist').forEach(pill=>{if(pill.textContent.trim()!=='Support')pill.textContent='Support';});
+    grid.querySelectorAll('.role-pill.strategist').forEach(pill=>{if(pill.textContent.trim()!=='Strategist')pill.textContent='Strategist';});
   }
   const watchGrid=id=>{
     const grid=$(id);if(!grid||grid.dataset.rnV11RoleWatch)return;
@@ -6373,7 +6354,7 @@ body.groups-mode .group-rule-expandable .rn-group-counter-title{display:flex!imp
   const renderOptions=()=>{
    const q=search.value.trim().toLowerCase();
    const available=(HEROES||[]).filter(h=>!q||`${h.name} ${h.role}`.toLowerCase().includes(q));
-   const roles=[['Vanguard','Vanguard'],['Duelist','Duelist'],['Support','Strategist'],['Multi-role','Multi-role']];
+   const roles=[['Vanguard','Vanguard'],['Duelist','Duelist'],['Strategist','Strategist'],['Multi-role','Multi-role']];
    grid.innerHTML=roles.map(([label,role])=>{
     const heroes=available.filter(h=>h.role===role).sort((a,b)=>a.name.localeCompare(b.name));
     if(!heroes.length)return '';

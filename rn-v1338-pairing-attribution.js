@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.38 pairing validation and submission attribution. */
+/* RIVALSNOTEBOOK v13.55 pairing validation and account-aware submission attribution. */
 (() => {
   'use strict';
   if (window.__rnV1338RulesLoaded) return;
@@ -152,11 +152,22 @@
     },true);
   }
 
+  function currentSubmitter() {
+    const user=window.__rnCurrentUser||null;
+    const metadata=user?.user_metadata||{};
+    const email=String(user?.email||'').trim();
+    const candidate=metadata.username||metadata.user_name||metadata.preferred_username
+      ||metadata.full_name||metadata.name||email.split('@')[0]||DEV_NAME;
+    return {name:String(candidate).trim().slice(0,48)||DEV_NAME,email};
+  }
+
   function markDeveloper(record) {
     if (!record || typeof record!=='object') return false;
+    const author=currentSubmitter();
     let changed=false;
-    if (record.submittedByName!==DEV_NAME) { record.submittedByName=DEV_NAME; changed=true; }
-    if (record.submittedByEmail!==DEV_EMAIL) { record.submittedByEmail=DEV_EMAIL; changed=true; }
+    if (record.submittedByName!==author.name) { record.submittedByName=author.name; changed=true; }
+    const email=author.email|| (author.name===DEV_NAME?DEV_EMAIL:'');
+    if (record.submittedByEmail!==email) { record.submittedByEmail=email; changed=true; }
     return changed;
   }
 
@@ -193,7 +204,7 @@
     if (!parent || parent.querySelector(':scope > .rn-submitted-by')) return;
     const label=document.createElement('div');
     label.className='rn-submitted-by';
-    label.textContent='Submitted by - Developer';
+    label.textContent='Submitted by '+String(currentSubmitter().name||DEV_NAME);
     parent.appendChild(label);
   }
 
@@ -206,7 +217,7 @@
     if (card.querySelector('.rn-submitted-by')) return template.innerHTML;
     const label=document.createElement('div');
     label.className='rn-submitted-by';
-    label.textContent='Submitted by - Developer';
+    label.textContent='Submitted by '+String(record?.submittedByName||currentSubmitter().name||DEV_NAME);
     const target=insertBeforeSelector ? card.querySelector(insertBeforeSelector) : null;
     if (target) target.insertAdjacentElement('beforebegin',label);
     else card.appendChild(label);
