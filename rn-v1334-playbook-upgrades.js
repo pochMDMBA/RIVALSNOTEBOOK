@@ -1010,7 +1010,7 @@
   }
 
   function install() {
-    document.title = 'RIVALSNOTEBOOK · v13.36';
+    // Do not set document.title here. The application entry point owns the release version.
     installDefaultMigrations();
     installShapePalette();
     installSmallerShapeDefaults();
