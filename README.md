@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current deployment package: v13.38.** See `V13.38_RELEASE_NOTES.md` for strict one-to-one vs Group Rule routing, Developer submission attribution and hidden Supabase setup controls.
+**Current deployment package: v13.44.** See `V13.44_RELEASE_NOTES.md` for the Synergies and Counterpicker layout updates and expanded Playbook stroke controls.
 
 **v13.30 baseline:** Replaced the six Competitive Domination cover thumbnails with clean crops from the latest unannotated `marvelrivals.gg/maps/` screenshot. All 18 Domination 2D layout URLs and the separate cover/tactical map asset registries are retained. Saved Plays are restricted to one map and its complete Point/Submap plus 2D view set; changing maps from an active saved play prompts to start a new play.
 

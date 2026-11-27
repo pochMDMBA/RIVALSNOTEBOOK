@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v13.41</title>
+<title>RIVALSNOTEBOOK · v13.44</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -543,7 +543,7 @@ function normalizePlayItems(list){
         y:Number.isFinite(Number(x.y))?Math.max(-600,Math.min(600,Number(x.y))):10,
         rotate:Number.isFinite(Number(x.rotate))?Number(x.rotate):0,
         penStyle:['solid','dashed','arrow','dashed-arrow'].includes(x.penStyle)?x.penStyle:'solid',
-        penWidth:Math.max(.05,Math.min(12,Number(x.penWidth)||.3)),
+        penWidth:Math.max(.05,Math.min(24,Number(x.penWidth)||.3)),
         color:/^#[0-9a-f]{6}$/i.test(String(x.color||''))?String(x.color):(['white','black','red','yellow','green','blue'].includes(x.color)?x.color:'yellow'),
         opacity:Number.isFinite(Number(x.opacity))?Math.max(0,Math.min(1,Number(x.opacity))):1
       };
@@ -820,7 +820,7 @@ function normalizePlayItems(list){
         y:Number.isFinite(Number(x.y))?Math.max(-600,Math.min(600,Number(x.y))):10,
         rotate:Number.isFinite(Number(x.rotate))?Number(x.rotate):0,
         penStyle:['solid','dashed','arrow','dashed-arrow'].includes(x.penStyle)?x.penStyle:'solid',
-        penWidth:Math.max(.05,Math.min(12,Number(x.penWidth)||.3)),
+        penWidth:Math.max(.05,Math.min(24,Number(x.penWidth)||.3)),
         color:/^#[0-9a-f]{6}$/i.test(String(x.color||''))?String(x.color):(['white','black','red','yellow','green','blue'].includes(x.color)?x.color:'yellow'),
         opacity:Number.isFinite(Number(x.opacity))?Math.max(0,Math.min(1,Number(x.opacity))):1
       };
@@ -2311,8 +2311,8 @@ initData();bindPlaybook();render();renderPlaybook();
         x: Number.isFinite(Number(x.x)) ? Math.max(-600, Math.min(600, Number(x.x))) : 10,
         y: Number.isFinite(Number(x.y)) ? Math.max(-600, Math.min(600, Number(x.y))) : 10,
         rotate: Number.isFinite(Number(x.rotate)) ? Number(x.rotate) : 0,
-        penWidth: Math.max(.05, Math.min(12, Number(x.penWidth) || .3)),
-        borderWidth: Math.max(.05, Math.min(12, Number(x.borderWidth) || 2)),
+        penWidth: Math.max(.05, Math.min(24, Number(x.penWidth) || .3)),
+        borderWidth: Math.max(.05, Math.min(24, Number(x.borderWidth) || 2)),
         color: /^#[0-9a-f]{6}$/i.test(String(x.color||'')) ? String(x.color) : (['white','black','red','yellow','green','blue'].includes(x.color) ? x.color : 'yellow'),
         opacity: Number.isFinite(Number(x.opacity)) ? Math.max(0,Math.min(1,Number(x.opacity))) : 1,
         fillOpacity: Number.isFinite(Number(x.fillOpacity)) ? Math.max(0,Math.min(1,Number(x.fillOpacity))) : (x.type==='text' ? .94 : (Number.isFinite(Number(x.opacity)) ? Math.max(0,Math.min(1,Number(x.opacity)))*.17 : .17)),
@@ -3213,10 +3213,10 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
   let hideAbilityLabels = localStorage.getItem('mrPlaybookHideAbilityLabels') === '1';
   let penModeActive = false, penStyle = 'solid', activeTool = 'select', pendingTextPlacement = false, penStroke = null;
   const storedNumber=(key,fallback)=>{const raw=localStorage.getItem(key);if(raw===null)return fallback;const value=Number(raw);return Number.isFinite(value)?value:fallback;};
-  let penThickness = Math.max(.05,Math.min(12,storedNumber('mrPlaybookPenThicknessV2',2.4)));
+  let penThickness = Math.max(.05,Math.min(24,storedNumber('mrPlaybookPenThicknessV2',2.4)));
   let penColor = localStorage.getItem('rnPlaybookPenColor') || 'yellow';
   let penOpacity = Math.max(0,Math.min(1,storedNumber('rnPlaybookOpacity',1)));
-  const shapeStyleDefaults={fillOpacity:Math.max(0,Math.min(1,storedNumber('rnPlaybookFillOpacity',1))),borderOpacity:Math.max(0,Math.min(1,storedNumber('rnPlaybookBorderOpacity',1))),borderWidth:Math.max(.05,Math.min(12,storedNumber('rnPlaybookShapeBorderWidth',2.4)))};
+  const shapeStyleDefaults={fillOpacity:Math.max(0,Math.min(1,storedNumber('rnPlaybookFillOpacity',1))),borderOpacity:Math.max(0,Math.min(1,storedNumber('rnPlaybookBorderOpacity',1))),borderWidth:Math.max(.05,Math.min(24,storedNumber('rnPlaybookShapeBorderWidth',2.4)))};
   const boardPaint = c => {const v=String(c||'yellow');return /^#[0-9a-f]{6}$/i.test(v)?v:({white:'#f4f7fb',black:'#101820',red:'#ef665c',yellow:'#f1d76b',green:'#79d89e',blue:'#68bdf2'}[v]||'#f1d76b');};
   let hideHeroLabels = localStorage.getItem('mrPlaybookHideHeroLabels') === '1';
   let imageInsertCenter = null;
@@ -3287,7 +3287,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       const legacyOpacity=Number.isFinite(Number(item.opacity))?Math.max(0,Math.min(1,Number(item.opacity))):1;
       const fillOpacity=Number.isFinite(Number(item.fillOpacity))?Math.max(0,Math.min(1,Number(item.fillOpacity))):legacyOpacity*.17;
       const borderOpacity=Number.isFinite(Number(item.borderOpacity))?Math.max(0,Math.min(1,Number(item.borderOpacity))):legacyOpacity;
-      const borderWidth=Math.max(.05,Math.min(12,Number(item.borderWidth)||shapeStyleDefaults.borderWidth));
+      const borderWidth=Math.max(.05,Math.min(24,Number(item.borderWidth)||shapeStyleDefaults.borderWidth));
       el.style.opacity='1';
       shapeSvg?.querySelectorAll('.shape-fill').forEach(node=>{node.style.fill='currentColor';node.style.fillOpacity=String(fillOpacity);node.style.stroke='currentColor';node.style.strokeOpacity=String(borderOpacity);node.style.strokeWidth=`${borderWidth}px`;});
       shapeSvg?.querySelectorAll('.shape-line').forEach(node=>{node.style.stroke='currentColor';node.style.strokeOpacity=String(borderOpacity);node.style.strokeWidth=`${borderWidth}px`;});
@@ -3309,8 +3309,8 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     }
     if (item.type === 'hero' && hideHeroLabels) el.classList.add('hero-icon-only');
     if (['shape','pen','arrow','wall','broken','number','pit'].includes(item.type)) { el.style.color=boardPaint(item.color); if(item.type!=='shape'){const alpha=Number.isFinite(Number(item.opacity))?Math.max(0,Math.min(1,Number(item.opacity))):1;el.style.opacity=String(alpha);} }
-    if(item.type==='arrow'){const sw=Math.max(.05,Math.min(12,Number(item.borderWidth)||4));const line=el.querySelector('line'),head=el.querySelector('.arrow-head');if(line){line.style.stroke='currentColor';line.style.strokeWidth=`${sw}px`;}if(head)head.style.fill='currentColor';}
-    if(item.type==='wall'){const sw=Math.max(.05,Math.min(12,Number(item.borderWidth)||2));const paths=el.querySelectorAll('path');if(paths[0]){paths[0].style.fill='currentColor';paths[0].style.fillOpacity='.32';paths[0].style.stroke='currentColor';paths[0].style.strokeWidth=`${sw}px`;}if(paths[1]){paths[1].style.stroke='#263640';paths[1].style.strokeWidth=`${Math.max(.05,sw*.7)}px`;}}
+    if(item.type==='arrow'){const sw=Math.max(.05,Math.min(24,Number(item.borderWidth)||4));const line=el.querySelector('line'),head=el.querySelector('.arrow-head');if(line){line.style.stroke='currentColor';line.style.strokeWidth=`${sw}px`;}if(head){head.style.fill='currentColor';const headScale=Math.min(2.6,Math.max(.55,Math.sqrt(sw/4)));const baseX=154-22*headScale,halfHeight=13*headScale;head.setAttribute('d',`M ${baseX.toFixed(2)} ${(22-halfHeight).toFixed(2)} L 154 22 L ${baseX.toFixed(2)} ${(22+halfHeight).toFixed(2)} Z`);if(line)line.setAttribute('x2',(baseX+7*headScale).toFixed(2));}}
+    if(item.type==='wall'){const sw=Math.max(.05,Math.min(24,Number(item.borderWidth)||2));const paths=el.querySelectorAll('path');if(paths[0]){paths[0].style.fill='currentColor';paths[0].style.fillOpacity='.32';paths[0].style.stroke='currentColor';paths[0].style.strokeWidth=`${sw}px`;}if(paths[1]){paths[1].style.stroke='#263640';paths[1].style.strokeWidth=`${Math.max(.05,sw*.7)}px`;}}
     if (item.type === 'pen') {
       const svg=el.querySelector('svg');
       const path=svg?.querySelector('path:not(.pen-arrow-head)')||svg?.querySelector('path');
@@ -3319,11 +3319,11 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       const pts=(Array.isArray(item.path)?item.path:[]).map(p=>({x:Math.max(0,Math.min(1000,Number(p[0])||0))/1000*boxW,y:Math.max(0,Math.min(1000,Number(p[1])||0))/1000*boxH}));
       if(svg&&path){
         svg.setAttribute('viewBox',`0 0 ${boxW} ${boxH}`);svg.setAttribute('preserveAspectRatio','none');
-        const strokeWidth=boardW*(Math.max(.05,Math.min(12,Number(item.penWidth)||.3))/100);
+        const strokeWidth=boardW*(Math.max(.05,Math.min(24,Number(item.penWidth)||.3))/100);
         const isArrowPen=String(item.penStyle||'').includes('arrow');
         const totalLen=pts.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pts[i].x,p.y-pts[i].y),0);
         /* A long, slim arrowhead, sized in board pixels and kept proportional to the shaft. */
-        const arrowSize=Math.min(totalLen*.35,strokeWidth*7);
+        const arrowSize=Math.min(totalLen*.9,strokeWidth*7,totalLen*.35+strokeWidth*1.2);
         const arrowHalfWidth=arrowSize*.30;
         const arrowGeometry=isArrowPen?penArrowGeometry(pts,arrowSize,arrowHalfWidth):null;
         const shaftPts=arrowGeometry?arrowGeometry.shaftPoints:pts;
@@ -3446,11 +3446,11 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     if(borderInput){const v=shape?Number(shape.borderOpacity??shapeStyleDefaults.borderOpacity):shapeStyleDefaults.borderOpacity;borderInput.value=String(Math.round(Math.max(0,Math.min(1,v))*100));if(borderOut)borderOut.textContent=`${borderInput.value}%`;}
     const stroke=chosen.find(item=>['shape','pen','arrow','wall','broken'].includes(item.type));
     const w=stroke?(stroke.type==='pen'?Number(stroke.penWidth)||penThickness:Number(stroke.borderWidth)||shapeStyleDefaults.borderWidth):penThickness;
-    if(widthInput){widthInput.value=String(Math.max(.05,Math.min(12,w)));if(widthOut)widthOut.textContent=`${Number(widthInput.value).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}`}
+    if(widthInput){widthInput.value=String(Math.max(.05,Math.min(24,w)));if(widthOut)widthOut.textContent=`${Number(widthInput.value).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}`}
   }
   window.__rnSyncToolSettingsVisibility=syncToolSettingsVisibility;
-  window.__rnSetBoardShapeDefaults=values=>{if(!values||typeof values!=='object')return;if(Number.isFinite(Number(values.fillOpacity)))shapeStyleDefaults.fillOpacity=Math.max(0,Math.min(1,Number(values.fillOpacity)));if(Number.isFinite(Number(values.borderOpacity)))shapeStyleDefaults.borderOpacity=Math.max(0,Math.min(1,Number(values.borderOpacity)));if(Number.isFinite(Number(values.borderWidth)))shapeStyleDefaults.borderWidth=Math.max(.05,Math.min(12,Number(values.borderWidth)));};
-  window.__rnSetBoardPenThickness=value=>{const v=Math.max(.05,Math.min(12,Number(value)||2.4));penThickness=v;localStorage.setItem('mrPlaybookPenThicknessV2',String(v));localStorage.setItem('rnPlaybookShapeBorderWidth',String(v));const input=$('boardPenThickness'),output=$('boardPenThicknessValue');if(input)input.value=String(v);if(output)output.textContent=v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'');window.__rnSetBoardShapeDefaults?.({borderWidth:v});return v;};
+  window.__rnSetBoardShapeDefaults=values=>{if(!values||typeof values!=='object')return;if(Number.isFinite(Number(values.fillOpacity)))shapeStyleDefaults.fillOpacity=Math.max(0,Math.min(1,Number(values.fillOpacity)));if(Number.isFinite(Number(values.borderOpacity)))shapeStyleDefaults.borderOpacity=Math.max(0,Math.min(1,Number(values.borderOpacity)));if(Number.isFinite(Number(values.borderWidth)))shapeStyleDefaults.borderWidth=Math.max(.05,Math.min(24,Number(values.borderWidth)));};
+  window.__rnSetBoardPenThickness=value=>{const v=Math.max(.05,Math.min(24,Number(value)||2.4));penThickness=v;localStorage.setItem('mrPlaybookPenThicknessV2',String(v));localStorage.setItem('rnPlaybookShapeBorderWidth',String(v));const input=$('boardPenThickness'),output=$('boardPenThicknessValue');if(input)input.value=String(v);if(output)output.textContent=v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'');window.__rnSetBoardShapeDefaults?.({borderWidth:v});return v;};
   function clampRenderedItem(item, el) {
     // Preserve the exact stored position on every map. No hidden safe-area or edge clamp is applied.
     if(!item||!el)return;
@@ -3636,10 +3636,10 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     </div>`);
     const thicknessControl=document.createElement('div');
     thicknessControl.className='board-pen-thickness';
-    thicknessControl.innerHTML=`<div class="board-pen-thickness-head"><label for="boardPenThickness">STROKE THICKNESS</label><output id="boardPenThicknessValue">${penThickness.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}</output></div><input id="boardPenThickness" type="range" min="0.05" max="12" step="0.05" value="${penThickness}" aria-label="Stroke thickness"><div class="board-pen-thickness-scale"><span>FINE</span><span>BOLD</span></div>`;
+    thicknessControl.innerHTML=`<div class="board-pen-thickness-head"><label for="boardPenThickness">STROKE THICKNESS</label><output id="boardPenThicknessValue">${penThickness.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}</output></div><input id="boardPenThickness" type="range" min="0.05" max="24" step="0.05" value="${penThickness}" aria-label="Stroke thickness"><div class="board-pen-thickness-scale"><span>FINE</span><span>BOLD</span></div>`;
     document.querySelector('.board-pen-tool-row')?.insertAdjacentElement('afterend',thicknessControl);
     $('boardPenThickness')?.addEventListener('input',e=>{
-      penThickness=Math.max(.05,Math.min(12,Number(e.target.value)||.05));
+      penThickness=Math.max(.05,Math.min(24,Number(e.target.value)||.05));
       localStorage.setItem('mrPlaybookPenThicknessV2',String(penThickness));
       $('boardPenThicknessValue').textContent=`${penThickness.toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}`;
       window.__rnSetBoardShapeDefaults?.({borderWidth:penThickness});localStorage.setItem('rnPlaybookShapeBorderWidth',String(penThickness));
@@ -3739,7 +3739,7 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
       if(item.type==='ability' && raw.abilityIconUrl && (/^https:\/\/www\.marvelrivals\.com\/pc\/gw\//.test(raw.abilityIconUrl) || /^https:\/\/cdn\.source\.gs\/marvel-rivals\/img\//.test(raw.abilityIconUrl))) item.abilityIconUrl=String(raw.abilityIconUrl);
       if(item.type==='pen'){
         item.penStyle=['solid','dashed','arrow','dashed-arrow'].includes(raw.penStyle)?raw.penStyle:'solid';
-        item.penWidth=Math.max(.05,Math.min(12,Number(raw.penWidth)||Number(item.penWidth)||.3));
+        item.penWidth=Math.max(.05,Math.min(24,Number(raw.penWidth)||Number(item.penWidth)||.3));
       }
       return item;
     }).filter(item=>item.type!=='image'||!!item.imageData);
@@ -3826,14 +3826,14 @@ body.playbook-mode .playboard-zoom-tip{font-size:8px;color:#758998;line-height:1
     const pixels=points.map(p=>({x:p.x/100*boardW,y:p.y/100*boardH}));
     let bounds=[...pixels];
     if(String(style).includes('arrow')){
-      const strokeWidth=boardW*(Math.max(.05,Math.min(12,Number(width)||.05))/100);
+      const strokeWidth=boardW*(Math.max(.05,Math.min(24,Number(width)||.05))/100);
       const totalLen=pixels.slice(1).reduce((sum,p,i)=>sum+Math.hypot(p.x-pixels[i].x,p.y-pixels[i].y),0);
-      const arrowSize=Math.min(totalLen*.35,strokeWidth*7);
+      const arrowSize=Math.min(totalLen*.9,strokeWidth*7,totalLen*.35+strokeWidth*1.2);
       const arrowHalfWidth=arrowSize*.30;
       const geometry=penArrowGeometry(pixels,arrowSize,arrowHalfWidth);
       if(geometry)bounds.push(geometry.baseLeft,geometry.baseRight);
     }
-    const strokePadding=Math.max(1,boardW*(Math.max(.05,Math.min(12,Number(width)||.05))/100)/2);
+    const strokePadding=Math.max(1,boardW*(Math.max(.05,Math.min(24,Number(width)||.05))/100)/2);
     let minPx=Math.min(...bounds.map(p=>p.x))-strokePadding,maxPx=Math.max(...bounds.map(p=>p.x))+strokePadding;
     let minPy=Math.min(...bounds.map(p=>p.y))-strokePadding,maxPy=Math.max(...bounds.map(p=>p.y))+strokePadding;
     const minX=minPx/boardW*100,maxX=maxPx/boardW*100,minY=minPy/boardH*100,maxY=maxPy/boardH*100;

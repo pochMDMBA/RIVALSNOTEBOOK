@@ -531,11 +531,7 @@
         teammateTitle.textContent = teammate;
         entryHeader.appendChild(teammateTitle);
 
-        const synergyIcon = document.createElement('span');
-        synergyIcon.className = 'rn-synergy-entry-icon';
-        synergyIcon.innerHTML = synergyEntryIconMarkup(card.dataset.rnSynergyIcon || 'sparkles');
-        synergyIcon.title = 'Synergy';
-        entryHeader.appendChild(synergyIcon);
+        // Group icons stay on the separate Group Synergy Rules screen, not individual Synergies rows.
 
         const originalActions = card.querySelector('.rn-post-actions');
         const categoryEdit = originalActions?.querySelector('.rn-post-category-edit');
