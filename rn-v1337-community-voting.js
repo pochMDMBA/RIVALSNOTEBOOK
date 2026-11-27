@@ -325,6 +325,8 @@
           if (description) description.after(attribution);
           else reason.appendChild(attribution);
         }
+        const bottomRow = reason?.querySelector('.reason-bottom-row');
+        if (bottomRow && attribution && !bottomRow.contains(attribution)) bottomRow.prepend(attribution);
         appendMatchupCommunityActions(reason, voteStack, threadKey, counterContributionPoints(item));
         if (actions && !actions.children.length) actions.remove();
         return template.innerHTML;

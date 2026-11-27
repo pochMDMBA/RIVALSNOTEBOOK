@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RIVALSNOTEBOOK · v13.44</title>
+<title>RIVALSNOTEBOOK · v13.45</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -577,7 +577,17 @@ function renderTeams(){
  $('enemyLineup').innerHTML=Array.from({length:6},(_,i)=>slotHtml(state.enemy[i],'enemy',i)).join('');$('allyLineup').innerHTML=state.ally.length?state.ally.map(allyChipHtml).join(''):'<div class="ally-empty">Optional · choose heroes from the Synergies roster</div>';
  $('enemyMeta').textContent=`${state.enemy.length} / 6`;$('enemyCount').textContent=`${state.enemy.length}/6`;$('allyCount').textContent=`${state.ally.length}/6`;
 }
-function reasonHtml(t){const target=t.generated?`VS ${escapeHtml(t.against.toUpperCase())} <span class="group-result-tag">GROUP RULE</span>`:`VS ${escapeHtml(t.against.toUpperCase())}`;const vote=t.generated?`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-groupcounter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="${t.myVote?'Remove your upvote':'Upvote this individual matchup'}">▲ ${t.votes}</button>`:`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-counter="${escapeHtml(t.id)}" title="${t.myVote?'Remove your upvote':'Upvote this reason'}">▲ ${t.votes}</button>`;const edit=t.generated?`<button class="edit-btn" data-edit-generated-counter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="Edit only this hero matchup, leaving the rest of the group rule unchanged">EDIT THIS MATCHUP</button>`:`<button class="edit-btn" data-edit-counter="${escapeHtml(t.id)}">EDIT</button>`;return `<div class="reason"><div class="reason-top"><span class="reason-target">${target}</span><div class="reason-actions"><span class="tier-badge ${TIER[t.tier].cls}">${TIER[t.tier].label} · ${TIER[t.tier].weight.toFixed(1)}x</span><span class="reason-points">${counterPoints(t)} pts</span>${vote}${edit}</div></div><div class="reason-text">${escapeHtml(t.reason)}</div>${t.source?`<div class="tip-foot">${t.sourceUrl?`<a href="${escapeHtml(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t.source)} ↗</a>`:escapeHtml(t.source)}</div>`:''}</div>`}
+function reasonHtml(t){
+ const targetName=String(t.against||'');
+ const targetHero=hero(targetName);
+ const targetInitials=targetName.split(/\s+/).map(w=>w[0]).slice(0,2).join('');
+ const targetImg=targetHero&&targetHero.img?"<img src='"+escapeHtml(targetHero.img)+"' alt='' loading='lazy' onerror=\"this.parentElement.classList.add('broken');this.remove()\">":"";
+ const target="<span class='reason-vs'>VS</span><span class='rn-counter-vs-avatar "+(targetImg?"":"broken")+"'>"+targetImg+"<span>"+escapeHtml(targetInitials)+"</span></span><span class='rn-counter-vs-name'>"+escapeHtml(targetName)+"</span>"+(t.generated?"<span class='group-result-tag'>GROUP RULE</span>":"");
+ const vote=t.generated?`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-groupcounter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="${t.myVote?'Remove your upvote':'Upvote this individual matchup'}">▲ ${t.votes}</button>`:`<button class="vote-btn ${t.myVote?'voted':''}" data-vote-counter="${escapeHtml(t.id)}" title="${t.myVote?'Remove your upvote':'Upvote this reason'}">▲ ${t.votes}</button>`;
+ const edit=t.generated?`<button class="edit-btn" data-edit-generated-counter="${escapeHtml(t.groupRuleId)}" data-pair-key="${escapeHtml(t.pairKey)}" title="Edit only this hero matchup, leaving the rest of the group rule unchanged">EDIT THIS MATCHUP</button>`:`<button class="edit-btn" data-edit-counter="${escapeHtml(t.id)}">EDIT</button>`;
+ const source=t.source?`<div class="tip-foot">${t.sourceUrl?`<a href="${escapeHtml(t.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t.source)} ↗</a>`:escapeHtml(t.source)}</div>`:"";
+ return `<div class="reason"><div class="reason-top"><span class="reason-target reason-target-hero">${target}</span><div class="reason-actions"><span class="tier-badge ${TIER[t.tier].cls}">${TIER[t.tier].label} · ${TIER[t.tier].weight.toFixed(1)}x</span><span class="reason-points">${counterPoints(t)} pts</span>${vote}</div></div><div class="reason-text">${escapeHtml(t.reason)}</div><div class="reason-bottom-row">${source}<div class="reason-bottom-actions">${edit}</div></div></div>`;
+}
 function renderCounterResults(){
  const enemies=state.enemy;if(!enemies.length){$('counterResults').innerHTML='<div class="empty-state"><strong>Select enemy heroes to start.</strong><br>Counter suggestions will show individual matchups ranked by matchup strength and community upvotes.</div>';return}
  const tips=[...state.counterTips.filter(t=>enemies.includes(t.against)),...expandGroupRules(enemies)];

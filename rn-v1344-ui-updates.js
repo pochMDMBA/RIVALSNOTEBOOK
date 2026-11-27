@@ -1,11 +1,11 @@
-/* RIVALSNOTEBOOK v13.44 Counterpicker, Synergies and Playbook UI refinements. */
+/* RIVALSNOTEBOOK v13.45 Counterpicker and Synergies card layout. */
 (() => {
   'use strict';
-  if (window.__rnV1344UIUpdatesLoaded) return;
+  if (window.__rnV1345CardLayoutLoaded) return;
   window.__rnV1344UIUpdatesLoaded = true;
 
   const style = document.createElement('style');
-  style.id = 'rn-v1344-ui-updates-style';
+  style.id = 'rn-v1345-card-layout-style';
   style.textContent = `
     #counterPage .rn-counter-role-column .reason-top{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:6px!important;min-width:0!important}
     #counterPage .rn-counter-role-column .reason-actions{order:1!important;flex:0 1 auto!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:flex-start!important}
@@ -14,9 +14,28 @@
     #counterPage .reason-bottom-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;width:100%!important;margin-top:6px!important}
     #counterPage .rn-counter-collapse-control,#synergiesPage .rn-synergy-collapse-control{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;min-height:22px!important;padding:3px 8px!important;margin:0!important;border:1px solid #526271!important;border-radius:999px!important;background:linear-gradient(145deg,#2a3944,#1d2b35)!important;color:#d7e1e8!important;font:850 7px/1.1 Inter,ui-sans-serif,system-ui,sans-serif!important;letter-spacing:.06em!important;white-space:nowrap!important;cursor:pointer!important}
     #counterPage .rn-counter-collapse-control:hover,#synergiesPage .rn-synergy-collapse-control:hover{border-color:#91b1c4!important;background:#344956!important;color:#fff!important}
+    #counterPage .rn-counter-title-row{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:7px!important;width:100%!important;min-width:0!important}
+    #counterPage .rn-counter-title-row .rn-post-title{flex:0 1 auto!important;min-width:0!important}
+    #counterPage .rn-counter-header-meta{display:inline-flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:wrap!important;gap:6px!important;margin:0 0 0 auto!important;min-width:0!important}
+    #counterPage .reason-top{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:wrap!important;width:100%!important;min-width:0!important;margin-bottom:8px!important}
+    #counterPage .reason-target-hero{display:inline-flex!important;align-items:center!important;justify-content:flex-end!important;gap:7px!important;width:100%!important;min-width:0!important;margin-left:auto!important;text-align:right!important;white-space:nowrap!important}
+    #counterPage .reason-target-hero .reason-vs{font-size:9px!important;font-weight:950!important;letter-spacing:.08em!important;color:#93aabb!important}
+    #counterPage .rn-counter-vs-avatar{position:relative!important;display:inline-grid!important;place-items:center!important;width:32px!important;height:32px!important;flex:0 0 32px!important;overflow:hidden!important;border:1px solid #526271!important;border-radius:7px!important;background:#2b3944!important;color:#e4edf4!important;font-size:8px!important;font-weight:900!important}
+    #counterPage .rn-counter-vs-avatar img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important}
+    #counterPage .rn-counter-vs-avatar.broken img{display:none!important}
+    #counterPage .rn-counter-vs-avatar.broken>span{display:block!important}
+    #counterPage .rn-counter-vs-avatar:not(.broken)>span{display:none!important}
+    #counterPage .rn-counter-vs-name{font-size:10px!important;font-weight:900!important;color:#e7d98d!important}
+    #counterPage .reason{margin:0 0 8px!important;padding:12px 14px!important;border:1px solid #394956!important;border-left:1px solid #394956!important;border-radius:10px!important;background:#22313b!important}
+    #counterPage .reason-text{margin-top:6px!important;line-height:1.48!important}
+    #counterPage .reason-bottom-row{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%!important;margin-top:10px!important}
+    #counterPage .reason-bottom-row>.tip-foot{flex:1 1 auto!important;min-width:0!important;margin:0!important}
+    #counterPage .reason-bottom-actions{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex:0 0 auto!important;margin:0 0 0 auto!important}
+    #counterPage .reason-bottom-actions .edit-btn{min-height:26px!important;padding:4px 10px!important;font-size:9px!important}
+    #counterPage .rn-matchup-community-actions{margin-top:10px!important;padding-top:9px!important}
     #counterPage .rn-counter-header-meta{gap:5px!important}
-    #counterPage .rn-counter-header-meta .rn-post-points{order:1!important}
-    #counterPage .rn-counter-header-meta .rn-post-rating{order:2!important}
+    #counterPage .rn-counter-header-meta .rn-post-points{order:2!important}
+    #counterPage .rn-counter-header-meta .rn-post-rating{order:1!important}
     #counterPage .rn-counter-header-meta .rn-counter-collapse-control{order:3!important}
     #synergiesPage .rn-synergy-suggestion-header{display:flex!important;align-items:center!important;gap:8px!important;min-width:0!important}
     #synergiesPage .rn-synergy-header-meta{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex:0 0 auto!important;gap:6px!important;margin-left:auto!important}
@@ -28,7 +47,10 @@
     #synergiesPage .rn-synergy-entry-meta{display:inline-flex!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:wrap!important;gap:5px!important;min-width:0!important}
     #synergiesPage .rn-synergy-entry-category{display:inline-flex!important;align-items:center!important;min-height:20px!important;padding:3px 7px!important;border-radius:4px!important;font-size:7px!important;font-weight:900!important;letter-spacing:.045em!important;white-space:nowrap!important}
     #synergiesPage .rn-synergy-contribution-points{margin:0!important;color:#f0d98a!important;font-size:8px!important;font-weight:950!important;white-space:nowrap!important}
-    #synergiesPage .rn-synergy-entry-edit-row{display:flex!important;align-items:center!important;justify-content:flex-end!important;width:100%!important;margin:6px 0 0!important}
+    #synergiesPage .rn-synergy-entry-edit-row{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%!important;margin:8px 0 0!important}
+    #synergiesPage .rn-synergy-entry-edit-row .rn-post-community-attribution{display:block!important;flex:1 1 auto!important;min-width:0!important;margin:0!important}
+    #synergiesPage .rn-synergy-entry-edit-row .edit-btn{margin-left:auto!important}
+    #synergiesPage .rn-synergy-contribution-points{margin:0 0 0 auto!important}
     #synergiesPage .rn-synergy-entry-edit-row .edit-btn{min-height:22px!important;padding:3px 7px!important;font-size:7px!important}
     #synergiesPage .rn-synergy-entry-description{margin:5px 0 0!important;padding:0!important}
     #synergiesPage .rn-synergy-entry-description .combo-reason{font-size:9px!important;line-height:1.4!important;color:#d6e0e8!important}
@@ -70,8 +92,6 @@
         right.className = 'rn-synergy-entry-right';
         const meta = document.createElement('div');
         meta.className = 'rn-synergy-entry-meta';
-        const points = entry.querySelector(':scope > .rn-synergy-community-actions .rn-synergy-contribution-points');
-        if (points) meta.appendChild(points);
         const categoryEdit = header.querySelector('.rn-post-category-edit');
         if (categoryEdit) {
           [...categoryEdit.querySelectorAll('.rn-post-rating,.combo-official,.tiny-tag')].forEach(node => {
@@ -112,6 +132,8 @@
         editRow.className = 'rn-synergy-entry-edit-row';
         description.insertAdjacentElement('afterend', editRow);
       }
+      const attribution = description.querySelector('.rn-post-community-attribution');
+      if (attribution && !editRow.contains(attribution)) editRow.prepend(attribution);
       entry.querySelectorAll(':scope > .rn-synergy-team-entry-header .rn-post-category-edit .edit-btn,:scope > .rn-synergy-entry-footer .edit-btn,:scope > .rn-synergy-team-entry-header > .edit-btn').forEach(button => editRow.appendChild(button));
       const categoryEdit = header.querySelector('.rn-post-category-edit');
       if (categoryEdit && !categoryEdit.querySelector('.edit-btn') && !categoryEdit.children.length) categoryEdit.remove();
