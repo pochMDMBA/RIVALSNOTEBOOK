@@ -29,6 +29,8 @@
   let previousSessionUserId = null;
   let pendingLocalImport = null;
   let supabaseSdkLoadPromise = null;
+  let lastVisibleRefreshAt = 0;
+  let visibleRefreshBusy = false;
 
   // Cloud features are optional at startup. Load the Supabase UMD SDK asynchronously so a
   // slow or blocked CDN never prevents the local Counterpicker / Synergies / Playbook UI from rendering.
@@ -468,9 +470,9 @@
   }
 
   async function refreshCommunityVotes(shouldRender = true) {
-    if (!sb) return;
+    if (!sb) return false;
     const totals = await sb.from('community_vote_totals').select('content_type,content_id,vote_count');
-    if (totals.error) { console.warn('Community vote totals:', totals.error); return; }
+    if (totals.error) { console.warn('Community vote totals:', totals.error); return false; }
     knownVotes = new Map((totals.data || []).map(row => [
       voteKey(row.content_type, row.content_id),
       Number(row.vote_count) || 0
@@ -505,6 +507,7 @@
     }
     applyVoteTotals();
     if (shouldRender) render();
+    return true;
   }
 
   async function toggleCommunityVote(type, id, requestedDirection = 1) {
@@ -810,18 +813,8 @@
   }
 
   function installCommunityRibbons() {
-    const counter = $('counterResults');
-    if (counter && !$('rnCounterRibbon')) {
-      const ribbon = document.createElement('div'); ribbon.id='rnCounterRibbon'; ribbon.className='rn-community-ribbon';
-      ribbon.innerHTML='<i class="rn-dot"></i><strong>COMMUNITY UPVOTES</strong><span>Ranked with votes from every signed-in RivalsNotebook account</span>';
-      counter.insertAdjacentElement('beforebegin', ribbon);
-    }
-    const synergyToolbar = document.querySelector('#synergiesPage .rn-synergy-content-toolbar');
-    if (synergyToolbar && !$('rnSynergyRibbon')) {
-      const ribbon = document.createElement('div'); ribbon.id='rnSynergyRibbon'; ribbon.className='rn-community-ribbon';
-      ribbon.innerHTML='<i class="rn-dot"></i><strong>GLOBAL COMMUNITY RANKING</strong><span>Shared upvotes update for everyone</span>';
-      synergyToolbar.insertAdjacentElement('afterend', ribbon);
-    }
+    $('rnCounterRibbon')?.remove();
+    $('rnSynergyRibbon')?.remove();
   }
 
   function installPlaybookAccountControls() {
@@ -898,6 +891,31 @@
       .on('postgres_changes',{event:'*',schema:'public',table:'community_groups'},()=>{ if (groupView==='community') loadCommunityGroups(); })
       .subscribe();
   }
+
+  function installVisibleAppRefresh() {
+    if (window.__rnVisibleAppRefreshInstalled) return;
+    window.__rnVisibleAppRefreshInstalled = true;
+    const refreshOnResume = async () => {
+      if (document.visibilityState === 'hidden' || visibleRefreshBusy) return;
+      const now = Date.now();
+      if (now - lastVisibleRefreshAt < 10000) return;
+      lastVisibleRefreshAt = now;
+      visibleRefreshBusy = true;
+      try {
+        if (sb) await refreshCommunityVotes(false);
+        if (typeof window.render === 'function') window.render();
+      } catch (error) {
+        console.warn('RIVALSNOTEBOOK resume refresh:', error);
+      } finally {
+        visibleRefreshBusy = false;
+      }
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') refreshOnResume();
+    });
+    window.addEventListener('focus', refreshOnResume);
+  }
+  installVisibleAppRefresh();
   startup().catch(err => { console.error('RIVALSNOTEBOOK startup:',err); setLiveStatus('CLOUD SYNC ERROR',''); });
 })();
 
@@ -907,29 +925,29 @@
   if (window.__rnV1334PatchLoader) return;
   window.__rnV1334PatchLoader = true;
   const v1334 = document.createElement('script');
-  v1334.src = './rn-v1334-playbook-upgrades.js?v=1351';
+  v1334.src = './rn-v1334-playbook-upgrades.js?v=1352';
   v1334.async = false;
   v1334.onerror = () => console.error('RIVALSNOTEBOOK v13.34 Playbook upgrades could not be loaded.');
   v1334.onload = () => {
     const v1335 = document.createElement('script');
-    v1335.src = './rn-v1335-regression-fixes.js?v=1351';
+    v1335.src = './rn-v1335-regression-fixes.js?v=1352';
     v1335.async = false;
     v1335.onerror = () => console.error('RIVALSNOTEBOOK v13.35 regression fixes could not be loaded.');
     v1335.onload = () => {
       const v1337 = document.createElement('script');
-      v1337.src = './rn-v1337-community-voting.js?v=1351';
+      v1337.src = './rn-v1337-community-voting.js?v=1352';
       v1337.async = false;
       v1337.onerror = () => console.error('RIVALSNOTEBOOK v13.37 community voting UI could not be loaded.');
       v1337.onload = () => {
         const v1338 = document.createElement('script');
-        v1338.src = './rn-v1338-pairing-attribution.js?v=1351';
+        v1338.src = './rn-v1338-pairing-attribution.js?v=1352';
         v1338.async = false;
         v1338.onerror = () => console.error('RIVALSNOTEBOOK v13.38 pairing and attribution updates could not be loaded.');
         v1338.onload = () => {
           const v1344 = document.createElement('script');
-          v1344.src = './rn-v1344-ui-updates.js?v=1351';
+          v1344.src = './rn-v1344-ui-updates.js?v=1352';
           v1344.async = false;
-          v1344.onerror = () => console.error('RIVALSNOTEBOOK v13.51 UI updates could not be loaded.');
+          v1344.onerror = () => console.error('RIVALSNOTEBOOK v13.52 UI updates could not be loaded.');
           document.head.appendChild(v1344);
         };
         document.head.appendChild(v1338);
