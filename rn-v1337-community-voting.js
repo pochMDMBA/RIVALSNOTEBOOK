@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.37 community voting and Group Synergy Rules UI. */
+/* RIVALSNOTEBOOK v13.51 community voting and Group Synergy Rules UI. */
 (() => {
   'use strict';
   if (window.__rnV1337CommunityUiLoaded) return;
@@ -180,8 +180,9 @@
       [...card.children].filter(child => child.classList?.contains('rn-community-comment-panel')).forEach(panel => panel.remove());
       const details = card.querySelector('.rn-counter-more-matchups');
       if (details) {
-        details.open = true;
-        details.querySelector('summary')?.remove();
+        const reasonList = details.querySelector(':scope > .reason-list');
+        if (reasonList) details.replaceWith(reasonList);
+        else details.remove();
       }
       const actions = card.querySelector(':scope > .rn-post-actions');
       if (actions) {
@@ -509,12 +510,13 @@
 
       const list = document.createElement('div');
       list.className = 'rn-synergy-team-list';
-      let totalPoints = 0;
+      const pointsByTeammate = new Map();
 
       entries.forEach(card => {
         const teammate = String(card.dataset.rnSynergyTeamMember || '').trim();
         const points = Math.round(Number(card.dataset.rnSynergyContributionPoints) || 0);
-        totalPoints += points;
+        const matchupKey = teammate.toLocaleLowerCase();
+        pointsByTeammate.set(matchupKey, Math.max(pointsByTeammate.has(matchupKey) ? pointsByTeammate.get(matchupKey) : -Infinity, points));
 
         const avatars = [...card.querySelectorAll('.rn-post-avatar-pair .rn-post-pair-avatar')];
         const teammateAvatar = avatars[0]?.cloneNode(true);
@@ -574,11 +576,26 @@
         list.appendChild(entry);
       });
 
+      const totalPoints = [...pointsByTeammate.values()].reduce((sum, value) => sum + value, 0);
       totalValue.textContent = String(totalPoints);
       parent.appendChild(list);
       host.insertBefore(parent, firstCard);
       entries.forEach(card => card.remove());
     }
+
+    target.querySelectorAll('.rn-role-card-stack').forEach(stack => {
+      const cardsInStack = [...stack.children].filter(card => card.classList?.contains('rn-synergy-suggestion-post'));
+      const sorted = [...cardsInStack].sort((a, b) => {
+        const aPoints = Number(a.querySelector('.rn-synergy-total-points strong')?.textContent) || 0;
+        const bPoints = Number(b.querySelector('.rn-synergy-total-points strong')?.textContent) || 0;
+        return bPoints - aPoints;
+      });
+      if (sorted.some((card, index) => card !== cardsInStack[index])) sorted.forEach(card => stack.appendChild(card));
+    });
+
+    const help = target.querySelector(':scope > .small-help');
+    const helpText = 'Each role column is sorted from highest to lowest points. For each suggested hero, only the highest score per teammate pairing counts; scores from different teammates are added together. Strength: Strong 100 · Moderate 70 · Situational 40; Official Team-Ups +25; upvotes +5.';
+    if (help && help.textContent !== helpText) help.textContent = helpText;
   }
 
   function installMatchupCommentToggleEvents() {
