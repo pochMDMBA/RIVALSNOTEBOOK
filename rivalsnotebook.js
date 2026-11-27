@@ -96,6 +96,11 @@
           <div class="rn-modal-head"><h2 id="rnAuthTitle">YOUR RIVALSNOTEBOOK ACCOUNT</h2><button class="rn-modal-close" type="button" data-rn-close="rnAuthModal" aria-label="Close">×</button></div>
           <p class="rn-modal-copy">Sign in to sync your private workspace, vote in the community, publish hero groups, and collaborate on shared tactical notebooks.</p>
           <div class="rn-field"><label for="rnEmail">EMAIL</label><input id="rnEmail" type="email" autocomplete="email" placeholder="you@example.com"></div>
+          <div class="rn-field rn-signup-display-name-row" id="rnSignUpDisplayNameRow"><label for="rnSignUpDisplayName">DISPLAY NAME</label><input id="rnSignUpDisplayName" type="text" maxlength="48" autocomplete="nickname" placeholder="How your submissions should be credited"></div>
+          <div class="rn-profile-display-name-row hidden" id="rnProfileDisplayNameRow">
+            <div class="rn-field"><label for="rnProfileDisplayName">DISPLAY NAME</label><input id="rnProfileDisplayName" type="text" maxlength="48" autocomplete="nickname" placeholder="Choose a display name"></div>
+            <button class="btn primary" type="button" id="rnSaveDisplayNameBtn">SAVE NAME</button>
+          </div>
           <div class="rn-field"><label for="rnPassword">PASSWORD</label><input id="rnPassword" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div>
           <div class="rn-modal-actions"><button class="btn primary" type="button" id="rnSignInBtn">SIGN IN</button><button class="btn" type="button" id="rnSignUpBtn">CREATE ACCOUNT</button></div>
           <div class="rn-modal-actions"><button class="btn danger hidden" type="button" id="rnSignOutBtn">SIGN OUT</button><button class="btn hidden" type="button" id="rnImportLocalBtn">IMPORT THIS DEVICE'S LOCAL DATA</button></div>
@@ -134,6 +139,7 @@
     });
     $('rnSignInBtn')?.addEventListener('click', signIn);
     $('rnSignUpBtn')?.addEventListener('click', signUp);
+    $('rnSaveDisplayNameBtn')?.addEventListener('click', saveDisplayName);
     $('rnSignOutBtn')?.addEventListener('click', signOut);
     $('rnImportLocalBtn')?.addEventListener('click', importLocalWorkspace);
     $('rnSaveConfigBtn')?.addEventListener('click', saveConfigFromModal);
@@ -151,9 +157,12 @@
     $('rnImportLocalBtn')?.classList.toggle('hidden', !currentUser || !pendingLocalImport);
     $('rnSignInBtn')?.classList.toggle('hidden', !!currentUser);
     $('rnSignUpBtn')?.classList.toggle('hidden', !!currentUser);
+    $('rnSignUpDisplayNameRow')?.classList.toggle('hidden', !!currentUser);
+    $('rnProfileDisplayNameRow')?.classList.toggle('hidden', !currentUser);
     $('rnEmail')?.toggleAttribute('disabled', !!currentUser);
     $('rnPassword')?.toggleAttribute('disabled', !!currentUser);
     if ($('rnEmail') && currentUser) $('rnEmail').value = currentUser.email || '';
+    if ($('rnProfileDisplayName') && currentUser) $('rnProfileDisplayName').value = String(currentUser.user_metadata?.display_name || '');
     const details = $('rnConfigDetails');
     if (details) details.open = !hasConfig();
     if (!hasConfig()) message('Supabase is not connected yet. Add your project URL and publishable/anon key below.');
@@ -202,6 +211,15 @@
     }
   }
 
+  function accountDisplayLabel(user = currentUser, limit = 15) {
+    const metadata = user?.user_metadata || {};
+    const email = String(user?.email || '').trim();
+    const candidate = metadata.display_name || metadata.username || metadata.user_name
+      || metadata.preferred_username || metadata.full_name || metadata.name
+      || email.split('@')[0] || 'ACCOUNT';
+    return String(candidate).trim().slice(0,limit).toUpperCase() || 'ACCOUNT';
+  }
+
   function syncPlaybookAccountControls() {
     const status = $('rnPlaybookLiveStatus');
     if (status) {
@@ -211,7 +229,7 @@
       status.classList.toggle('collab', !!activeNotebook);
     }
     const auth = $('rnPlaybookAuthBtn');
-    if (auth) auth.textContent = currentUser ? String(currentUser.email || 'ACCOUNT').split('@')[0].slice(0, 12).toUpperCase() : 'SIGN IN';
+    if (auth) auth.textContent = currentUser ? accountDisplayLabel(currentUser,12) : 'SIGN IN';
   }
   function setLiveStatus(label, mode = '') {
     const el = $('rnLiveStatus');
@@ -220,7 +238,7 @@
   }
   function updateAccountButton() {
     const button = $('rnAuthBtn');
-    if (button) button.textContent = currentUser ? (String(currentUser.email || 'ACCOUNT').split('@')[0].slice(0, 15).toUpperCase()) : 'SIGN IN';
+    if (button) button.textContent = currentUser ? accountDisplayLabel(currentUser,15) : 'SIGN IN';
     if (!currentUser) setLiveStatus(hasConfig() ? 'PRIVATE WORKSPACE' : 'LOCAL WORKSPACE');
     else setLiveStatus('ACCOUNT SYNC ON', 'connected');
     syncPlaybookAccountControls();
@@ -397,13 +415,43 @@
     if (!sb) { message('Connect Supabase first using the project settings below.'); $('rnConfigDetails').open = true; return; }
     const email = String($('rnEmail')?.value || '').trim();
     const password = String($('rnPassword')?.value || '');
+    const displayName = String($('rnSignUpDisplayName')?.value || '').trim().slice(0,48);
     if (!email || password.length < 8) { message('Enter a valid email and a password with at least 8 characters.'); return; }
+    if (!displayName) { message('Choose a display name for your account.'); $('rnSignUpDisplayName')?.focus(); return; }
     const button = $('rnSignUpBtn'); if (button) button.disabled = true;
-    const { data, error } = await sb.auth.signUp({email, password});
-    if (button) button.disabled = false;
-    if (error) { message(error.message); return; }
-    if (data.session) message('Account created. Your workspace is being initialized.', true);
-    else message('Account created. Check your email for the confirmation link, then sign in.', true);
+    try {
+      const { data, error } = await sb.auth.signUp({email, password, options:{data:{display_name:displayName}}});
+      if (error) { message(error.message); return; }
+      if (data.session) message('Account created. Your workspace is being initialized.', true);
+      else message('Account created. Check your email for the confirmation link, then sign in.', true);
+    } catch (error) {
+      message(error?.message || 'Could not create the account. Please try again.');
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
+  async function saveDisplayName() {
+    if (!sb || !currentUser) { message('Sign in first to change your display name.'); return; }
+    const displayName = String($('rnProfileDisplayName')?.value || '').trim().slice(0,48);
+    if (!displayName) { message('Enter a display name before saving.'); $('rnProfileDisplayName')?.focus(); return; }
+    const button = $('rnSaveDisplayNameBtn');
+    if (button) button.disabled = true;
+    try {
+      const metadata = {...(currentUser.user_metadata || {}), display_name:displayName};
+      const {data,error} = await sb.auth.updateUser({data:metadata});
+      if (error) { message(error.message); return; }
+      currentUser = data?.user || {...currentUser,user_metadata:metadata};
+      window.__rnCurrentUser = currentUser;
+      updateAccountButton();
+      refreshAuthModal();
+      window.dispatchEvent(new CustomEvent('rn-account-state-changed',{detail:{signedIn:true,profileUpdated:true}}));
+      message('Display name saved. New submissions will use this name.',true);
+    } catch (error) {
+      message(error?.message || 'Could not save the display name. Please try again.');
+    } finally {
+      if (button) button.disabled = false;
+    }
   }
   async function signOut() {
     if (!sb) return;
@@ -927,29 +975,29 @@
   if (window.__rnV1334PatchLoader) return;
   window.__rnV1334PatchLoader = true;
   const v1334 = document.createElement('script');
-  v1334.src = './rn-v1334-playbook-upgrades.js?v=1359';
+  v1334.src = './rn-v1334-playbook-upgrades.js?v=1360';
   v1334.async = false;
   v1334.onerror = () => console.error('RIVALSNOTEBOOK v13.34 Playbook upgrades could not be loaded.');
   v1334.onload = () => {
     const v1335 = document.createElement('script');
-    v1335.src = './rn-v1335-regression-fixes.js?v=1359';
+    v1335.src = './rn-v1335-regression-fixes.js?v=1360';
     v1335.async = false;
     v1335.onerror = () => console.error('RIVALSNOTEBOOK v13.35 regression fixes could not be loaded.');
     v1335.onload = () => {
       const v1337 = document.createElement('script');
-      v1337.src = './rn-v1337-community-voting.js?v=1359';
+      v1337.src = './rn-v1337-community-voting.js?v=1360';
       v1337.async = false;
       v1337.onerror = () => console.error('RIVALSNOTEBOOK v13.37 community voting UI could not be loaded.');
       v1337.onload = () => {
         const v1338 = document.createElement('script');
-        v1338.src = './rn-v1338-pairing-attribution.js?v=1359';
+        v1338.src = './rn-v1338-pairing-attribution.js?v=1360';
         v1338.async = false;
         v1338.onerror = () => console.error('RIVALSNOTEBOOK v13.38 pairing and attribution updates could not be loaded.');
         v1338.onload = () => {
           const v1344 = document.createElement('script');
-          v1344.src = './rn-v1344-ui-updates.js?v=1359';
+          v1344.src = './rn-v1344-ui-updates.js?v=1360';
           v1344.async = false;
-          v1344.onerror = () => console.error('RIVALSNOTEBOOK v13.59 UI updates could not be loaded.');
+          v1344.onerror = () => console.error('RIVALSNOTEBOOK v13.60 UI updates could not be loaded.');
           document.head.appendChild(v1344);
         };
         document.head.appendChild(v1338);

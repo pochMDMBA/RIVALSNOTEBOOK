@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.57 pairing validation and account-aware submission attribution. */
+/* RIVALSNOTEBOOK v13.60 display-name submission attribution. */
 (() => {
   'use strict';
   if (window.__rnV1338RulesLoaded) return;
@@ -156,8 +156,9 @@
     const user=window.__rnCurrentUser||null;
     const metadata=user?.user_metadata||{};
     const email=String(user?.email||'').trim();
-    const candidate=metadata.username||metadata.user_name||metadata.preferred_username
-      ||metadata.full_name||metadata.name||email.split('@')[0]||DEV_NAME;
+    const candidate=metadata.display_name||metadata.displayName||metadata.username
+      ||metadata.user_name||metadata.preferred_username||metadata.full_name
+      ||metadata.name||email.split('@')[0]||DEV_NAME;
     return {name:String(candidate).trim().slice(0,48)||DEV_NAME,email};
   }
 

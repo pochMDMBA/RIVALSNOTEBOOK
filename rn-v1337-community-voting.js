@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.59 role-column Synergy ranking and submitter attribution. */
+/* RIVALSNOTEBOOK v13.60 role-column Synergy ranking and submitter attribution. */
 (() => {
   'use strict';
   if (window.__rnV1337CommunityUiLoaded) return;

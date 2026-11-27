@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current deployment package: v13.59.** Recommended Synergies now use full-width Vanguard, Duelist and Strategist columns, with descending point ranking confined to each role.
+**Current deployment package: v13.60.** Counterpicker now mirrors the Synergies roster separators, account profiles support a saved Display Name for submission credit, and Group Rule cards show numeric point values.
 
 **v13.30 baseline:** Replaced the six Competitive Domination cover thumbnails with clean crops from the latest unannotated `marvelrivals.gg/maps/` screenshot. All 18 Domination 2D layout URLs and the separate cover/tactical map asset registries are retained. Saved Plays are restricted to one map and its complete Point/Submap plus 2D view set; changing maps from an active saved play prompts to start a new play.
 

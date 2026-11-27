@@ -102,3 +102,39 @@ body.playbook-mode .board-pen-tool-row{display:grid!important;grid-template-colu
 .board-pen-thickness-head output{font-size:9px;font-weight:900;color:#ffe59a}
 #boardPenThickness{width:100%;height:16px;margin:1px 0;accent-color:#e6ca72;cursor:pointer}
 .board-pen-thickness-scale{display:flex;justify-content:space-between;color:#7f98a8;font-size:7px;font-weight:850;letter-spacing:.08em}
+
+
+/* Counterpicker roster role separators and account display-name controls. */
+#counterPage #rosterGrid>.role-group{margin-bottom:0!important}
+#counterPage #rosterGrid>.role-group+.role-group{
+  margin-top:10px!important;padding-top:10px!important;
+  border-top:1px solid #50616f!important;
+}
+.rn-profile-display-name-row{
+  display:flex;align-items:flex-end;gap:8px;width:100%;margin:2px 0 10px;
+}
+.rn-profile-display-name-row .rn-field{flex:1 1 auto;min-width:0;margin:0!important}
+.rn-profile-display-name-row .btn{flex:0 0 auto;min-height:35px;white-space:nowrap}
+.rn-signup-display-name-row{margin-bottom:9px}
+.rn-group-synergy-title{
+  position:relative!important;display:flex!important;align-items:center!important;
+  justify-content:center!important;width:100%!important;min-width:0!important;
+  min-height:32px!important;padding:3px 112px!important;box-sizing:border-box!important;
+}
+.rn-group-synergy-combination{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  gap:8px!important;min-width:0!important;width:100%!important;text-align:center!important;
+  overflow-wrap:anywhere!important;
+}
+.rn-group-synergy-meta{
+  position:absolute!important;right:0!important;top:50%!important;
+  transform:translateY(-50%)!important;display:inline-flex!important;
+  align-items:center!important;justify-content:flex-end!important;gap:5px!important;
+  white-space:nowrap!important;
+}
+.rn-group-synergy-meta .rn-synergy-strength-chip{margin:0!important}
+@media(max-width:520px){
+  .rn-profile-display-name-row{align-items:stretch;flex-direction:column}
+  .rn-group-synergy-title{padding:5px 0 34px!important}
+  .rn-group-synergy-meta{top:auto!important;bottom:0!important;right:50%!important;transform:translateX(50%)!important}
+}
