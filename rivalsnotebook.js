@@ -927,29 +927,29 @@
   if (window.__rnV1334PatchLoader) return;
   window.__rnV1334PatchLoader = true;
   const v1334 = document.createElement('script');
-  v1334.src = './rn-v1334-playbook-upgrades.js?v=1357';
+  v1334.src = './rn-v1334-playbook-upgrades.js?v=1358';
   v1334.async = false;
   v1334.onerror = () => console.error('RIVALSNOTEBOOK v13.34 Playbook upgrades could not be loaded.');
   v1334.onload = () => {
     const v1335 = document.createElement('script');
-    v1335.src = './rn-v1335-regression-fixes.js?v=1357';
+    v1335.src = './rn-v1335-regression-fixes.js?v=1358';
     v1335.async = false;
     v1335.onerror = () => console.error('RIVALSNOTEBOOK v13.35 regression fixes could not be loaded.');
     v1335.onload = () => {
       const v1337 = document.createElement('script');
-      v1337.src = './rn-v1337-community-voting.js?v=1357';
+      v1337.src = './rn-v1337-community-voting.js?v=1358';
       v1337.async = false;
       v1337.onerror = () => console.error('RIVALSNOTEBOOK v13.37 community voting UI could not be loaded.');
       v1337.onload = () => {
         const v1338 = document.createElement('script');
-        v1338.src = './rn-v1338-pairing-attribution.js?v=1357';
+        v1338.src = './rn-v1338-pairing-attribution.js?v=1358';
         v1338.async = false;
         v1338.onerror = () => console.error('RIVALSNOTEBOOK v13.38 pairing and attribution updates could not be loaded.');
         v1338.onload = () => {
           const v1344 = document.createElement('script');
-          v1344.src = './rn-v1344-ui-updates.js?v=1357';
+          v1344.src = './rn-v1344-ui-updates.js?v=1358';
           v1344.async = false;
-          v1344.onerror = () => console.error('RIVALSNOTEBOOK v13.57 UI updates could not be loaded.');
+          v1344.onerror = () => console.error('RIVALSNOTEBOOK v13.58 UI updates could not be loaded.');
           document.head.appendChild(v1344);
         };
         document.head.appendChild(v1338);

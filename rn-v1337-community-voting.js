@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.57 global Synergy ranking and submitter attribution. */
+/* RIVALSNOTEBOOK v13.58 role-column Synergy ranking and submitter attribution. */
 (() => {
   'use strict';
   if (window.__rnV1337CommunityUiLoaded) return;
@@ -491,14 +491,78 @@
         (Number(b.dataset.rnSynergyContributionPoints)||0) - (Number(a.dataset.rnSynergyContributionPoints)||0) ||
         String(a.dataset.rnSynergyTeamMember||'').localeCompare(String(b.dataset.rnSynergyTeamMember||''))),
       totalPoints: entries.reduce((sum,card)=>sum+(Number(card.dataset.rnSynergyContributionPoints)||0),0)
-    })).sort((a,b)=>b.totalPoints-a.totalPoints||a.suggestion.localeCompare(b.suggestion));
+    }));
 
-    for (const {suggestion, entries, totalPoints} of rankedGroups) {
+    const roleOrder = [
+      {name:'Vanguard',className:'vanguard'},
+      {name:'Duelist',className:'duelist'},
+      {name:'Strategist',className:'strategist'}
+    ];
+    const byRole = new Map(roleOrder.map(role=>[role.name,[]]));
+    rankedGroups.forEach(group=>{
+      let role = 'Duelist';
+      try {
+        if (typeof roleColumnForHero === 'function') {
+          role = roleColumnForHero(group.suggestion);
+        } else if (typeof hero === 'function') {
+          const rawRole = String(hero(group.suggestion)?.role||'').trim().toLowerCase();
+          role = rawRole === 'vanguard' ? 'Vanguard'
+            : (rawRole === 'strategist' || rawRole === 'support') ? 'Strategist'
+            : 'Duelist';
+        }
+      } catch (_) {}
+      if (!byRole.has(role)) role = 'Duelist';
+      byRole.get(role).push(group);
+    });
+
+    const compareWithinRole = (a,b) =>
+      b.totalPoints-a.totalPoints || a.suggestion.localeCompare(b.suggestion);
+    roleOrder.forEach(role=>byRole.get(role.name).sort(compareWithinRole));
+
+    const firstHost = cards[0]?.parentNode;
+    if (!firstHost) return;
+    const columns = document.createElement('div');
+    columns.className = 'rn-role-columns rn-synergy-role-columns';
+    const columnStacks = new Map();
+
+    roleOrder.forEach(role=>{
+      const suggestions = byRole.get(role.name);
+      const column = document.createElement('section');
+      column.className = 'rn-role-column rn-synergy-role-column';
+      column.dataset.role = role.name.toLowerCase();
+
+      const heading = document.createElement('div');
+      heading.className = 'rn-role-column-head';
+      const label = document.createElement('span');
+      label.className = 'role-pill ' + role.className;
+      label.textContent = role.name;
+      const count = document.createElement('span');
+      count.className = 'rn-role-column-count';
+      count.textContent = suggestions.length + (suggestions.length===1 ? ' PICK' : ' PICKS');
+      heading.append(label,count);
+
+      const stack = document.createElement('div');
+      stack.className = 'rn-role-card-stack';
+      if (!suggestions.length) {
+        const empty = document.createElement('div');
+        empty.className = 'rn-role-empty';
+        empty.textContent = 'No suggestions';
+        stack.appendChild(empty);
+      }
+      column.append(heading,stack);
+      columns.appendChild(column);
+      columnStacks.set(role.name,stack);
+    });
+
+    firstHost.appendChild(columns);
+
+    for (const role of roleOrder) {
+      for (const {suggestion, entries, totalPoints} of byRole.get(role.name)) {
       const firstCard = entries[0];
       const firstAvatars = [...firstCard.querySelectorAll('.rn-post-avatar-pair .rn-post-pair-avatar')];
       const suggestionAvatar = firstAvatars[1]?.cloneNode(true) || firstAvatars[0]?.cloneNode(true);
-      const host = firstCard.parentNode;
-      if (!host) continue;
+      const roleStack = columnStacks.get(role.name);
+      if (!roleStack) continue;
 
       const parent = document.createElement('article');
       parent.className = 'combo-card synergy-match-card rn-reddit-post rn-synergy-suggestion-post';
@@ -593,12 +657,11 @@
 
       totalValue.textContent = String(totalPoints);
       parent.appendChild(list);
-      // Every suggestion now shares one global list. Appending in rankedGroups order
-      // avoids inheriting the original per-pair order from the first matching card.
-      host.appendChild(parent);
+      // Suggestions are ranked only against other heroes in the same role lane.
+      roleStack.appendChild(parent);
       entries.forEach(card => card.remove());
+      }
     }
-
   }
 
   function installMatchupCommentToggleEvents() {
