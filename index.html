@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>RIVALSNOTEBOOK · v13.61</title>
+<title>RIVALSNOTEBOOK · v13.62</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -4335,7 +4335,7 @@ body.playbook-mode .sidebar-play-panel .play-action-row .btn{flex:1!important;mi
 
 
 <script src="./config.js"></script>
-<script src="./rivalsnotebook.js?v=1361"></script>
+<script src="./rivalsnotebook.js?v=1362"></script>
 <style id="rn-final-polish">
   body.playbook-mode .playbook-mark{width:27px!important;height:27px!important;border:1px solid #c4a957!important;border-radius:6px!important;background:linear-gradient(145deg,#3e3927,#182c35)!important;color:#ffe79b!important;font-size:10px!important;box-shadow:0 2px 7px #0007!important}
   body.playbook-mode .board-pen-tool-row #penDashedArrowBtn{display:grid!important;place-items:center!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;height:32px!important;min-height:32px!important;padding:2px!important;overflow:hidden!important;border:1px solid #3f5a6c!important;border-radius:4px!important}
@@ -9040,4 +9040,82 @@ body.playbook-mode #playBoardStage>.board-item.board-number.rn-number-compact .r
 .rn-comment-form-foot .btn{min-height:25px!important;padding:4px 9px!important;font-size:8px!important}
 @media(max-width:600px){#counterPage .rn-reddit-post,#synergiesPage .rn-reddit-post{padding:7px!important}#counterPage .rn-post-actions,#synergiesPage .rn-post-actions{gap:4px!important}#counterPage .rn-post-rating,#synergiesPage .rn-post-rating{white-space:normal!important}}
 .rn-comment-storage-note{color:#718694!important;font-size:7px!important;line-height:1.35!important;margin-top:1px!important}
+</style>
+
+
+<style id="rn-v13-62-group-synergy-header-and-counter-role-size">
+/* Group Synergy headers: reserve only the actual badge width. The old 112px
+   side padding squeezed the title into a narrow strip and forced one-letter lines. */
+body.groups-mode .group-rule-expandable .group-rule-summary>.group-rule-title.rn-group-synergy-title{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;
+  justify-content:stretch!important;
+  gap:10px!important;
+  flex:1 1 0!important;
+  width:auto!important;
+  min-width:0!important;
+  padding:4px 0!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+}
+body.groups-mode .group-rule-expandable .rn-group-synergy-combination{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  width:100%!important;
+  min-width:0!important;
+  text-align:center!important;
+  white-space:normal!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+}
+body.groups-mode .group-rule-expandable .rn-group-synergy-combination>.rule-icon{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex:0 0 auto!important;
+}
+body.groups-mode .group-rule-expandable .rn-group-synergy-combination>span:last-child{
+  display:block!important;
+  flex:0 1 auto!important;
+  min-width:0!important;
+  width:auto!important;
+  text-align:center!important;
+  white-space:normal!important;
+  overflow-wrap:break-word!important;
+  word-break:normal!important;
+}
+body.groups-mode .group-rule-expandable .rn-group-synergy-meta{
+  position:static!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  transform:none!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  justify-self:end!important;
+  gap:5px!important;
+  min-width:max-content!important;
+  white-space:nowrap!important;
+}
+body.groups-mode .group-rule-expandable .rn-group-synergy-meta .rn-synergy-strength-chip{
+  margin:0!important;
+}
+
+/* Match the standard Synergies role descriptor size (9px) in Counterpicker cards. */
+#counterPage .rn-counter-role-column .pick-role{
+  font-size:9px!important;
+  line-height:1.25!important;
+}
+@media(max-width:600px){
+  body.groups-mode .group-rule-expandable .group-rule-summary>.group-rule-title.rn-group-synergy-title{
+    gap:6px!important;
+  }
+  body.groups-mode .group-rule-expandable .rn-group-synergy-combination{
+    gap:5px!important;
+  }
+}
 </style>
