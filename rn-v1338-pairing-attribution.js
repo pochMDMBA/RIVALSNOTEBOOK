@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.55 pairing validation and account-aware submission attribution. */
+/* RIVALSNOTEBOOK v13.57 pairing validation and account-aware submission attribution. */
 (() => {
   'use strict';
   if (window.__rnV1338RulesLoaded) return;

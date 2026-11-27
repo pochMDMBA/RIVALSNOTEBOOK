@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.55 global Synergy ranking and submitter attribution. */
+/* RIVALSNOTEBOOK v13.57 global Synergy ranking and submitter attribution. */
 (() => {
   'use strict';
   if (window.__rnV1337CommunityUiLoaded) return;
