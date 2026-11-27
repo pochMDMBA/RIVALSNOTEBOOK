@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>RIVALSNOTEBOOK · v13.60</title>
+<title>RIVALSNOTEBOOK · v13.61</title>
 <style>
 :root{--bg:#2d333f;--panel:#383f4c;--panel2:#303641;--line:#4b5361;--text:#f3f5f8;--muted:#b8c0cc;--yellow:#f5d54e;--blue:#48a9ed;--red:#f16d5d;--green:#56c77d;--orange:#f3a23c;--shadow:0 12px 30px #0003}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.38 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer;color:inherit}.app{height:100vh;max-width:1600px;margin:auto;padding:17px 24px 18px;display:flex;flex-direction:column;gap:13px;min-height:0}
@@ -1172,7 +1172,7 @@ initData();bindPlaybook();render();renderPlaybook();
     return roles.map(([role,cls])=>{
       const items = HEROES.filter(h=>h.role===role && (!q || (h.name+' '+(h.ult||'')).toLowerCase().includes(q))).sort((a,b)=>a.name.localeCompare(b.name));
       if(!items.length) return '';
-      const roleDescriptor = side === 'enemy' ? `<span>${role==='Vanguard'?'Tank':role==='Duelist'?'Damage':role==='Strategist'?'Strategist':'Flexible'}</span>` : '';
+      const roleDescriptor = '';
       return `<div class="role-group"><div class="role-head"><span class="role-pill ${cls}">${role}</span>${roleDescriptor}</div><div class="hero-grid">${items.map(h=>{
         const selected = state[side].includes(h.name);
         return `<button class="hero-card ${selected?'selected':''}" draggable="true" data-hero="${escapeHtml(h.name)}" data-roster-side="${side}" title="${escapeHtml(h.name)} · ${escapeHtml(h.ult||'')}" aria-label="${selected?'Remove':'Add'} ${escapeHtml(h.name)} ${side}"><div class="hero-portrait"><img loading="lazy" src="${escapeHtml(h.img||'')}" alt="" onerror="this.parentElement.classList.add('broken');this.remove()"><span class="portrait-fallback">${escapeHtml(h.name.split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span></div><span class="hero-name">${escapeHtml(h.name)}</span></button>`;
@@ -4335,7 +4335,7 @@ body.playbook-mode .sidebar-play-panel .play-action-row .btn{flex:1!important;mi
 
 
 <script src="./config.js"></script>
-<script src="./rivalsnotebook.js?v=1360"></script>
+<script src="./rivalsnotebook.js?v=1361"></script>
 <style id="rn-final-polish">
   body.playbook-mode .playbook-mark{width:27px!important;height:27px!important;border:1px solid #c4a957!important;border-radius:6px!important;background:linear-gradient(145deg,#3e3927,#182c35)!important;color:#ffe79b!important;font-size:10px!important;box-shadow:0 2px 7px #0007!important}
   body.playbook-mode .board-pen-tool-row #penDashedArrowBtn{display:grid!important;place-items:center!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;height:32px!important;min-height:32px!important;padding:2px!important;overflow:hidden!important;border:1px solid #3f5a6c!important;border-radius:4px!important}
