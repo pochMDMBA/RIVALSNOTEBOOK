@@ -1,8 +1,8 @@
 /* RIVALSNOTEBOOK v13.51 active tabs, matchup alignment and deduplicated counter scores. */
 (() => {
   'use strict';
-  if (window.__rnV1350SynergyUiLoaded) return;
-  window.__rnV1350SynergyUiLoaded = true;
+  if (window.__rnV1351SynergyUiLoaded) return;
+  window.__rnV1351SynergyUiLoaded = true;
 
   const style = document.createElement('style');
   style.id = 'rn-v1347-layout-fixes-style';
