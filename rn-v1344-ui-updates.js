@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.46 layout overlap fixes. */
+/* RIVALSNOTEBOOK v13.51 active tabs, matchup alignment and deduplicated counter scores. */
 (() => {
   'use strict';
   if (window.__rnV1350SynergyUiLoaded) return;
@@ -141,6 +141,43 @@
     #synergiesPage .rn-synergy-strength-badge.strength-situational,#groupsPage .rn-synergy-strength-chip.strength-situational{border-color:#64798f!important;background:#2b3e50!important;color:#c8d9ed!important}
     @media(max-width:700px){#synergiesPage .rn-synergy-content-toolbar{align-items:flex-start!important}#synergiesPage .rn-synergy-content-toolbar-actions{justify-content:flex-start!important;margin-left:0!important}}
   `;
+  style.textContent += `
+    /* v13.51: make the active workspace and roster tabs unmistakable. */
+    .page-nav .page-tab.active{
+      border:1px solid #f2d36f!important;
+      background:linear-gradient(135deg,#426f70,#2f5059)!important;
+      color:#fff9dc!important;
+      font-weight:950!important;
+      text-shadow:0 0 8px #fff1b0a6!important;
+      box-shadow:0 0 0 1px #f2d36f70,0 0 16px #6ddfd36b,inset 0 1px #ffffff38!important;
+      filter:brightness(1.18)!important;
+    }
+    .tabs .tab.active{
+      border:1px solid #f2d36f!important;
+      background:linear-gradient(135deg,#416d70,#2c4d59)!important;
+      color:#fff9dc!important;
+      font-weight:950!important;
+      text-shadow:0 0 7px #fff1b0a6!important;
+      box-shadow:0 0 0 1px #f2d36f70,0 0 13px #6ddfd35e,inset 0 1px #ffffff38!important;
+      filter:brightness(1.2)!important;
+    }
+
+    /* v13.51: keep the matchup target identity aligned to the right. */
+    #counterPage .rn-counter-role-column .reason-target{
+      display:flex!important;flex:1 1 100%!important;align-items:center!important;
+      justify-content:flex-end!important;text-align:right!important;
+      width:100%!important;min-width:0!important;margin:0 0 0 auto!important;
+      white-space:nowrap!important;
+    }
+    #counterPage .rn-counter-role-column .reason-target .reason-vs,
+    #counterPage .rn-counter-role-column .reason-target .rn-counter-vs-avatar,
+    #counterPage .rn-counter-role-column .reason-target .rn-counter-vs-name{
+      flex:0 0 auto!important;
+    }
+    #counterPage .rn-counter-role-column .reason-target .rn-counter-vs-name{
+      text-align:right!important;white-space:nowrap!important;
+    }
+`;
   document.head.appendChild(style);
 
   function installCounterControls() {
@@ -248,7 +285,59 @@
     });
   }
 
-  function install() { installCounterControls(); installSynergyEntries(); installSynergyControls(); }
+
+  function applyCounterPointDeduplication() {
+    const root = document.querySelector('#counterPage #counterResults');
+    if (!root) return;
+
+    root.querySelectorAll('.counter-post').forEach(card => {
+      const bestByOpponent = new Map();
+      card.querySelectorAll('.counter-card-body .reason').forEach(reason => {
+        const target = reason.querySelector('.rn-counter-vs-name,.reason-target-name,.reason-target');
+        const opponent = String(target?.textContent || '').replace(/^\\s*VS\\s*/i, '').replace(/\\s+/g, ' ').trim().toLocaleLowerCase();
+        if (!opponent) return;
+        const pointsNode = reason.querySelector('.rn-matchup-contribution-points,.reason-points');
+        const match = String(pointsNode?.textContent || '').match(/-?\\d+(?:\\.\\d+)?/);
+        if (!match) return;
+        const points = Number(match[0]);
+        if (!Number.isFinite(points)) return;
+        bestByOpponent.set(opponent, Math.max(bestByOpponent.has(opponent) ? bestByOpponent.get(opponent) : -Infinity, points));
+      });
+
+      const total = [...bestByOpponent.values()].reduce((sum, value) => sum + value, 0);
+      const totalValue = card.querySelector('.rn-counter-total-points strong,.rn-post-points strong');
+      if (totalValue && totalValue.textContent !== String(total)) totalValue.textContent = String(total);
+      if (card.dataset.rnDeduplicatedPoints !== String(total)) card.dataset.rnDeduplicatedPoints = String(total);
+    });
+
+    root.querySelectorAll('.rn-role-card-stack').forEach(stack => {
+      const current = [...stack.querySelectorAll(':scope > .counter-post')];
+      const sorted = [...current].sort((a, b) =>
+        (Number(b.dataset.rnDeduplicatedPoints) || 0) - (Number(a.dataset.rnDeduplicatedPoints) || 0)
+      );
+      if (sorted.some((card, index) => card !== current[index])) sorted.forEach(card => stack.appendChild(card));
+    });
+
+    const help = root.querySelector(':scope > .small-help');
+    const helpText = 'Each role column is sorted from highest to lowest points. For each suggested counter hero, only the highest score against each enemy hero counts; scores against different enemies are added together. Points per matchup include strength and upvotes.';
+    if (help && help.textContent !== helpText) help.textContent = helpText;
+  }
+
+  function installCounterScoring() {
+    if (typeof window.renderCounterResults === 'function' && !window.renderCounterResults.__rnV1351Dedup) {
+      const original = window.renderCounterResults;
+      const wrapped = function() {
+        const result = original.apply(this, arguments);
+        applyCounterPointDeduplication();
+        return result;
+      };
+      wrapped.__rnV1351Dedup = true;
+      window.renderCounterResults = wrapped;
+    }
+    applyCounterPointDeduplication();
+  }
+
+  function install() { installCounterControls(); installSynergyEntries(); installSynergyControls(); installCounterScoring(); }
   document.addEventListener('click', event => {
     const target = event.target instanceof Element ? event.target : null;
     const counter = target?.closest('#counterPage .rn-counter-collapse-control');
