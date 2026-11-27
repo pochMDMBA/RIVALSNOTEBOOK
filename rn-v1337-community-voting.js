@@ -636,6 +636,11 @@
         synergyMount.firstChild
       );
     }
+    const groupRulesToggle = $('rnIncludeGroupSynergyRules');
+    if (groupRulesToggle && !groupRulesToggle.dataset.rnV1350Bound) {
+      groupRulesToggle.dataset.rnV1350Bound = '1';
+      groupRulesToggle.addEventListener('change', () => window.renderComboResults?.());
+    }
 
     document.querySelectorAll('.rn-upvoted-filter input').forEach(input => {
       if (input.dataset.rnV1337Bound) return;
