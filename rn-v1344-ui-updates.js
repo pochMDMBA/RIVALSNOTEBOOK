@@ -1,8 +1,8 @@
-/* RIVALSNOTEBOOK v13.51 active tabs, matchup alignment and deduplicated counter scores. */
+/* RIVALSNOTEBOOK v13.52 active tabs, live refresh and restored original points totals. */
 (() => {
   'use strict';
-  if (window.__rnV1351SynergyUiLoaded) return;
-  window.__rnV1351SynergyUiLoaded = true;
+  if (window.__rnV1352SynergyUiLoaded) return;
+  window.__rnV1352SynergyUiLoaded = true;
 
   const style = document.createElement('style');
   style.id = 'rn-v1347-layout-fixes-style';
@@ -186,7 +186,11 @@
       const meta = card.querySelector('.rn-post-header-copy .rn-counter-header-meta');
       if (!body || !meta || !meta.querySelector('.rn-post-rating')) return;
       const extra = body.querySelector('.rn-counter-more-matchups');
-      if (extra) { extra.open = true; extra.querySelector(':scope > summary')?.remove(); }
+      if (extra) {
+        const reasonList = extra.querySelector(':scope > .reason-list');
+        if (reasonList) extra.replaceWith(reasonList);
+        else extra.remove();
+      }
       let button = meta.querySelector(':scope > .rn-counter-collapse-control');
       if (!button) {
         button = document.createElement('button');
@@ -195,9 +199,11 @@
         meta.appendChild(button);
       }
       const hidden = card.dataset.rnCounterMatchupsHidden === 'true';
-      body.hidden = hidden;
-      button.textContent = hidden ? 'SHOW' : 'HIDE';
-      button.setAttribute('aria-expanded', String(!hidden));
+      if (body.hidden !== hidden) body.hidden = hidden;
+      const label = hidden ? 'SHOW' : 'HIDE';
+      if (button.textContent !== label) button.textContent = label;
+      const expanded = String(!hidden);
+      if (button.getAttribute('aria-expanded') !== expanded) button.setAttribute('aria-expanded', expanded);
       button.title = hidden ? 'Show all matchup entries' : 'Hide matchup details while keeping the hero summary visible';
     });
   }
@@ -278,66 +284,17 @@
         meta.appendChild(button);
       }
       const hidden = card.dataset.rnSynergyDetailsHidden === 'true';
-      list.hidden = hidden;
-      button.textContent = hidden ? 'SHOW' : 'HIDE';
-      button.setAttribute('aria-expanded', String(!hidden));
+      if (list.hidden !== hidden) list.hidden = hidden;
+      const label = hidden ? 'SHOW' : 'HIDE';
+      if (button.textContent !== label) button.textContent = label;
+      const expanded = String(!hidden);
+      if (button.getAttribute('aria-expanded') !== expanded) button.setAttribute('aria-expanded', expanded);
       button.title = hidden ? 'Show teammate synergy details' : 'Hide teammate synergy details while keeping the suggested hero and total points visible';
     });
   }
 
 
-  function applyCounterPointDeduplication() {
-    const root = document.querySelector('#counterPage #counterResults');
-    if (!root) return;
-
-    root.querySelectorAll('.counter-post').forEach(card => {
-      const bestByOpponent = new Map();
-      card.querySelectorAll('.counter-card-body .reason').forEach(reason => {
-        const target = reason.querySelector('.rn-counter-vs-name,.reason-target-name,.reason-target');
-        const opponent = String(target?.textContent || '').replace(/^\\s*VS\\s*/i, '').replace(/\\s+/g, ' ').trim().toLocaleLowerCase();
-        if (!opponent) return;
-        const pointsNode = reason.querySelector('.rn-matchup-contribution-points,.reason-points');
-        const match = String(pointsNode?.textContent || '').match(/-?\\d+(?:\\.\\d+)?/);
-        if (!match) return;
-        const points = Number(match[0]);
-        if (!Number.isFinite(points)) return;
-        bestByOpponent.set(opponent, Math.max(bestByOpponent.has(opponent) ? bestByOpponent.get(opponent) : -Infinity, points));
-      });
-
-      const total = [...bestByOpponent.values()].reduce((sum, value) => sum + value, 0);
-      const totalValue = card.querySelector('.rn-counter-total-points strong,.rn-post-points strong');
-      if (totalValue && totalValue.textContent !== String(total)) totalValue.textContent = String(total);
-      if (card.dataset.rnDeduplicatedPoints !== String(total)) card.dataset.rnDeduplicatedPoints = String(total);
-    });
-
-    root.querySelectorAll('.rn-role-card-stack').forEach(stack => {
-      const current = [...stack.querySelectorAll(':scope > .counter-post')];
-      const sorted = [...current].sort((a, b) =>
-        (Number(b.dataset.rnDeduplicatedPoints) || 0) - (Number(a.dataset.rnDeduplicatedPoints) || 0)
-      );
-      if (sorted.some((card, index) => card !== current[index])) sorted.forEach(card => stack.appendChild(card));
-    });
-
-    const help = root.querySelector(':scope > .small-help');
-    const helpText = 'Each role column is sorted from highest to lowest points. For each suggested counter hero, only the highest score against each enemy hero counts; scores against different enemies are added together. Points per matchup include strength and upvotes.';
-    if (help && help.textContent !== helpText) help.textContent = helpText;
-  }
-
-  function installCounterScoring() {
-    if (typeof window.renderCounterResults === 'function' && !window.renderCounterResults.__rnV1351Dedup) {
-      const original = window.renderCounterResults;
-      const wrapped = function() {
-        const result = original.apply(this, arguments);
-        applyCounterPointDeduplication();
-        return result;
-      };
-      wrapped.__rnV1351Dedup = true;
-      window.renderCounterResults = wrapped;
-    }
-    applyCounterPointDeduplication();
-  }
-
-  function install() { installCounterControls(); installSynergyEntries(); installSynergyControls(); installCounterScoring(); }
+  function install() { installCounterControls(); installSynergyEntries(); installSynergyControls(); }
   document.addEventListener('click', event => {
     const target = event.target instanceof Element ? event.target : null;
     const counter = target?.closest('#counterPage .rn-counter-collapse-control');
