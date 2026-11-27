@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.52 community voting and Group Synergy Rules UI. */
+/* RIVALSNOTEBOOK v13.54 community voting, ranked synergy groups and aligned descriptions. */
 (() => {
   'use strict';
   if (window.__rnV1337CommunityUiLoaded) return;
@@ -170,7 +170,12 @@
 
   function cleanupCounterPostChrome(root = document) {
     root.querySelectorAll('#counterPage .counter-post').forEach(card => {
-      card.querySelector('.rn-post-header .rn-post-byline')?.remove();
+      const submittedBy = card.querySelector('.rn-post-header .rn-post-byline');
+      const detailBody = card.querySelector(':scope > .counter-card-body');
+      if (submittedBy && detailBody) {
+        submittedBy.classList.add('rn-counter-submitted-by');
+        detailBody.appendChild(submittedBy);
+      }
       card.querySelector('.rn-post-header .rn-post-subtitle')?.remove();
       card.querySelector('.rn-post-targets')?.remove();
       card.querySelector('.rn-post-actions .rn-post-vote')?.remove();
@@ -205,6 +210,7 @@
           titleRow.appendChild(meta);
         }
         const tier = actions.querySelector('.rn-post-rating');
+        tier?.remove();
         const points = actions.querySelector('.rn-post-points');
         if (points && meta && !meta.contains(points)) {
           points.classList.add('rn-counter-total-points');
@@ -268,7 +274,9 @@
       #synergiesPage .rn-synergy-team-entry-header .rn-post-category-edit{margin-left:auto!important;display:inline-flex!important;align-items:center!important;flex-wrap:wrap!important;gap:4px!important}
       #synergiesPage .rn-synergy-team-entry-header .rn-post-category-edit .edit-btn{min-height:22px!important;padding:3px 6px!important;font-size:7px!important}
       #synergiesPage .rn-synergy-entry-description{margin:5px 0 0!important;padding:0!important}
-      #synergiesPage .rn-synergy-entry-description .combo-reason{font-size:9px!important;line-height:1.4!important;color:#d6e0e8!important}
+      #synergiesPage .rn-synergy-entry-description .combo-reason{font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif!important;font-size:9px!important;line-height:1.4!important;color:#d6e0e8!important}
+      #counterPage .rn-counter-role-column .reason-text{font-size:9px!important}
+      #counterPage .rn-counter-submitted-by{display:block!important;margin:4px 0 0!important;color:#96a8b9!important;font-size:8px!important;font-weight:750!important;line-height:1.3!important}
       #synergiesPage .rn-synergy-entry-description .rn-post-community-attribution{margin-top:4px!important}
       #synergiesPage .rn-synergy-community-actions{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:5px!important;margin:6px 0 0!important}
       #synergiesPage .rn-synergy-contribution-points{margin-left:auto!important}
@@ -479,7 +487,15 @@
       grouped.get(suggestion).push(card);
     });
 
-    for (const [suggestion, entries] of grouped) {
+    const rankedGroups = [...grouped.entries()].map(([suggestion, entries]) => ({
+      suggestion,
+      entries: entries.sort((a,b) =>
+        (Number(b.dataset.rnSynergyContributionPoints)||0) - (Number(a.dataset.rnSynergyContributionPoints)||0) ||
+        String(a.dataset.rnSynergyTeamMember||'').localeCompare(String(b.dataset.rnSynergyTeamMember||''))),
+      totalPoints: entries.reduce((sum,card)=>sum+(Number(card.dataset.rnSynergyContributionPoints)||0),0)
+    })).sort((a,b)=>b.totalPoints-a.totalPoints||a.suggestion.localeCompare(b.suggestion));
+
+    for (const {suggestion, entries, totalPoints} of rankedGroups) {
       const firstCard = entries[0];
       const firstAvatars = [...firstCard.querySelectorAll('.rn-post-avatar-pair .rn-post-pair-avatar')];
       const suggestionAvatar = firstAvatars[1]?.cloneNode(true) || firstAvatars[0]?.cloneNode(true);
@@ -510,12 +526,9 @@
 
       const list = document.createElement('div');
       list.className = 'rn-synergy-team-list';
-      let totalPoints = 0;
-
       entries.forEach(card => {
         const teammate = String(card.dataset.rnSynergyTeamMember || '').trim();
         const points = Math.round(Number(card.dataset.rnSynergyContributionPoints) || 0);
-        totalPoints += points;
 
         const avatars = [...card.querySelectorAll('.rn-post-avatar-pair .rn-post-pair-avatar')];
         const teammateAvatar = avatars[0]?.cloneNode(true);
@@ -793,6 +806,8 @@
         color:#d9e1e8;font-size:10px;font-weight:850;line-height:1.1;
         font-variant-numeric:tabular-nums;
       }
+      #counterPage #counterResults .reason-actions .tier-badge,
+      #counterPage #counterResults .reason-actions .reason-points{display:none!important}
       .reason-actions .rn-reddit-vote-stack{margin:0 2px;}
       .reason-actions{min-width:0;}
       .reason-top>.pocket-open-btn,

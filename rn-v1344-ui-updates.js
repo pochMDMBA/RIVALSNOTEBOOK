@@ -1,8 +1,8 @@
-/* RIVALSNOTEBOOK v13.53 bulk hide controls for Counterpicker and Synergies. */
+/* RIVALSNOTEBOOK v13.54 live refresh, ranked controls and reliable Synergy editing. */
 (() => {
   'use strict';
-  if (window.__rnV1353SynergyUiLoaded) return;
-  window.__rnV1353SynergyUiLoaded = true;
+  if (window.__rnV1354SynergyUiLoaded) return;
+  window.__rnV1354SynergyUiLoaded = true;
 
   const style = document.createElement('style');
   style.id = 'rn-v1347-layout-fixes-style';
@@ -188,7 +188,7 @@
     document.querySelectorAll('#counterPage .counter-post').forEach(card => {
       const body = card.querySelector(':scope > .counter-card-body');
       const meta = card.querySelector('.rn-post-header-copy .rn-counter-header-meta');
-      if (!body || !meta || !meta.querySelector('.rn-post-rating')) return;
+      if (!body || !meta || !meta.querySelector('.rn-post-points')) return;
       const extra = body.querySelector('.rn-counter-more-matchups');
       if (extra) {
         const reasonList = extra.querySelector(':scope > .reason-list');
@@ -298,8 +298,12 @@
   }
 
 
-  let counterHideAllActive = false;
-  let synergyHideAllActive = false;
+  // The bulk setting is the default for newly rendered cards. Per-card overrides
+  // are stored on each card, so individual Show/Hide continues to work after a bulk action.
+  let counterBulkDefaultHidden = false;
+  let synergyBulkDefaultHidden = false;
+  const counterCardOverrides = new Map();
+  const synergyCardOverrides = new Map();
 
   function installGlobalHideAllControls() {
     const counterHeading = document.querySelector('#counterPage .result-scroll .section-title');
@@ -319,30 +323,34 @@
         button.className = 'rn-counter-hide-all';
         actions.appendChild(button);
       }
-      document.querySelectorAll('#counterPage .counter-post').forEach(card => {
-        const detailNodes = [
-          card.querySelector(':scope > .counter-card-body'),
-          card.querySelector(':scope > .rn-community-comment-panel')
-        ].filter(Boolean);
-        detailNodes.forEach(node => {
-          const savedState = 'rnHideAllPreviousHidden';
-          if (counterHideAllActive) {
-            if (!node.hasAttribute('data-' + savedState)) {
-              node.setAttribute('data-' + savedState, String(node.hidden));
-            }
-            if (!node.hidden) node.hidden = true;
-          } else if (node.hasAttribute('data-' + savedState)) {
-            const wasHidden = node.getAttribute('data-' + savedState) === 'true';
-            if (node.hidden !== wasHidden) node.hidden = wasHidden;
-            node.removeAttribute('data-' + savedState);
-          }
-        });
-        card.dataset.rnCounterMatchupsHidden = String(counterHideAllActive);
+
+      const cards = [...document.querySelectorAll('#counterPage .counter-post')];
+      cards.forEach(card => {
+        const body = card.querySelector(':scope > .counter-card-body');
+        if (!body) return;
+        if (card.dataset.rnCounterBulkInitialized !== 'true') {
+          card.dataset.rnCounterBulkInitialized = 'true';
+          const key = card.dataset.counterSuggestion || '';
+          const initial = key && counterCardOverrides.has(key) ? counterCardOverrides.get(key) : counterBulkDefaultHidden;
+          card.dataset.rnCounterMatchupsHidden = String(initial);
+        }
+        const hidden = card.dataset.rnCounterMatchupsHidden === 'true';
+        if (body.hidden !== hidden) body.hidden = hidden;
+        const individual = card.querySelector('.rn-counter-collapse-control');
+        if (individual) {
+          const label = hidden ? 'SHOW' : 'HIDE';
+          if (individual.textContent !== label) individual.textContent = label;
+          individual.setAttribute('aria-expanded', String(!hidden));
+        }
       });
-      const label = counterHideAllActive ? 'SHOW ALL' : 'HIDE ALL';
+
+      const allHidden = cards.length > 0 && cards.every(card =>
+        card.querySelector(':scope > .counter-card-body')?.hidden === true
+      );
+      const label = allHidden ? 'SHOW ALL' : 'HIDE ALL';
       if (button.textContent !== label) button.textContent = label;
-      button.title = counterHideAllActive ? 'Show all Counterpicker details' : 'Hide all Counterpicker details';
-      button.setAttribute('aria-expanded', String(!counterHideAllActive));
+      button.title = allHidden ? 'Show all Counterpicker details' : 'Hide all Counterpicker details';
+      button.setAttribute('aria-expanded', String(!allHidden));
     }
 
     const synergyActions = document.querySelector('#synergiesPage #synergyAddMount')
@@ -355,29 +363,34 @@
         button.className = 'rn-synergy-hide-all';
         synergyActions.appendChild(button);
       }
-      document.querySelectorAll('#synergiesPage .synergy-match-card').forEach(card => {
-        const detailNodes = [
-          card.querySelector(':scope > .rn-post-description'),
-          card.querySelector(':scope > .rn-community-comment-panel')
-        ].filter(Boolean);
-        detailNodes.forEach(node => {
-          const savedState = 'rnHideAllPreviousHidden';
-          if (synergyHideAllActive) {
-            if (!node.hasAttribute('data-' + savedState)) {
-              node.setAttribute('data-' + savedState, String(node.hidden));
-            }
-            if (!node.hidden) node.hidden = true;
-          } else if (node.hasAttribute('data-' + savedState)) {
-            const wasHidden = node.getAttribute('data-' + savedState) === 'true';
-            if (node.hidden !== wasHidden) node.hidden = wasHidden;
-            node.removeAttribute('data-' + savedState);
-          }
-        });
+
+      const cards = [...document.querySelectorAll('#synergiesPage .rn-synergy-suggestion-post')];
+      cards.forEach(card => {
+        const list = card.querySelector(':scope > .rn-synergy-team-list');
+        if (!list) return;
+        if (card.dataset.rnSynergyBulkInitialized !== 'true') {
+          card.dataset.rnSynergyBulkInitialized = 'true';
+          const key = card.dataset.suggestionHero || '';
+          const initial = key && synergyCardOverrides.has(key) ? synergyCardOverrides.get(key) : synergyBulkDefaultHidden;
+          card.dataset.rnSynergyDetailsHidden = String(initial);
+        }
+        const hidden = card.dataset.rnSynergyDetailsHidden === 'true';
+        if (list.hidden !== hidden) list.hidden = hidden;
+        const individual = card.querySelector(':scope > .rn-synergy-suggestion-header .rn-synergy-collapse-control');
+        if (individual) {
+          const label = hidden ? 'SHOW' : 'HIDE';
+          if (individual.textContent !== label) individual.textContent = label;
+          individual.setAttribute('aria-expanded', String(!hidden));
+        }
       });
-      const label = synergyHideAllActive ? 'SHOW ALL' : 'HIDE ALL';
+
+      const allHidden = cards.length > 0 && cards.every(card =>
+        card.querySelector(':scope > .rn-synergy-team-list')?.hidden === true
+      );
+      const label = allHidden ? 'SHOW ALL' : 'HIDE ALL';
       if (button.textContent !== label) button.textContent = label;
-      button.title = synergyHideAllActive ? 'Show all synergy details' : 'Hide all synergy details';
-      button.setAttribute('aria-expanded', String(!synergyHideAllActive));
+      button.title = allHidden ? 'Show all synergy suggestions' : 'Hide all synergy suggestions';
+      button.setAttribute('aria-expanded', String(!allHidden));
     }
   }
 
@@ -389,51 +402,123 @@
   }
   document.addEventListener('click', event => {
     const target = event.target instanceof Element ? event.target : null;
-    const counterAll = target?.closest('#counterPage .rn-counter-hide-all');
+    if (!target) return;
+
+    // The condensed Synergy DOM re-parents EDIT buttons. Route them here rather than
+    // relying on the old listener attached to the pre-condensed result element.
+    const editCombo = target.closest('#synergiesPage [data-edit-combo]');
+    const editRule = target.closest('#synergiesPage [data-edit-combo-rule]');
+    if (editCombo || editRule) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      const appState = (() => {
+        try { if (typeof state !== 'undefined') return state; } catch (_) {}
+        return window.state || null;
+      })();
+      if (!appState) return;
+      if (editRule) {
+        const rule = (appState.comboRules || []).find(item => item.id === editRule.dataset.editComboRule);
+        if (!rule) return;
+        appState.returnToGroupManager = true;
+        appState.rnGroupRuleMode = 'synergy';
+        window.switchPage?.('groupsPage');
+        window.openComboRuleEditor?.(rule);
+      } else {
+        const combo = (appState.combos || []).find(item => item.id === editCombo.dataset.editCombo);
+        if (!combo) return;
+        appState.rnGroupRuleMode = '';
+        appState.returnToGroupManager = false;
+        window.switchPage?.('synergiesPage');
+        window.openComboEditor?.(combo);
+      }
+      return;
+    }
+
+    const counterAll = target.closest('#counterPage .rn-counter-hide-all');
     if (counterAll) {
-      const details = [...document.querySelectorAll('#counterPage .counter-post > .counter-card-body, #counterPage .counter-post > .rn-community-comment-panel')];
-      if (!details.length) return;
-      counterHideAllActive = details.some(node => !node.hidden);
+      const cards = [...document.querySelectorAll('#counterPage .counter-post')];
+      if (!cards.length) return;
+      const allHidden = cards.every(card => card.querySelector(':scope > .counter-card-body')?.hidden === true);
+      counterBulkDefaultHidden = !allHidden;
+      counterCardOverrides.clear();
+      cards.forEach(card => {
+        const body = card.querySelector(':scope > .counter-card-body');
+        if (!body) return;
+        card.dataset.rnCounterBulkInitialized = 'true';
+        card.dataset.rnCounterMatchupsHidden = String(counterBulkDefaultHidden);
+        body.hidden = counterBulkDefaultHidden;
+        const individual = card.querySelector('.rn-counter-collapse-control');
+        if (individual) {
+          individual.textContent = counterBulkDefaultHidden ? 'SHOW' : 'HIDE';
+          individual.setAttribute('aria-expanded', String(!counterBulkDefaultHidden));
+        }
+      });
       installGlobalHideAllControls();
       return;
     }
-    const synergyAll = target?.closest('#synergiesPage .rn-synergy-hide-all');
+
+    const synergyAll = target.closest('#synergiesPage .rn-synergy-hide-all');
     if (synergyAll) {
-      const details = [...document.querySelectorAll('#synergiesPage .synergy-match-card > .rn-post-description, #synergiesPage .synergy-match-card > .rn-community-comment-panel')];
-      if (!details.length) return;
-      synergyHideAllActive = details.some(node => !node.hidden);
+      const cards = [...document.querySelectorAll('#synergiesPage .rn-synergy-suggestion-post')];
+      if (!cards.length) return;
+      const allHidden = cards.every(card => card.querySelector(':scope > .rn-synergy-team-list')?.hidden === true);
+      synergyBulkDefaultHidden = !allHidden;
+      synergyCardOverrides.clear();
+      cards.forEach(card => {
+        const list = card.querySelector(':scope > .rn-synergy-team-list');
+        if (!list) return;
+        card.dataset.rnSynergyBulkInitialized = 'true';
+        card.dataset.rnSynergyDetailsHidden = String(synergyBulkDefaultHidden);
+        list.hidden = synergyBulkDefaultHidden;
+        const individual = card.querySelector(':scope > .rn-synergy-suggestion-header .rn-synergy-collapse-control');
+        if (individual) {
+          individual.textContent = synergyBulkDefaultHidden ? 'SHOW' : 'HIDE';
+          individual.setAttribute('aria-expanded', String(!synergyBulkDefaultHidden));
+        }
+      });
       installGlobalHideAllControls();
       return;
     }
-    const counter = target?.closest('#counterPage .rn-counter-collapse-control');
+
+    const counter = target.closest('#counterPage .rn-counter-collapse-control');
     if (counter) {
       const card = counter.closest('.counter-post');
       const body = card?.querySelector(':scope > .counter-card-body');
       if (!card || !body) return;
       const hidden = !body.hidden;
       body.hidden = hidden;
+      card.dataset.rnCounterBulkInitialized = 'true';
       card.dataset.rnCounterMatchupsHidden = String(hidden);
+      const key = card.dataset.counterSuggestion || '';
+      if (key) counterCardOverrides.set(key, hidden);
       counter.textContent = hidden ? 'SHOW' : 'HIDE';
       counter.setAttribute('aria-expanded', String(!hidden));
+      installGlobalHideAllControls();
       return;
     }
-    const synergy = target?.closest('#synergiesPage .rn-synergy-collapse-control');
+
+    const synergy = target.closest('#synergiesPage .rn-synergy-collapse-control');
     if (synergy) {
       const card = synergy.closest('.rn-synergy-suggestion-post');
       const list = card?.querySelector(':scope > .rn-synergy-team-list');
       if (!card || !list) return;
       const hidden = !list.hidden;
       list.hidden = hidden;
+      card.dataset.rnSynergyBulkInitialized = 'true';
       card.dataset.rnSynergyDetailsHidden = String(hidden);
+      const key = card.dataset.suggestionHero || '';
+      if (key) synergyCardOverrides.set(key, hidden);
       synergy.textContent = hidden ? 'SHOW' : 'HIDE';
       synergy.setAttribute('aria-expanded', String(!hidden));
+      installGlobalHideAllControls();
     }
   }, true);
 
   function start() {
     install();
-    if (!document.body || document.body.dataset.rnV1344Observer) return;
-    document.body.dataset.rnV1344Observer = '1';
+    if (!document.body || document.body.dataset.rnV1354Observer) return;
+    document.body.dataset.rnV1354Observer = '1';
     let queued = false;
     const observer = new MutationObserver(() => {
       if (queued) return;
