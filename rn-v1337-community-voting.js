@@ -773,7 +773,7 @@
     });
     root.querySelectorAll('.pick-card').forEach(card => {
       const rows = [...card.querySelectorAll('.reason')];
-      if (rows.length) card.classList.toggle('rn-filtered-out',onlyUpvoted.counter && rows.every(row=>row.classList.contains('rn-filtered-out')));
+      if (rows.length) card.classList.toggle('rn-filtered-out',rows.every(row=>row.classList.contains('rn-filtered-out')));
     });
     let notice = root.querySelector('.rn-vote-filter-empty');
     if (onlyUpvoted.counter && reasons.length && visibleReasons === 0) {
