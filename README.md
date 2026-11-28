@@ -1,6 +1,6 @@
 # RIVALSNOTEBOOK
 
-**Current deployment package: v13.63.** Removed bundled non-user counter and synergy recommendations, retained player-submitted entries, Group Rules and Official Team-Ups, and moved Counterpicker submitter attribution to the bottom of each entry.
+**Current deployment package: v13.64.** Increased Counterpicker matchup description size, restored the Include Group Rules filter, and cleaned author labels so matchup entries display only the actual submitter username.
 
 **v13.30 baseline:** Replaced the six Competitive Domination cover thumbnails with clean crops from the latest unannotated `marvelrivals.gg/maps/` screenshot. All 18 Domination 2D layout URLs and the separate cover/tactical map asset registries are retained. Saved Plays are restricted to one map and its complete Point/Submap plus 2D view set; changing maps from an active saved play prompts to start a new play.
 

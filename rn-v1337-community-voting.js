@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.60 role-column Synergy ranking and submitter attribution. */
+/* RIVALSNOTEBOOK v13.64 Counterpicker filters and readable matchup descriptions. */
 (() => {
   'use strict';
   if (window.__rnV1337CommunityUiLoaded) return;
@@ -13,6 +13,7 @@
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   })[ch]);
   const onlyUpvoted = {synergy:false,counter:false};
+  let includeGroupCounterRules = true;
 
   function groupRuleFormActive() {
     const s = appState();
@@ -170,12 +171,8 @@
 
   function cleanupCounterPostChrome(root = document) {
     root.querySelectorAll('#counterPage .counter-post').forEach(card => {
-      const submittedBy = card.querySelector('.rn-post-header .rn-post-byline');
-      const detailBody = card.querySelector(':scope > .counter-card-body');
-      if (submittedBy && detailBody) {
-        submittedBy.classList.add('rn-counter-submitted-by');
-        detailBody.appendChild(submittedBy);
-      }
+      card.querySelector('.rn-post-header .rn-post-byline')?.remove();
+      card.querySelectorAll('.rn-counter-submitted-by').forEach(node => node.remove());
       card.querySelector('.rn-post-header .rn-post-subtitle')?.remove();
       card.querySelector('.rn-post-targets')?.remove();
       card.querySelector('.rn-post-actions .rn-post-vote')?.remove();
@@ -272,7 +269,7 @@
       #synergiesPage .rn-synergy-team-entry-header .rn-post-category-edit .edit-btn{min-height:22px!important;padding:3px 6px!important;font-size:7px!important}
       #synergiesPage .rn-synergy-entry-description{margin:5px 0 0!important;padding:0!important}
       #synergiesPage .rn-synergy-entry-description .combo-reason{font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif!important;font-size:9px!important;line-height:1.4!important;color:#d6e0e8!important}
-      #counterPage .rn-counter-role-column .reason-text{font-size:9px!important}
+      #counterPage .rn-counter-role-column .reason-text{font-size:12px!important;line-height:1.55!important}
       #counterPage .rn-counter-submitted-by{display:block!important;margin:4px 0 0!important;color:#96a8b9!important;font-size:8px!important;font-weight:750!important;line-height:1.3!important}
       #synergiesPage .rn-synergy-entry-description .rn-post-source-attribution{margin-top:5px!important;color:#94a8b7!important;font-size:8px!important;line-height:1.3!important}
       #synergiesPage .rn-synergy-entry-description .rn-post-source-attribution a{color:#b7d9ed!important;text-decoration:none!important}
@@ -325,17 +322,10 @@
         if (actions && !actions.children.length) actions.remove();
 
         const threadKey = counterMatchupThreadKey(item, isGroup, ruleId, pairKey, contentId);
-        let attribution = reason?.querySelector('.tip-foot');
-        if (reason && !attribution) {
-          attribution = document.createElement('div');
-          attribution.className = 'tip-foot rn-matchup-community-label';
-          attribution.textContent = item?.source || 'Community matchup tip';
-          const description = reason.querySelector('.reason-text');
-          if (description) description.after(attribution);
-          else reason.appendChild(attribution);
-        }
-        const bottomRow = reason?.querySelector('.reason-bottom-row');
-        if (bottomRow && attribution && !bottomRow.contains(attribution)) bottomRow.prepend(attribution);
+        // Source/category labels are not submitter names. The attribution layer adds
+        // only "Submitted by [Username]" after this renderer finishes.
+        reason?.querySelectorAll('.tip-foot,.rn-matchup-community-label,.rn-counter-submitted-by,.rn-post-byline,.rn-post-source-attribution')
+          .forEach(node => node.remove());
         appendMatchupCommunityActions(reason, voteStack, threadKey, counterContributionPoints(item));
         if (actions && !actions.children.length) actions.remove();
         return template.innerHTML;
@@ -707,11 +697,25 @@
     return label;
   }
 
+  function createGroupCounterRulesFilter() {
+    const label = document.createElement('label');
+    label.className = 'rn-include-group-counter-rules';
+    label.innerHTML = '<input type="checkbox" id="rnIncludeGroupCounterRules" checked><span>Include Group Rules</span>';
+    return label;
+  }
+
   function installFilters() {
     const counterTitle = document.querySelector('#counterPage .result-scroll > .section-title');
-    if (counterTitle && !$('rnShowOnlyUpvotedCounter')) {
+    if (counterTitle) {
       const target = counterTitle.querySelector('#addCounterBtn')?.parentElement || counterTitle;
-      target.insertBefore(createFilter('rnShowOnlyUpvotedCounter','counter','Show Only Upvoted Counter Picks'),target.firstChild);
+      if (!$('rnShowOnlyUpvotedCounter')) {
+        target.insertBefore(createFilter('rnShowOnlyUpvotedCounter','counter','Show Only Upvoted Counter Picks'),target.firstChild);
+      }
+      if (!$('rnIncludeGroupCounterRules')) {
+        const toggle = createGroupCounterRulesFilter();
+        const upvoted = $('rnShowOnlyUpvotedCounter')?.parentElement;
+        target.insertBefore(toggle,upvoted?.nextSibling || target.firstChild);
+      }
     }
 
     const synergyMount = $('synergyAddMount');
@@ -721,6 +725,16 @@
         synergyMount.firstChild
       );
     }
+    const counterGroupRulesToggle = $('rnIncludeGroupCounterRules');
+    if (counterGroupRulesToggle && !counterGroupRulesToggle.dataset.rnV1364Bound) {
+      counterGroupRulesToggle.dataset.rnV1364Bound = '1';
+      counterGroupRulesToggle.checked = includeGroupCounterRules;
+      counterGroupRulesToggle.addEventListener('change', () => {
+        includeGroupCounterRules = !!counterGroupRulesToggle.checked;
+        applyCounterFilter();
+      });
+    }
+
     const groupRulesToggle = $('rnIncludeGroupSynergyRules');
     if (groupRulesToggle && !groupRulesToggle.dataset.rnV1350Bound) {
       groupRulesToggle.dataset.rnV1350Bound = '1';
@@ -751,7 +765,9 @@
     const reasons = [...root.querySelectorAll('.reason')];
     reasons.forEach(reason => {
       const stack = reason.querySelector('[data-rn-vote-stack]');
-      const visible = !onlyUpvoted.counter || Number(stack?.dataset.myDirection) === 1;
+      const isGroupRule = !!reason.querySelector('[data-rn-vote-stack][data-content-type="group_counter"],[data-vote-groupcounter]');
+      const visible = (!onlyUpvoted.counter || Number(stack?.dataset.myDirection) === 1)
+        && (includeGroupCounterRules || !isGroupRule);
       reason.classList.toggle('rn-filtered-out',!visible);
       if (visible) visibleReasons++;
     });
@@ -894,6 +910,8 @@
       #counterPage .section-title>div{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px;}
       #counterPage .reason.rn-filtered-out,
       #counterPage .pick-card.rn-filtered-out{display:none!important;}
+      #counterPage .rn-include-group-counter-rules{display:inline-flex;align-items:center;gap:5px;flex:0 1 auto;min-width:0;color:#bdc9d5;font-size:9px;font-weight:750;line-height:1.25;white-space:nowrap;cursor:pointer}
+      #counterPage .rn-include-group-counter-rules input{width:13px;height:13px;margin:0;flex:0 0 13px;accent-color:#c26f64;cursor:pointer}
       .rn-vote-filter-empty{margin-top:8px;}
       @media(max-width:700px){
         .rn-upvoted-filter{white-space:normal;max-width:190px;}
@@ -927,7 +945,7 @@
       const observer = new MutationObserver(() => {
         retry();
         cleanupCounterPostChrome();
-        if (onlyUpvoted.counter) applyCounterFilter();
+        if (onlyUpvoted.counter || !includeGroupCounterRules) applyCounterFilter();
       });
       observer.observe(document.body,{childList:true,subtree:true});
       window.__rnV1337UiObserver = observer;

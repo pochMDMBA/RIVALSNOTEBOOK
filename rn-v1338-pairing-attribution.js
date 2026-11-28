@@ -1,4 +1,4 @@
-/* RIVALSNOTEBOOK v13.63 source cleanup and display-name attribution. */
+/* RIVALSNOTEBOOK v13.64 Counterpicker attribution cleanup. */
 (() => {
   'use strict';
   if (window.__rnV1338RulesLoaded) return;
@@ -198,6 +198,13 @@
     return changed;
   }
 
+  function cleanSubmitter(value) {
+    const name=String(value||'').trim().replace(/^submitted by\\s*/i,'').trim();
+    if (!name) return '';
+    if (/^(community tip|community matchup tip|group rule|group counter rule|group synergy rule|community synergy|official team-up|source|reddit|marvel)$/i.test(name)) return '';
+    return name;
+  }
+
   function developerSubmission(record, kind) {
     return looksUserSubmitted(record,kind);
   }
@@ -261,13 +268,15 @@
     template.innerHTML=String(html||'').trim();
     const card=template.content.querySelector(selector);
     if (!card) return html;
-    if (card.querySelector('.rn-submitted-by')) return template.innerHTML;
-    const label=document.createElement('div');
+    const existing=card.querySelector('.rn-submitted-by');
+    const name=cleanSubmitter(record?.submittedByName)||cleanSubmitter(existing?.textContent)||cleanSubmitter(currentSubmitter().name)||DEV_NAME;
+    const label=existing||document.createElement('div');
     label.className='rn-submitted-by';
-    label.textContent='Submitted by '+String(record?.submittedByName||currentSubmitter().name||DEV_NAME);
+    label.textContent='Submitted by '+name;
     const target=insertBeforeSelector ? card.querySelector(insertBeforeSelector) : null;
     if (target) target.insertAdjacentElement('beforebegin',label);
     else card.appendChild(label);
+    card.querySelectorAll('.rn-submitted-by').forEach(node=>{if(node!==label)node.remove();});
     return template.innerHTML;
   }
 
@@ -276,14 +285,8 @@
     template.innerHTML=String(html||'').trim();
     const card=template.content.querySelector(selector);
     if (!card) return html;
-    const sourceLabel=card.querySelector('.rn-matchup-community-label, .tip-foot');
-    if (sourceLabel) {
-      if (developerSubmission(record,kind)) sourceLabel.remove();
-      else {
-        const source=String(sourceLabel.textContent||'').trim();
-        if (source && !/^Source:/i.test(source)) sourceLabel.textContent='Source: '+source;
-      }
-    }
+    card.querySelectorAll('.rn-matchup-community-label,.tip-foot,.rn-counter-submitted-by,.rn-post-byline,.rn-post-source-attribution')
+      .forEach(node=>node.remove());
     return decorateCardHtml(template.innerHTML,selector,record,kind,insertBeforeSelector);
   }
 
@@ -340,7 +343,7 @@
 
     wrapCardRenderer('reasonHtml','.reason','counter','counter',null,item=>{
       const s=getState();
-      return item?.generated ? (s?.groupRules||[]).find(x=>x.id===item.groupRuleId) : item;
+      return item?.generated ? (s?.groupRules||[]).find(x=>String(x.id)===String(item.groupRuleId)) : item;
     });
     wrapCardRenderer('comboCardHtml','.combo-card','synergy','synergy','.combo-foot',item=>{
       const s=getState();
