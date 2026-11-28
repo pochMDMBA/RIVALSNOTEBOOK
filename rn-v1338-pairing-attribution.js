@@ -199,7 +199,7 @@
   }
 
   function cleanSubmitter(value) {
-    const name=String(value||'').trim().replace(/^submitted by\\s*/i,'').trim();
+    const name=String(value||'').trim().replace(/^submitted by\s*/i,'').trim();
     if (!name) return '';
     if (/^(community tip|community matchup tip|group rule|group counter rule|group synergy rule|community synergy|official team-up|source|reddit|marvel)$/i.test(name)) return '';
     return name;
